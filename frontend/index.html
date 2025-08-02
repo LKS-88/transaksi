@@ -882,35 +882,7 @@
         moment.locale('id');
 
         // Data storage
-        const STORAGE_KEYS = {
-            PRODUCTS: 'anekamarket_products',
-            CATEGORIES: 'anekamarket_categories',
-            CUSTOMERS: 'anekamarket_customers',
-            TRANSACTIONS: 'anekamarket_transactions',
-            USER: 'anekamarket_user',
-            CART: 'anekamarket_cart',
-            SETTINGS: 'anekamarket_settings',
-            USERS: 'anekamarket_users',
-            STOCK_HISTORY: 'anekamarket_stock_history'
-        };
-        
-        // Default admin user (username: admin, password: Admin.13579)
-        const DEFAULT_ADMIN = {
-            id: 'U001',
-            username: 'admin',
-            password: CryptoJS.SHA256('Admin.13579').toString(),
-            name: 'Administrator',
-            role: 'admin'
-        };
-        
-        // Default cashier user (username: kasir, password: kasir123)
-        const DEFAULT_CASHIER = {
-            id: 'U002',
-            username: 'kasir',
-            password: CryptoJS.SHA256('kasir123').toString(),
-            name: 'Kasir',
-            role: 'cashier'
-        };
+       
         
         // Initialize data
         function initializeData() {
