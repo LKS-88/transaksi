@@ -1,43 +1,23 @@
-// transactions.js - Transaction management
-const Transactions = (function() {
-    const STORAGE_KEY = 'anekamarket_transactions';
-    
-    function init() {
-        updateCart();
-        setupEventListeners();
-    }
+let currentCart = JSON.parse(localStorage.getItem(STORAGE_KEYS.CART)) || {
+    items: [],
+    subtotal: 0,
+    discount: 0,
+    donation: 0,
+    shipping: 0,
+    total: 0
+};
 
-    function setupEventListeners() {
-        // Add to cart
-        $(document).on('click', '.product-card', function() {
-            const productId = $(this).data('id');
-            addToCart(productId);
-        });
-        
-        // Checkout
-        $('#checkoutBtn').click(handleCheckout);
-    }
-
-    function addToCart(productId) {
-        // ... implementasi tambah ke keranjang
-    }
-
-    function updateCart() {
-        // ... implementasi update keranjang
-    }
-
-    function handleCheckout() {
-        // ... implementasi checkout
-    }
-
-    return {
-        init,
-        addToCart,
-        updateCart
-    };
-})();
-
-// Ekspor untuk testing
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = Transactions;
+function updateCart() {
+    // Calculate cart totals...
+    localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(currentCart));
+    return currentCart;
 }
+
+function createTransaction(transactionData) {
+    const transactions = getTransactions();
+    transactions.unshift(transactionData);
+    saveTransactions(transactions);
+    return transactionData;
+}
+
+// ... other transaction related functions ...
