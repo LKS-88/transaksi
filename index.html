@@ -828,6 +828,25 @@
         .profit-negative {
             color: var(--danger);
         }
+
+        /* Member/Customer Badge */
+        .customer-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-left: 4px;
+        }
+
+        .member-badge {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .customer-badge {
+            background-color: var(--info);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -924,6 +943,7 @@
                     <button id="addProductBtn" class="btn btn-sm mb-2">Tambah Produk</button>
                     <button id="manageCategoriesBtn" class="btn btn-sm mb-2">Kelola Kategori</button>
                     <button id="manageCashiersBtn" class="btn btn-sm mb-2">Kelola Kasir</button>
+                    <button id="manageCustomersBtn" class="btn btn-sm mb-2">Kelola Pelanggan</button>
                     <button id="viewReportsBtn" class="btn btn-sm mb-2">Laporan Penjualan</button>
                     <button id="viewStockOpnameBtn" class="btn btn-sm mb-2">Stock Opname</button>
                     <button id="viewProfitReportBtn" class="btn btn-sm mb-2">Laporan Laba</button>
@@ -998,6 +1018,8 @@
                         <select id="customerType" class="form-control">
                             <option value="walkin">Pelanggan Biasa</option>
                             <option value="member">Member</option>
+                            <option value="new_member">Buat Member Baru</option>
+                            <option value="new_customer">Buat Pelanggan Baru</option>
                         </select>
                     </div>
                     
@@ -1016,6 +1038,32 @@
                         <div class="form-group">
                             <label class="form-label">No. Telepon</label>
                             <input type="text" id="customerPhone" class="form-control" placeholder="Masukkan no. telepon">
+                        </div>
+                    </div>
+
+                    <div id="newMemberFields" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label">Nama Member</label>
+                            <input type="text" id="newMemberName" class="form-control" placeholder="Masukkan nama member">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">No. Telepon</label>
+                            <input type="text" id="newMemberPhone" class="form-control" placeholder="Masukkan no. telepon">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Alamat</label>
+                            <textarea id="newMemberAddress" class="form-control" placeholder="Masukkan alamat"></textarea>
+                        </div>
+                    </div>
+
+                    <div id="newCustomerFields" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label">Nama Pelanggan</label>
+                            <input type="text" id="newCustomerName" class="form-control" placeholder="Masukkan nama pelanggan">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">No. Telepon</label>
+                            <input type="text" id="newCustomerPhone" class="form-control" placeholder="Masukkan no. telepon">
                         </div>
                     </div>
                 </div>
@@ -1134,6 +1182,10 @@
                             <option value="Lembar">Lembar</option>
                             <option value="Sachet">Sachet</option>
                             <option value="Roll">Roll</option>
+                            <option value="Botol">Botol</option>
+                            <option value="Karung">Karung</option>
+                            <option value="Kotak">Kotak</option>
+                            <option value="Lusin">Lusin</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1267,6 +1319,62 @@
         </div>
     </div>
 
+    <!-- Manage Customers Modal -->
+    <div id="manageCustomersModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Kelola Pelanggan</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="tabs">
+                    <div class="tab active" data-tab="members">Member</div>
+                    <div class="tab" data-tab="customers">Pelanggan</div>
+                </div>
+                
+                <div class="tab-content active" id="membersTab">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID Member</th>
+                                <th>Nama</th>
+                                <th>Telepon</th>
+                                <th>Alamat</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="membersList">
+                            <!-- Members will be listed here -->
+                        </tbody>
+                    </table>
+                    
+                    <button id="addMemberBtn" class="btn btn-sm btn-success mt-3">Tambah Member</button>
+                </div>
+                
+                <div class="tab-content" id="customersTab">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID Pelanggan</th>
+                                <th>Nama</th>
+                                <th>Telepon</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersList">
+                            <!-- Customers will be listed here -->
+                        </tbody>
+                    </table>
+                    
+                    <button id="addCustomerBtn" class="btn btn-sm btn-success mt-3">Tambah Pelanggan</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" id="cancelManageCustomers">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Add/Edit Cashier Modal -->
     <div id="cashierModal" class="modal">
         <div class="modal-content">
@@ -1305,6 +1413,38 @@
             <div class="modal-footer">
                 <button class="btn btn-warning" id="cancelCashier">Batal</button>
                 <button class="btn btn-success" id="saveCashierBtn">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Member/Customer Modal -->
+    <div id="customerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="customerModalTitle">Tambah Member Baru</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="customerForm">
+                    <input type="hidden" id="customerId">
+                    <input type="hidden" id="customerTypeInput">
+                    <div class="form-group">
+                        <label class="form-label">Nama</label>
+                        <input type="text" id="customerFormName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">No. Telepon</label>
+                        <input type="text" id="customerFormPhone" class="form-control" required>
+                    </div>
+                    <div class="form-group" id="customerAddressField">
+                        <label class="form-label">Alamat</label>
+                        <textarea id="customerFormAddress" class="form-control" placeholder="Masukkan alamat"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" id="cancelCustomer">Batal</button>
+                <button class="btn btn-success" id="saveCustomerBtn">Simpan</button>
             </div>
         </div>
     </div>
@@ -1681,6 +1821,7 @@
         let pendingAdminAction = null;
         let currentEditingProduct = null;
         let currentEditingCashier = null;
+        let currentEditingCustomer = null;
 
         // Initialize the app
         $(document).ready(function() {
@@ -1919,6 +2060,8 @@
                 $('#customerType').val('walkin');
                 $('#memberFields').hide();
                 $('#customerFields').hide();
+                $('#newMemberFields').hide();
+                $('#newCustomerFields').hide();
                 $('#shippingMethod').val('none');
                 $('#shippingFields').hide();
                 $('#nextTabBtn').show();
@@ -1928,16 +2071,27 @@
                 $('[data-tab="customer"]').addClass('active');
                 $('.tab-content').removeClass('active');
                 $('#customerTab').addClass('active');
+                $('#cartDonation').val(0); // Reset donation to 0
             });
             
             // Customer type change
             $('#customerType').change(function() {
-                if ($(this).val() === 'member') {
+                const type = $(this).val();
+                
+                $('#memberFields').hide();
+                $('#customerFields').hide();
+                $('#newMemberFields').hide();
+                $('#newCustomerFields').hide();
+                
+                if (type === 'member') {
                     $('#memberFields').show();
                     $('#customerFields').show();
-                } else {
-                    $('#memberFields').hide();
+                } else if (type === 'walkin') {
                     $('#customerFields').show();
+                } else if (type === 'new_member') {
+                    $('#newMemberFields').show();
+                } else if (type === 'new_customer') {
+                    $('#newCustomerFields').show();
                 }
             });
             
@@ -2013,8 +2167,10 @@
                 const currentTab = $('.tab.active').data('tab');
                 
                 if (currentTab === 'customer') {
-                    // Validate customer info if member
-                    if ($('#customerType').val() === 'member') {
+                    const customerType = $('#customerType').val();
+                    
+                    // Validate customer info based on type
+                    if (customerType === 'member') {
                         const memberId = $('#memberId').val().trim();
                         if (!memberId) {
                             showToast('ID Member harus diisi', 'warning');
@@ -2028,16 +2184,73 @@
                             return;
                         }
                         
-                        // Apply member discount
+                        // Apply member discount (2%)
                         currentCart.customer = member;
-                        currentCart.discount = (currentCart.subtotal * member.discount) / 100;
-                    } else {
+                        currentCart.discount = (currentCart.subtotal * 0.02); // 2% discount
+                    } 
+                    else if (customerType === 'walkin') {
                         currentCart.customer = {
                             type: 'walkin',
                             name: $('#customerName').val() || 'Pelanggan Biasa',
                             phone: $('#customerPhone').val() || ''
                         };
                         currentCart.discount = 0;
+                    }
+                    else if (customerType === 'new_member') {
+                        const name = $('#newMemberName').val().trim();
+                        const phone = $('#newMemberPhone').val().trim();
+                        const address = $('#newMemberAddress').val().trim();
+                        
+                        if (!name || !phone) {
+                            showToast('Nama dan telepon harus diisi', 'warning');
+                            return;
+                        }
+                        
+                        // Generate member ID (5 characters)
+                        const memberId = generateCustomerId();
+                        
+                        // Create new member
+                        const newMember = {
+                            id: memberId,
+                            name: name,
+                            phone: phone,
+                            address: address,
+                            type: 'member',
+                            discount: 2, // 2% discount for members
+                            joinDate: new Date()
+                        };
+                        
+                        // Add to customers
+                        customers.unshift(newMember);
+                        saveCustomers();
+                        
+                        // Set as current customer and apply discount
+                        currentCart.customer = newMember;
+                        currentCart.discount = (currentCart.subtotal * 0.02); // 2% discount
+                        
+                        showToast(`Member baru berhasil dibuat (ID: ${memberId})`, 'success');
+                    }
+                    else if (customerType === 'new_customer') {
+                        const name = $('#newCustomerName').val().trim();
+                        const phone = $('#newCustomerPhone').val().trim();
+                        
+                        if (!name || !phone) {
+                            showToast('Nama dan telepon harus diisi', 'warning');
+                            return;
+                        }
+                        
+                        // Create new customer
+                        const newCustomer = {
+                            type: 'walkin',
+                            name: name,
+                            phone: phone
+                        };
+                        
+                        // Set as current customer
+                        currentCart.customer = newCustomer;
+                        currentCart.discount = 0;
+                        
+                        showToast('Pelanggan baru berhasil ditambahkan', 'success');
                     }
                     
                     // Update donation
@@ -2212,6 +2425,16 @@
                 }
             });
             
+            $('#manageCustomersBtn').click(function() {
+                if (currentUser.role === 'admin') {
+                    $('#manageCustomersModal').show();
+                    loadCustomers();
+                } else {
+                    pendingAdminAction = 'manageCustomers';
+                    $('#adminPasswordModal').show();
+                }
+            });
+            
             $('#viewReportsBtn').click(function() {
                 if (currentUser.role === 'admin') {
                     $('#reportsModal').show();
@@ -2266,6 +2489,137 @@
                     pendingAdminAction = 'backupData';
                     $('#adminPasswordModal').show();
                 }
+            });
+            
+            // Add member button
+            $('#addMemberBtn').click(function() {
+                $('#customerModalTitle').text('Tambah Member Baru');
+                $('#customerForm')[0].reset();
+                $('#customerId').val('');
+                $('#customerTypeInput').val('member');
+                $('#customerAddressField').show();
+                $('#customerModal').show();
+            });
+            
+            // Add customer button
+            $('#addCustomerBtn').click(function() {
+                $('#customerModalTitle').text('Tambah Pelanggan Baru');
+                $('#customerForm')[0].reset();
+                $('#customerId').val('');
+                $('#customerTypeInput').val('walkin');
+                $('#customerAddressField').hide();
+                $('#customerModal').show();
+            });
+            
+            // Edit member/customer button
+            $(document).on('click', '.edit-customer', function() {
+                const customerId = $(this).data('id');
+                const customer = customers.find(c => c.id === customerId);
+                
+                if (!customer) return;
+                
+                if (currentUser.role !== 'admin') {
+                    showToast('Hanya admin yang dapat mengedit pelanggan', 'error');
+                    return;
+                }
+                
+                if (customer.type === 'member') {
+                    $('#customerModalTitle').text('Edit Member');
+                    $('#customerAddressField').show();
+                } else {
+                    $('#customerModalTitle').text('Edit Pelanggan');
+                    $('#customerAddressField').hide();
+                }
+                
+                $('#customerId').val(customer.id);
+                $('#customerTypeInput').val(customer.type);
+                $('#customerFormName').val(customer.name);
+                $('#customerFormPhone').val(customer.phone);
+                $('#customerFormAddress').val(customer.address || '');
+                $('#customerModal').show();
+            });
+            
+            // Delete member/customer button
+            $(document).on('click', '.delete-customer', function() {
+                const customerId = $(this).data('id');
+                
+                if (currentUser.role !== 'admin') {
+                    showToast('Hanya admin yang dapat menghapus pelanggan', 'error');
+                    return;
+                }
+                
+                if (confirm('Apakah Anda yakin ingin menghapus pelanggan ini?')) {
+                    customers = customers.filter(c => c.id !== customerId);
+                    saveCustomers();
+                    loadCustomers();
+                    showToast('Pelanggan berhasil dihapus', 'success');
+                }
+            });
+            
+            // Save member/customer
+            $('#saveCustomerBtn').click(function() {
+                const id = $('#customerId').val();
+                const name = $('#customerFormName').val().trim();
+                const phone = $('#customerFormPhone').val().trim();
+                const address = $('#customerFormAddress').val().trim();
+                const type = $('#customerTypeInput').val();
+                
+                if (!name || !phone) {
+                    showToast('Nama dan telepon harus diisi', 'error');
+                    return;
+                }
+                
+                if (id) {
+                    // Editing existing customer
+                    const customerIndex = customers.findIndex(c => c.id === id);
+                    if (customerIndex === -1) return;
+                    
+                    // Update customer
+                    customers[customerIndex].name = name;
+                    customers[customerIndex].phone = phone;
+                    
+                    if (type === 'member') {
+                        customers[customerIndex].address = address;
+                    }
+                } else {
+                    // Adding new customer
+                    if (type === 'member') {
+                        // Create new member
+                        const newMember = {
+                            id: generateCustomerId(),
+                            name: name,
+                            phone: phone,
+                            address: address,
+                            type: 'member',
+                            discount: 2, // 2% discount for members
+                            joinDate: new Date()
+                        };
+                        
+                        customers.unshift(newMember);
+                    } else {
+                        // Create new customer
+                        const newCustomer = {
+                            type: 'walkin',
+                            name: name,
+                            phone: phone
+                        };
+                        
+                        customers.unshift(newCustomer);
+                    }
+                }
+                
+                saveCustomers();
+                loadCustomers();
+                
+                $('#customerModal').hide();
+                $('#customerForm')[0].reset();
+                
+                showToast('Pelanggan berhasil disimpan', 'success');
+            });
+            
+            // Cancel customer modal
+            $('#cancelCustomer').click(function() {
+                $('#customerModal').hide();
             });
             
             // Admin password verification
@@ -2326,6 +2680,10 @@
                     case 'manageCashiers':
                         $('#manageCashiersModal').show();
                         loadCashiers();
+                        break;
+                    case 'manageCustomers':
+                        $('#manageCustomersModal').show();
+                        loadCustomers();
                         break;
                     case 'viewReports':
                         $('#reportsModal').show();
@@ -2863,6 +3221,10 @@
                 $('#manageCashiersModal').hide();
             });
             
+            $('#cancelManageCustomers').click(function() {
+                $('#manageCustomersModal').hide();
+            });
+            
             $('#cancelReports').click(function() {
                 $('#reportsModal').hide();
             });
@@ -3174,6 +3536,65 @@
             }
         }
         
+        // Load customers and members
+        function loadCustomers() {
+            const $membersList = $('#membersList');
+            const $customersList = $('#customersList');
+            
+            $membersList.empty();
+            $customersList.empty();
+            
+            const members = customers.filter(c => c.type === 'member');
+            const regularCustomers = customers.filter(c => c.type !== 'member');
+            
+            if (members.length === 0) {
+                $membersList.append(`
+                    <tr>
+                        <td colspan="5" class="text-center">Tidak ada member</td>
+                    </tr>
+                `);
+            } else {
+                members.forEach(member => {
+                    $membersList.append(`
+                        <tr>
+                            <td>${member.id}</td>
+                            <td>${member.name}</td>
+                            <td>${member.phone}</td>
+                            <td>${member.address || '-'}</td>
+                            <td>
+                                <button class="btn btn-sm btn-info edit-customer" data-id="${member.id}">Edit</button>
+                                <button class="btn btn-sm btn-danger delete-customer" data-id="${member.id}">Hapus</button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            }
+            
+            if (regularCustomers.length === 0) {
+                $customersList.append(`
+                    <tr>
+                        <td colspan="4" class="text-center">Tidak ada pelanggan</td>
+                    </tr>
+                `);
+            } else {
+                regularCustomers.forEach(customer => {
+                    $customersList.append(`
+                        <tr>
+                            <td>${customer.id || '-'}</td>
+                            <td>${customer.name}</td>
+                            <td>${customer.phone || '-'}</td>
+                            <td>
+                                ${customer.id ? `
+                                <button class="btn btn-sm btn-info edit-customer" data-id="${customer.id}">Edit</button>
+                                <button class="btn btn-sm btn-danger delete-customer" data-id="${customer.id}">Hapus</button>
+                                ` : ''}
+                            </td>
+                        </tr>
+                    `);
+                });
+            }
+        }
+        
         // Load stock history for a product
         function loadStockHistory(productId) {
             const $stockHistory = $('#stockHistory');
@@ -3345,7 +3766,13 @@
             $('#receiptDate').text(receiptDate);
             $('#receiptId').text(transaction.id);
             $('#receiptCashier').text(transaction.cashier.name);
-            $('#receiptCustomer').text(transaction.customer.name || 'Pelanggan Biasa');
+            
+            // Customer info
+            if (transaction.customer.type === 'member') {
+                $('#receiptCustomer').text(`${transaction.customer.name} (Member ID: ${transaction.customer.id})`);
+            } else {
+                $('#receiptCustomer').text(transaction.customer.name || 'Pelanggan Biasa');
+            }
             
             // Update shipping info if applicable
             if (transaction.shippingMethod === 'delivery') {
@@ -3462,6 +3889,22 @@
                 .sort((a, b) => b.total - a.total)
                 .slice(0, 5);
             
+            // Group by customer type
+            const customerTypes = {
+                member: { count: 0, total: 0 },
+                walkin: { count: 0, total: 0 }
+            };
+            
+            filteredTransactions.forEach(t => {
+                if (t.customer.type === 'member') {
+                    customerTypes.member.count++;
+                    customerTypes.member.total += t.total;
+                } else {
+                    customerTypes.walkin.count++;
+                    customerTypes.walkin.total += t.total;
+                }
+            });
+            
             // Create report HTML
             const reportHTML = `
                 <div class="panel">
@@ -3485,6 +3928,18 @@
                     <div class="summary-row">
                         <span>Total Barang Terjual:</span>
                         <span>${totalItemsSold}</span>
+                    </div>
+                </div>
+                
+                <div class="panel mt-3">
+                    <h4>Jenis Pelanggan</h4>
+                    <div class="summary-row">
+                        <span>Member:</span>
+                        <span>${customerTypes.member.count} transaksi (${formatCurrency(customerTypes.member.total)})</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Pelanggan Biasa:</span>
+                        <span>${customerTypes.walkin.count} transaksi (${formatCurrency(customerTypes.walkin.total)})</span>
                     </div>
                 </div>
                 
@@ -3614,7 +4069,6 @@
                         const product = products.find(p => p.id === productId) || item.product;
                         productProfits[productId] = {
                             name: product.name,
-                            unit: product.unit || 'Pcs',
                             quantity: 0,
                             revenue: 0,
                             cost: product.cost || 0,
@@ -3629,7 +4083,7 @@
             
             // Convert to array and sort by profit
             const sortedProducts = Object.values(productProfits)
-                .sort((a, b) => b.profit - a.profit);
+                .sort((a, b) => b.profit - a.total);
             
             // Calculate totals
             const totalCost = sortedProducts.reduce((sum, p) => sum + (p.quantity * p.cost), 0);
@@ -3681,7 +4135,7 @@
                         <tbody>
                             ${sortedProducts.map(product => `
                                 <tr>
-                                    <td>${product.name} (${product.unit})</td>
+                                    <td>${product.name} (${product.unit || 'Pcs'})</td>
                                     <td>${product.quantity}</td>
                                     <td>${formatCurrency(product.revenue)}</td>
                                     <td>${formatCurrency(product.quantity * product.cost)}</td>
@@ -3714,6 +4168,16 @@
             $('#printProfitReportBtn').show();
         }
         
+        // Generate customer ID (5 characters)
+        function generateCustomerId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 5; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+        
         // Reset cart
         function resetCart() {
             currentCart = {
@@ -3725,8 +4189,41 @@
                 total: 0
             };
             
-            localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(currentCart));
+                        localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(currentCart));
             updateCart();
+        }
+        
+        // Format currency
+        function formatCurrency(amount) {
+            return 'Rp ' + amount.toFixed(0).replace(/\d(?=(\d{3})+$)/g, '$&.');
+        }
+        
+        // Update current date
+        function updateCurrentDate() {
+            $('#currentDate').text(moment().format('dddd, D MMMM YYYY'));
+        }
+        
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const $toast = $('#toast');
+            const $toastMessage = $('#toast-message');
+            
+            $toast.removeClass('show success error warning');
+            $toastMessage.text(message);
+            
+            // Set icon based on type
+            let icon = 'fa-info-circle';
+            if (type === 'success') icon = 'fa-check-circle';
+            if (type === 'error') icon = 'fa-exclamation-circle';
+            if (type === 'warning') icon = 'fa-exclamation-triangle';
+            
+            $toast.find('i').attr('class', 'fas ' + icon);
+            $toast.addClass(type).addClass('show');
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                $toast.removeClass('show');
+            }, 3000);
         }
         
         // Save data functions
@@ -3758,29 +4255,24 @@
             localStorage.setItem(STORAGE_KEYS.STOCK_HISTORY, JSON.stringify(stockHistory));
         }
         
-        // Format currency
-        function formatCurrency(amount) {
-            return 'Rp ' + (amount || 0).toLocaleString('id-ID');
-        }
+        // Close modals when clicking outside
+        $(document).click(function(e) {
+            if ($(e.target).hasClass('modal')) {
+                $(e.target).hide();
+            }
+        });
         
-        // Show toast notification
-        function showToast(message, type = 'info', duration = 3000) {
-            const toast = $('#toast');
-            const toastMessage = $('#toast-message');
-            
-            toast.removeClass('success error warning info').addClass(type);
-            toastMessage.text(message);
-            toast.addClass('show');
-            
-            setTimeout(() => {
-                toast.removeClass('show');
-            }, duration);
-        }
+        // Close modals with escape key
+        $(document).keyup(function(e) {
+            if (e.key === 'Escape') {
+                $('.modal').hide();
+            }
+        });
         
-        // Update current date
-        function updateCurrentDate() {
-            $('#currentDate').text(moment().format('dddd, D MMMM YYYY, HH:mm'));
-        }
+        // Close modals with X button
+        $('.modal-close').click(function() {
+            $(this).closest('.modal').hide();
+        });
     </script>
 </body>
 </html>
