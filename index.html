@@ -2682,7 +2682,7 @@
                 const hashedPassword = CryptoJS.SHA256(password).toString();
                 const admin = users.find(u => u.username === 'admin');
                 
-                if (hashedPassword !== admin.password) {
+                if (!admin || hashedPassword !== admin.password) {
                     showToast('Password admin salah', 'error');
                     return;
                 }
@@ -3266,7 +3266,7 @@
                     products: products,
                     categories: categories,
                     customers: customers,
-                                        transactions: transactions,
+                    transactions: transactions,
                     users: users,
                     settings: settings,
                     stockHistory: stockHistory,
@@ -3421,6 +3421,7 @@
                 filteredProducts = filteredProducts.filter(p => 
                     p.name.toLowerCase().includes(term) || 
                     (p.barcode && p.barcode.toLowerCase().includes(term))
+                );
             }
             
             // Apply category filter
@@ -3758,6 +3759,7 @@
                 filteredProducts = filteredProducts.filter(p => 
                     p.name.toLowerCase().includes(term) || 
                     (p.barcode && p.barcode.toLowerCase().includes(term))
+                );
             }
             
             // Apply category filter
@@ -4111,7 +4113,7 @@
                             <td>${formatCurrency(p.revenue)}</td>
                             <td>${formatCurrency(p.cost)}</td>
                             <td class="${p.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                                ${formatCurrency(p.profit)} (${(p.revenue > 0 ? (p.profit / p.revenue * 100).toFixed(2) : 0}%)
+                                ${formatCurrency(p.profit)} (${(p.revenue > 0 ? (p.profit / p.revenue * 100).toFixed(2) : 0)}%)
                             </td>
                         </tr>
                     `;
