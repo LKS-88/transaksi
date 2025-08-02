@@ -722,14 +722,6 @@
             border-radius: var(--rounded-sm);
         }
 
-        .shipping-option label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            cursor: pointer;
-        }
-
         /* Stock Management */
         .stock-history {
             max-height: 300px;
@@ -774,6 +766,67 @@
         .store-info p {
             margin-bottom: 4px;
             color: var(--gray);
+        }
+
+        /* Donation Styles */
+        .donation-row {
+            background-color: #f8f9fa;
+            padding: 8px;
+            border-radius: var(--rounded-sm);
+            margin-bottom: 8px;
+        }
+
+        /* Product Unit Badge */
+        .product-unit {
+            display: inline-block;
+            padding: 2px 6px;
+            background-color: var(--info);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-left: 4px;
+        }
+
+        /* Stock Opname Table */
+        .stock-opname-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .stock-opname-table th, 
+        .stock-opname-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .stock-opname-table th {
+            background-color: var(--light);
+        }
+
+        /* Profit Report */
+        .profit-report {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .profit-report th, 
+        .profit-report td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .profit-report th {
+            background-color: var(--light);
+        }
+
+        .profit-positive {
+            color: var(--success);
+        }
+
+        .profit-negative {
+            color: var(--danger);
         }
     </style>
 </head>
@@ -872,6 +925,8 @@
                     <button id="manageCategoriesBtn" class="btn btn-sm mb-2">Kelola Kategori</button>
                     <button id="manageCashiersBtn" class="btn btn-sm mb-2">Kelola Kasir</button>
                     <button id="viewReportsBtn" class="btn btn-sm mb-2">Laporan Penjualan</button>
+                    <button id="viewStockOpnameBtn" class="btn btn-sm mb-2">Stock Opname</button>
+                    <button id="viewProfitReportBtn" class="btn btn-sm mb-2">Laporan Laba</button>
                     <button id="manageStoreInfoBtn" class="btn btn-sm mb-2">Kelola Info Toko</button>
                     <button id="backupDataBtn" class="btn btn-sm">Backup Data</button>
                 </div>
@@ -897,9 +952,11 @@
                         <span>Diskon:</span>
                         <span id="cartDiscount">Rp 0</span>
                     </div>
-                    <div class="summary-row">
-                        <span>Pajak:</span>
-                        <span id="cartTax">Rp 0</span>
+                    <div class="donation-row">
+                        <div class="form-group">
+                            <label class="form-label">Donasi LAZISNU</label>
+                            <input type="number" id="cartDonation" class="form-control" placeholder="Masukkan nominal donasi" min="0" value="0">
+                        </div>
                     </div>
                     <div class="summary-row">
                         <span>Pengiriman:</span>
@@ -995,8 +1052,8 @@
                             <span id="paymentDiscount">Rp 0</span>
                         </div>
                         <div class="summary-row">
-                            <span>Pajak:</span>
-                            <span id="paymentTax">Rp 0</span>
+                            <span>Donasi LAZISNU:</span>
+                            <span id="paymentDonation">Rp 0</span>
                         </div>
                         <div class="summary-row">
                             <span>Pengiriman:</span>
@@ -1061,8 +1118,31 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Harga</label>
+                        <label class="form-label">Jenis Satuan</label>
+                        <select id="productUnit" class="form-control" required>
+                            <option value="Pcs">Pcs</option>
+                            <option value="Unit">Unit</option>
+                            <option value="Paket">Paket</option>
+                            <option value="Set">Set</option>
+                            <option value="Dus">Dus</option>
+                            <option value="Pack">Pack</option>
+                            <option value="Liter">Liter</option>
+                            <option value="Kilo">Kilo</option>
+                            <option value="Meter">Meter</option>
+                            <option value="Gram">Gram</option>
+                            <option value="Centi">Centi</option>
+                            <option value="Lembar">Lembar</option>
+                            <option value="Sachet">Sachet</option>
+                            <option value="Roll">Roll</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Harga Jual</label>
                         <input type="number" id="productPrice" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Harga Beli (Harga Pokok)</label>
+                        <input type="number" id="productCost" class="form-control" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Stok</label>
@@ -1107,6 +1187,10 @@
                 <div class="form-group">
                     <label class="form-label">Jumlah</label>
                     <input type="number" id="stockAmount" class="form-control" min="1" value="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">No. Nota/Invoice</label>
+                    <input type="text" id="invoiceNumber" class="form-control" placeholder="Masukkan nomor nota">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Nama Pemasok/Supplier</label>
@@ -1267,6 +1351,90 @@
         </div>
     </div>
 
+    <!-- Stock Opname Modal -->
+    <div id="stockOpnameModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Stock Opname</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Filter Kategori</label>
+                    <select id="opnameCategoryFilter" class="form-control">
+                        <option value="all">Semua Kategori</option>
+                        <!-- Categories will be added here -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cari Produk</label>
+                    <input type="text" id="opnameSearch" class="form-control" placeholder="Cari produk...">
+                </div>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table class="stock-opname-table">
+                        <thead>
+                            <tr>
+                                <th>Produk</th>
+                                <th>Stok Sistem</th>
+                                <th>Stok Fisik</th>
+                                <th>Selisih</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockOpnameList">
+                            <!-- Stock opname items will be listed here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" id="cancelStockOpname">Tutup</button>
+                <button class="btn btn-success" id="saveStockOpnameBtn">Simpan Perubahan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profit Report Modal -->
+    <div id="profitReportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Laporan Laba Rugi</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Periode</label>
+                    <select id="profitPeriod" class="form-control">
+                        <option value="today">Hari Ini</option>
+                        <option value="week">Minggu Ini</option>
+                        <option value="month">Bulan Ini</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div id="profitCustomDateRange" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Dari Tanggal</label>
+                        <input type="date" id="profitStartDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Sampai Tanggal</label>
+                        <input type="date" id="profitEndDate" class="form-control">
+                    </div>
+                </div>
+                <div id="profitReportResults" class="mt-3">
+                    <!-- Profit report results will be shown here -->
+                </div>
+                <div id="profitPrintArea" style="display: none;">
+                    <!-- Printable profit report content will be copied here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" id="cancelProfitReport">Tutup</button>
+                <button class="btn btn-success" id="generateProfitReportBtn">Generate Laporan</button>
+                <button class="btn btn-primary" id="printProfitReportBtn" style="display: none;">Cetak Laporan</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Manage Store Info Modal -->
     <div id="manageStoreInfoModal" class="modal">
         <div class="modal-content">
@@ -1289,12 +1457,8 @@
                         <input type="text" id="storePhone" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Deskripsi/Keterangan (opsional)</label>
-                        <textarea id="storeDescription" class="form-control"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Tarif Pajak (%)</label>
-                        <input type="number" id="taxRate" class="form-control" min="0" max="100" required>
+                        <label class="form-label">Deskripsi/Keterangan (Akan muncul di struk)</label>
+                        <textarea id="storeDescription" class="form-control" placeholder="Contoh: Info promo, jam buka, dll."></textarea>
                     </div>
                 </form>
             </div>
@@ -1353,6 +1517,7 @@
                 <h3 id="receiptStoreName">APLIKASI PENJUALAN ANEKAMARKET</h3>
                 <p id="receiptStoreAddress">Jl. Contoh No. 123, Kota</p>
                 <p id="receiptStorePhone">Telp: 081234567890</p>
+                <p id="receiptStoreDescription" style="font-style: italic;"></p>
             </div>
             
             <div class="mb-2">
@@ -1381,8 +1546,8 @@
                     <span id="receiptDiscount">Rp 0</span>
                 </div>
                 <div class="summary-row">
-                    <span>Pajak:</span>
-                    <span id="receiptTax">Rp 0</span>
+                    <span>Donasi LAZISNU:</span>
+                    <span id="receiptDonation">Rp 0</span>
                 </div>
                 <div class="summary-row" id="receiptShippingRow" style="display: none;">
                     <span>Pengiriman:</span>
@@ -1486,7 +1651,6 @@
                     storeAddress: 'Jl. Contoh No. 123, Kota',
                     storePhone: '081234567890',
                     storeDescription: '',
-                    taxRate: 10
                 }));
             }
             
@@ -1508,7 +1672,7 @@
             items: [],
             subtotal: 0,
             discount: 0,
-            tax: 0,
+            donation: 0,
             shipping: 0,
             total: 0
         };
@@ -1737,6 +1901,13 @@
                 }
             });
             
+            // Update donation amount
+            $('#cartDonation').on('input', function() {
+                const donation = parseFloat($(this).val()) || 0;
+                currentCart.donation = donation;
+                updateCart();
+            });
+            
             // Checkout button
             $('#checkoutBtn').click(function() {
                 if (currentCart.items.length === 0) {
@@ -1869,9 +2040,11 @@
                         currentCart.discount = 0;
                     }
                     
-                    // Calculate tax
-                    currentCart.tax = (currentCart.subtotal * settings.taxRate) / 100;
-                    currentCart.total = currentCart.subtotal - currentCart.discount + currentCart.tax + currentCart.shipping;
+                    // Update donation
+                    currentCart.donation = parseFloat($('#cartDonation').val()) || 0;
+                    
+                    // Calculate total
+                    currentCart.total = currentCart.subtotal - currentCart.discount + currentCart.donation + currentCart.shipping;
                     
                     // Go to shipping tab
                     $('.tab').removeClass('active');
@@ -1889,7 +2062,7 @@
                     }
                     
                     // Recalculate total
-                    currentCart.total = currentCart.subtotal - currentCart.discount + currentCart.tax + currentCart.shipping;
+                    currentCart.total = currentCart.subtotal - currentCart.discount + currentCart.donation + currentCart.shipping;
                     
                     // Go to payment tab
                     $('.tab').removeClass('active');
@@ -1931,7 +2104,7 @@
                     customer: currentCart.customer,
                     subtotal: currentCart.subtotal,
                     discount: currentCart.discount,
-                    tax: currentCart.tax,
+                    donation: currentCart.donation,
                     shipping: currentCart.shipping,
                     total: currentCart.total,
                     paymentMethod: $('#paymentMethod').val(),
@@ -2050,6 +2223,28 @@
                 }
             });
             
+            $('#viewStockOpnameBtn').click(function() {
+                if (currentUser.role === 'admin') {
+                    $('#stockOpnameModal').show();
+                    loadStockOpname();
+                    loadCategoriesForOpname();
+                } else {
+                    pendingAdminAction = 'viewStockOpname';
+                    $('#adminPasswordModal').show();
+                }
+            });
+            
+            $('#viewProfitReportBtn').click(function() {
+                if (currentUser.role === 'admin') {
+                    $('#profitReportModal').show();
+                    $('#profitPeriod').val('today');
+                    $('#profitCustomDateRange').hide();
+                } else {
+                    pendingAdminAction = 'viewProfitReport';
+                    $('#adminPasswordModal').show();
+                }
+            });
+            
             $('#manageStoreInfoBtn').click(function() {
                 if (currentUser.role === 'admin') {
                     $('#manageStoreInfoModal').show();
@@ -2137,6 +2332,16 @@
                         $('#reportPeriod').val('today');
                         $('#customDateRange').hide();
                         break;
+                    case 'viewStockOpname':
+                        $('#stockOpnameModal').show();
+                        loadStockOpname();
+                        loadCategoriesForOpname();
+                        break;
+                    case 'viewProfitReport':
+                        $('#profitReportModal').show();
+                        $('#profitPeriod').val('today');
+                        $('#profitCustomDateRange').hide();
+                        break;
                     case 'manageStoreInfo':
                         $('#manageStoreInfoModal').show();
                         loadStoreInfo();
@@ -2168,12 +2373,19 @@
                 const id = $('#productId').val();
                 const name = $('#productName').val().trim();
                 const category = $('#productCategory').val();
+                const unit = $('#productUnit').val();
                 const price = parseFloat($('#productPrice').val()) || 0;
+                const cost = parseFloat($('#productCost').val()) || 0;
                 const stock = parseInt($('#productStock').val()) || 0;
                 const barcode = $('#productBarcode').val().trim();
                 
-                if (!name || !category || price <= 0) {
+                if (!name || !category || price <= 0 || cost < 0) {
                     showToast('Nama, kategori, dan harga harus diisi dengan benar', 'error');
+                    return;
+                }
+                
+                if (cost > price) {
+                    showToast('Harga pokok tidak boleh lebih besar dari harga jual', 'error');
                     return;
                 }
                 
@@ -2185,7 +2397,9 @@
                             ...products[productIndex],
                             name: name,
                             category: category,
+                            unit: unit,
                             price: price,
+                            cost: cost,
                             stock: stock,
                             barcode: barcode || null
                         };
@@ -2196,7 +2410,9 @@
                         id: 'P' + moment().format('YYYYMMDDHHmmss'),
                         name: name,
                         category: category,
+                        unit: unit,
                         price: price,
+                        cost: cost,
                         stock: stock,
                         barcode: barcode || null
                     };
@@ -2223,6 +2439,7 @@
                 const productId = $('#stockProductName').data('id');
                 const type = $('#stockTransactionType').val();
                 const amount = parseInt($('#stockAmount').val()) || 0;
+                const invoice = $('#invoiceNumber').val().trim();
                 const supplier = $('#supplierName').val().trim();
                 const note = $('#stockNote').val().trim();
                 
@@ -2231,8 +2448,8 @@
                     return;
                 }
                 
-                if (type === 'in' && !supplier) {
-                    showToast('Nama pemasok harus diisi', 'error');
+                if (type === 'in' && (!supplier || !invoice)) {
+                    showToast('Nama pemasok dan nomor nota harus diisi', 'error');
                     return;
                 }
                 
@@ -2256,6 +2473,7 @@
                     type: type,
                     amount: amount,
                     date: new Date(),
+                    invoice: type === 'in' ? invoice : null,
                     supplier: type === 'in' ? supplier : null,
                     note: note || (type === 'in' ? 'Penambahan stok' : 'Pengurangan stok'),
                     user: currentUser.name
@@ -2302,6 +2520,7 @@
                 loadCategories();
                 loadCategoriesForSelect();
                 loadCategoriesForManagement();
+                loadCategoriesForOpname();
                 
                 $('#newCategoryName').val('');
                 
@@ -2326,6 +2545,7 @@
                 loadCategories();
                 loadCategoriesForSelect();
                 loadCategoriesForManagement();
+                loadCategoriesForOpname();
                 
                 showToast('Kategori berhasil dihapus', 'success');
             });
@@ -2461,7 +2681,6 @@
                 $('#storeAddress').val(settings.storeAddress);
                 $('#storePhone').val(settings.storePhone);
                 $('#storeDescription').val(settings.storeDescription || '');
-                $('#taxRate').val(settings.taxRate || 10);
             }
             
             // Save store info
@@ -2470,15 +2689,9 @@
                 const storeAddress = $('#storeAddress').val().trim();
                 const storePhone = $('#storePhone').val().trim();
                 const storeDescription = $('#storeDescription').val().trim();
-                const taxRate = parseFloat($('#taxRate').val()) || 0;
                 
                 if (!storeName || !storeAddress || !storePhone) {
                     showToast('Nama toko, alamat, dan nomor telepon harus diisi', 'error');
-                    return;
-                }
-                
-                if (taxRate < 0 || taxRate > 100) {
-                    showToast('Tarif pajak harus antara 0-100%', 'error');
                     return;
                 }
                 
@@ -2487,7 +2700,6 @@
                 settings.storeAddress = storeAddress;
                 settings.storePhone = storePhone;
                 settings.storeDescription = storeDescription;
-                settings.taxRate = taxRate;
                 
                 saveSettings();
                 updateStoreInfo();
@@ -2508,6 +2720,7 @@
                 $('#receiptStoreName').text(settings.storeName);
                 $('#receiptStoreAddress').text(settings.storeAddress);
                 $('#receiptStorePhone').text('Telp: ' + settings.storePhone);
+                $('#receiptStoreDescription').text(settings.storeDescription || '');
             }
             
             // Report period change
@@ -2519,9 +2732,23 @@
                 }
             });
             
+            // Profit report period change
+            $('#profitPeriod').change(function() {
+                if ($(this).val() === 'custom') {
+                    $('#profitCustomDateRange').show();
+                } else {
+                    $('#profitCustomDateRange').hide();
+                }
+            });
+            
             // Generate report
             $('#generateReportBtn').click(function() {
                 generateReport();
+            });
+            
+            // Generate profit report
+            $('#generateProfitReportBtn').click(function() {
+                generateProfitReport();
             });
             
             // Print report
@@ -2538,6 +2765,89 @@
                     printWindow.print();
                     printWindow.close();
                 }, 500);
+            });
+            
+            // Print profit report
+            $('#printProfitReportBtn').click(function() {
+                const printWindow = window.open('', '', 'width=800,height=600');
+                printWindow.document.write('<html><head><title>Laporan Laba Rugi</title>');
+                printWindow.document.write('<style>body { font-family: Arial; font-size: 14px; } .panel { margin-bottom: 20px; } .summary-row { display: flex; justify-content: space-between; margin-bottom: 5px; } h3, h4 { margin-bottom: 10px; } table { width: 100%; border-collapse: collapse; margin-bottom: 15px; } th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; } .profit-positive { color: green; } .profit-negative { color: red; }</style>');
+                printWindow.document.write('</head><body>');
+                printWindow.document.write($('#profitPrintArea').html());
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                printWindow.focus();
+                setTimeout(() => {
+                    printWindow.print();
+                    printWindow.close();
+                }, 500);
+            });
+            
+            // Stock opname category filter
+            $('#opnameCategoryFilter').change(function() {
+                loadStockOpname($('#opnameSearch').val(), $(this).val());
+            });
+            
+            // Stock opname search
+            $('#opnameSearch').on('input', function() {
+                loadStockOpname($(this).val(), $('#opnameCategoryFilter').val());
+            });
+            
+            // Save stock opname
+            $('#saveStockOpnameBtn').click(function() {
+                const updates = [];
+                
+                $('#stockOpnameList tr').each(function() {
+                    const productId = $(this).data('id');
+                    const physicalStock = parseInt($(this).find('.physical-stock').val()) || 0;
+                    
+                    updates.push({
+                        productId: productId,
+                        physicalStock: physicalStock
+                    });
+                });
+                
+                // Apply updates
+                updates.forEach(update => {
+                    const product = products.find(p => p.id === update.productId);
+                    if (product) {
+                        const difference = update.physicalStock - product.stock;
+                        
+                        if (difference !== 0) {
+                            // Add to stock history
+                            stockHistory.push({
+                                productId: product.id,
+                                productName: product.name,
+                                type: difference > 0 ? 'in' : 'out',
+                                amount: Math.abs(difference),
+                                date: new Date(),
+                                note: 'Stock opname adjustment',
+                                user: currentUser.name
+                            });
+                            
+                            // Update product stock
+                            product.stock = update.physicalStock;
+                        }
+                    }
+                });
+                
+                saveProducts();
+                saveStockHistory();
+                loadProducts();
+                
+                $('#stockOpnameModal').hide();
+                
+                showToast('Stock opname berhasil disimpan', 'success');
+            });
+            
+            // Cancel stock opname
+            $('#cancelStockOpname').click(function() {
+                $('#stockOpnameModal').hide();
+            });
+            
+            // Cancel profit report
+            $('#cancelProfitReport').click(function() {
+                $('#profitReportModal').hide();
             });
             
             // Cancel buttons
@@ -2679,10 +2989,12 @@
             $('#productId').val(product.id);
             $('#productName').val(product.name);
             $('#productPrice').val(product.price);
+            $('#productCost').val(product.cost || 0);
             $('#productStock').val(product.stock);
             $('#productBarcode').val(product.barcode || '');
             loadCategoriesForSelect();
             $('#productCategory').val(product.category);
+            $('#productUnit').val(product.unit || 'Pcs');
             $('#productModal').show();
         }
         
@@ -2693,6 +3005,7 @@
             $('#currentStock').val(product.stock);
             $('#stockTransactionType').val('in');
             $('#stockAmount').val(1);
+            $('#invoiceNumber').val('');
             $('#supplierName').val('');
             $('#stockNote').val('');
             loadStockHistory(product.id);
@@ -2746,7 +3059,7 @@
                                     <i class="fas fa-boxes"></i>
                                 </div>
                             </div>
-                            <div class="product-name">${product.name}</div>
+                            <div class="product-name">${product.name} <span class="product-unit">${product.unit || 'Pcs'}</span></div>
                             <div class="product-price">${formatCurrency(product.price)}</div>
                             <div class="product-stock ${stockClass}">Stok: ${product.stock}</div>
                             ${product.barcode ? `<div class="product-barcode">${product.barcode}</div>` : ''}
@@ -2775,7 +3088,7 @@
         
         // Load categories for select input
         function loadCategoriesForSelect() {
-            const $select = $('#productCategory, #newProductCategory');
+            const $select = $('#productCategory');
             $select.empty();
             
             if (categories.length === 0) {
@@ -2817,6 +3130,18 @@
                     `);
                 });
             }
+        }
+        
+        // Load categories for stock opname
+        function loadCategoriesForOpname() {
+            const $select = $('#opnameCategoryFilter');
+            $select.empty();
+            
+            $select.append('<option value="all">Semua Kategori</option>');
+            
+            categories.forEach(category => {
+                $select.append(`<option value="${category.name}">${category.name}</option>`);
+            });
         }
         
         // Load cashiers
@@ -2873,12 +3198,72 @@
                                 <span>${moment(item.date).format('DD/MM/YY HH:mm')}</span>
                             </div>
                             <div>${item.note}</div>
+                            ${item.invoice ? `<div>No. Nota: ${item.invoice}</div>` : ''}
                             ${item.supplier ? `<div>Pemasok: ${item.supplier}</div>` : ''}
                             <div>Oleh: ${item.user}</div>
                         </div>
                     `);
                 });
             }
+        }
+        
+        // Load stock opname
+        function loadStockOpname(searchTerm = '', category = 'all') {
+            let filteredProducts = [...products];
+            
+            // Apply search filter
+            if (searchTerm) {
+                filteredProducts = filteredProducts.filter(p => 
+                    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    (p.barcode && p.barcode.includes(searchTerm))
+                );
+            }
+            
+            // Apply category filter
+            if (category !== 'all') {
+                filteredProducts = filteredProducts.filter(p => p.category === category);
+            }
+            
+            // Display stock opname
+            const $stockOpnameList = $('#stockOpnameList');
+            $stockOpnameList.empty();
+            
+            if (filteredProducts.length === 0) {
+                $stockOpnameList.append(`
+                    <tr>
+                        <td colspan="4" class="text-center">Tidak ada produk ditemukan</td>
+                    </tr>
+                `);
+            } else {
+                filteredProducts.forEach(product => {
+                    $stockOpnameList.append(`
+                        <tr data-id="${product.id}">
+                            <td>${product.name} <span class="product-unit">${product.unit || 'Pcs'}</span></td>
+                            <td>${product.stock}</td>
+                            <td><input type="number" class="physical-stock form-control" value="${product.stock}" min="0"></td>
+                            <td class="difference">0</td>
+                        </tr>
+                    `);
+                });
+            }
+            
+            // Calculate difference when physical stock changes
+            $('.physical-stock').on('input', function() {
+                const $row = $(this).closest('tr');
+                const productId = $row.data('id');
+                const product = products.find(p => p.id === productId);
+                const physicalStock = parseInt($(this).val()) || 0;
+                const difference = physicalStock - product.stock;
+                
+                $row.find('.difference').text(difference);
+                if (difference > 0) {
+                    $row.find('.difference').addClass('stock-in').removeClass('stock-out');
+                } else if (difference < 0) {
+                    $row.find('.difference').addClass('stock-out').removeClass('stock-in');
+                } else {
+                    $row.find('.difference').removeClass('stock-in stock-out');
+                }
+            });
         }
         
         // Update cart
@@ -2888,8 +3273,11 @@
                 return total + (item.product.price * item.quantity);
             }, 0);
             
-            // Calculate total (without discount/tax for now)
-            currentCart.total = currentCart.subtotal - currentCart.discount + currentCart.tax + currentCart.shipping;
+            // Update donation from input
+            currentCart.donation = parseFloat($('#cartDonation').val()) || 0;
+            
+            // Calculate total
+            currentCart.total = currentCart.subtotal - currentCart.discount + currentCart.donation + currentCart.shipping;
             
             // Save cart
             localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(currentCart));
@@ -2912,7 +3300,7 @@
                     $('#cartItems').append(`
                         <div class="cart-item">
                             <div class="cart-item-info">
-                                <div class="cart-item-name">${item.product.name}</div>
+                                <div class="cart-item-name">${item.product.name} <span class="product-unit">${item.product.unit || 'Pcs'}</span></div>
                                 <div class="cart-item-price">${formatCurrency(item.product.price)} x ${item.quantity}</div>
                             </div>
                             <div class="cart-item-qty">
@@ -2928,7 +3316,7 @@
             // Update summary
             $('#cartSubtotal').text(formatCurrency(currentCart.subtotal));
             $('#cartDiscount').text(formatCurrency(currentCart.discount));
-            $('#cartTax').text(formatCurrency(currentCart.tax));
+            $('#cartDonation').val(currentCart.donation);
             $('#cartShipping').text(formatCurrency(currentCart.shipping));
             $('#cartTotal').text(formatCurrency(currentCart.total));
         }
@@ -2937,7 +3325,7 @@
         function updatePaymentTab() {
             $('#paymentSubtotal').text(formatCurrency(currentCart.subtotal));
             $('#paymentDiscount').text(formatCurrency(currentCart.discount));
-            $('#paymentTax').text(formatCurrency(currentCart.tax));
+            $('#paymentDonation').text(formatCurrency(currentCart.donation));
             $('#paymentShipping').text(formatCurrency(currentCart.shipping));
             $('#paymentTotal').text(formatCurrency(currentCart.total));
             $('#paymentAmount').val('');
@@ -2986,7 +3374,7 @@
             // Update totals
             $('#receiptSubtotal').text(formatCurrency(transaction.subtotal));
             $('#receiptDiscount').text(formatCurrency(transaction.discount));
-            $('#receiptTax').text(formatCurrency(transaction.tax));
+            $('#receiptDonation').text(formatCurrency(transaction.donation));
             $('#receiptTotal').text(formatCurrency(transaction.total));
             $('#receiptPaymentMethod').text(paymentMethod + ':');
             $('#receiptPaymentAmount').text(formatCurrency(transaction.paymentAmount));
@@ -3033,6 +3421,7 @@
             // Calculate report data
             const totalTransactions = filteredTransactions.length;
             const totalRevenue = filteredTransactions.reduce((sum, t) => sum + t.total, 0);
+            const totalDonation = filteredTransactions.reduce((sum, t) => sum + t.donation, 0);
             const totalItemsSold = filteredTransactions.reduce((sum, t) => {
                 return sum + t.items.reduce((itemSum, item) => itemSum + item.quantity, 0);
             }, 0);
@@ -3088,6 +3477,10 @@
                     <div class="summary-row">
                         <span>Total Pendapatan:</span>
                         <span>${formatCurrency(totalRevenue)}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Total Donasi LAZISNU:</span>
+                        <span>${formatCurrency(totalDonation)}</span>
                     </div>
                     <div class="summary-row">
                         <span>Total Barang Terjual:</span>
@@ -3170,13 +3563,164 @@
             $('#printReportBtn').show();
         }
         
+        // Generate profit report
+        function generateProfitReport() {
+            const period = $('#profitPeriod').val();
+            let startDate, endDate;
+            
+            // Set date range based on period
+            if (period === 'today') {
+                startDate = moment().startOf('day');
+                endDate = moment().endOf('day');
+            } else if (period === 'week') {
+                startDate = moment().startOf('week');
+                endDate = moment().endOf('week');
+            } else if (period === 'month') {
+                startDate = moment().startOf('month');
+                endDate = moment().endOf('month');
+            } else if (period === 'custom') {
+                startDate = moment($('#profitStartDate').val());
+                endDate = moment($('#profitEndDate').val());
+                
+                if (!startDate.isValid() || !endDate.isValid()) {
+                    showToast('Tanggal tidak valid', 'error');
+                    return;
+                }
+                
+                // Ensure end date is after start date
+                if (endDate.isBefore(startDate)) {
+                    showToast('Tanggal akhir harus setelah tanggal awal', 'error');
+                    return;
+                }
+            }
+            
+            // Filter transactions by date range
+            const filteredTransactions = transactions.filter(t => {
+                const transactionDate = moment(t.date);
+                return transactionDate.isBetween(startDate, endDate, null, '[]');
+            });
+            
+            // Calculate report data
+            const totalTransactions = filteredTransactions.length;
+            const totalRevenue = filteredTransactions.reduce((sum, t) => sum + t.total, 0);
+            const totalDonation = filteredTransactions.reduce((sum, t) => sum + t.donation, 0);
+            
+            // Calculate profit by product
+            const productProfits = {};
+            filteredTransactions.forEach(t => {
+                t.items.forEach(item => {
+                    const productId = item.product.id;
+                    if (!productProfits[productId]) {
+                        const product = products.find(p => p.id === productId) || item.product;
+                        productProfits[productId] = {
+                            name: product.name,
+                            unit: product.unit || 'Pcs',
+                            quantity: 0,
+                            revenue: 0,
+                            cost: product.cost || 0,
+                            profit: 0
+                        };
+                    }
+                    productProfits[productId].quantity += item.quantity;
+                    productProfits[productId].revenue += item.quantity * item.product.price;
+                    productProfits[productId].profit += item.quantity * (item.product.price - (item.product.cost || 0));
+                });
+            });
+            
+            // Convert to array and sort by profit
+            const sortedProducts = Object.values(productProfits)
+                .sort((a, b) => b.profit - a.profit);
+            
+            // Calculate totals
+            const totalCost = sortedProducts.reduce((sum, p) => sum + (p.quantity * p.cost), 0);
+            const totalProfit = totalRevenue - totalCost;
+            
+            // Create report HTML
+            const reportHTML = `
+                <div class="panel">
+                    <h4>Ringkasan Laba Rugi</h4>
+                    <div class="summary-row">
+                        <span>Periode:</span>
+                        <span>${startDate.format('DD/MM/YYYY')} - ${endDate.format('DD/MM/YYYY')}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Total Transaksi:</span>
+                        <span>${totalTransactions}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Total Pendapatan:</span>
+                        <span>${formatCurrency(totalRevenue)}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Total Harga Pokok:</span>
+                        <span>${formatCurrency(totalCost)}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Total Donasi LAZISNU:</span>
+                        <span>${formatCurrency(totalDonation)}</span>
+                    </div>
+                    <div class="summary-row total-row ${totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}">
+                        <span>Total Laba/Rugi:</span>
+                        <span>${formatCurrency(totalProfit)}</span>
+                    </div>
+                </div>
+                
+                ${sortedProducts.length > 0 ? `
+                <div class="panel mt-3">
+                    <h4>Laba per Produk</h4>
+                    <table class="profit-report">
+                        <thead>
+                            <tr>
+                                <th>Produk</th>
+                                <th>Terjual</th>
+                                <th>Pendapatan</th>
+                                <th>Harga Pokok</th>
+                                <th>Laba</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sortedProducts.map(product => `
+                                <tr>
+                                    <td>${product.name} (${product.unit})</td>
+                                    <td>${product.quantity}</td>
+                                    <td>${formatCurrency(product.revenue)}</td>
+                                    <td>${formatCurrency(product.quantity * product.cost)}</td>
+                                    <td class="${product.profit >= 0 ? 'profit-positive' : 'profit-negative'}">${formatCurrency(product.profit)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                ` : ''}
+            `;
+            
+            // Display report
+            $('#profitReportResults').html(reportHTML);
+            
+            // Copy to print area
+            $('#profitPrintArea').html(`
+                <h3>Laporan Laba Rugi</h3>
+                <p>${settings.storeName}</p>
+                <p>Periode: ${startDate.format('DD/MM/YYYY')} - ${endDate.format('DD/MM/YYYY')}</p>
+                <p>Dicetak pada: ${moment().format('DD/MM/YYYY HH:mm')} oleh ${currentUser.name}</p>
+                <hr>
+                ${reportHTML}
+                <hr>
+                <div class="text-center">
+                    <p>&copy; ${new Date().getFullYear()} ${settings.storeName} - Hak Cipta oleh Lentera Karya Situbondo</p>
+                </div>
+            `);
+            
+            $('#printProfitReportBtn').show();
+        }
+        
         // Reset cart
         function resetCart() {
             currentCart = {
                 items: [],
                 subtotal: 0,
                 discount: 0,
-                tax: 0,
+                donation: 0,
                 shipping: 0,
                 total: 0
             };
