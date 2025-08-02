@@ -1,36 +1,46 @@
-import Database from './database.js';
-
 $(document).ready(function() {
-    // Cek user login
-    const currentUser = JSON.parse(localStorage.getItem('current_user'));
+    // Initialize data
+    initializeData();
     
+    // Set current year in footer
+    $('#currentYear, #receiptYear').text(new Date().getFullYear());
+    
+    // Check if user is logged in
     if (currentUser) {
         $('#loggedInUser').text(currentUser.name);
         $('#loginModal').hide();
         $('#mainApp').show();
+        loadProducts();
+        updateCart();
+        loadCategories();
+        updateCurrentDate();
+        updateStoreInfo();
         
-        if (currentUser.role === 'admin') {
+        if (isAdmin()) {
             $('#adminPanel').show();
         }
     }
     
-    // Event handler untuk login
+    // Event handlers...
     $('#loginForm').submit(function(e) {
         e.preventDefault();
-        const username = $('#username').val();
-        const password = $('#password').val();
+        const result = login($('#username').val().trim(), $('#password').val().trim());
         
-        const users = Database.getUsers();
-        const user = users.find(u => u.username === username);
-        
-        if (!user || user.password !== CryptoJS.SHA256(password).toString()) {
-            showToast('Login gagal', 'error');
-            return;
+        if (result.success) {
+            // Update UI...
+        } else {
+            showToast(result.message, 'error');
         }
-        
-        localStorage.setItem('current_user', JSON.stringify(user));
-        location.reload();
     });
     
-    // ... event handlers lainnya
+    // ... rest of the event handlers and UI logic ...
 });
+
+// Utility functions
+function showToast(message, type = 'info') {
+    // Toast implementation...
+}
+
+function updateCurrentDate() {
+    $('#currentDate').text(moment().format('dddd, D MMMM YYYY'));
+}
