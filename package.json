@@ -1,0 +1,11 @@
+{
+  "name": "anekamarket-app",
+  "version": "1.0.0",
+  "scripts": {
+    "lint": "eslint frontend/js/*.js backend/api/*.js",
+    "test": "cd backend && npm test && cd ../frontend && npm test"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0"
+  }
+}
