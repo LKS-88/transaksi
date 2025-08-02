@@ -3385,11 +3385,10 @@
             }, 500);
         }
 
-        function generateReport() {
+         function generateReport() {
             const period = $('#reportPeriod').val();
             let startDate, endDate;
             
-            // Set date range based on period
             switch(period) {
                 case 'today':
                     startDate = moment().startOf('day');
@@ -3411,28 +3410,24 @@
                         showToast('Tanggal tidak valid', 'error');
                         return;
                     }
-                    
                     break;
                 default:
                     startDate = moment().startOf('day');
                     endDate = moment().endOf('day');
             }
             
-            // Filter transactions
             const filteredTransactions = transactions.filter(t => {
                 const transactionDate = moment(t.date);
                 return transactionDate.isBetween(startDate, endDate, null, '[]');
             });
             
-            // Calculate totals
             const totalTransactions = filteredTransactions.length;
             const totalRevenue = filteredTransactions.reduce((sum, t) => sum + t.total, 0);
             const totalItems = filteredTransactions.reduce((sum, t) => 
                 sum + t.items.reduce((itemSum, i) => itemSum + i.quantity, 0), 0);
             
-            // Generate report HTML
             let reportHtml = `
-                                <h4>Laporan Penjualan</h4>
+                <h4>Laporan Penjualan</h4>
                 <p>Periode: ${startDate.format('DD MMM YYYY')} - ${endDate.format('DD MMM YYYY')}</p>
                 <p>Dibuat pada: ${moment().format('DD MMM YYYY HH:mm')}</p>
                 
@@ -3462,8 +3457,7 @@
                             <th>Kasir</th>
                         </tr>
                     </thead>
-                    <tbody>
-            `;
+                    <tbody>`;
 
             filteredTransactions.forEach(transaction => {
                 reportHtml += `
@@ -3474,16 +3468,13 @@
                         <td>${transaction.items.reduce((sum, item) => sum + item.quantity, 0)}</td>
                         <td>${formatCurrency(transaction.total)}</td>
                         <td>${transaction.cashier.name}</td>
-                    </tr>
-                `;
+                    </tr>`;
             });
 
             reportHtml += `
                     </tbody>
-                </table>
-            `;
+                </table>`;
 
-            // Show report
             $('#reportResults').html(reportHtml);
             $('#reportPrintArea').html(reportHtml);
             $('#printReportBtn').show();
@@ -3493,7 +3484,6 @@
             const period = $('#profitPeriod').val();
             let startDate, endDate;
             
-            // Set date range based on period
             switch(period) {
                 case 'today':
                     startDate = moment().startOf('day');
@@ -3515,20 +3505,17 @@
                         showToast('Tanggal tidak valid', 'error');
                         return;
                     }
-                    
                     break;
                 default:
                     startDate = moment().startOf('day');
                     endDate = moment().endOf('day');
             }
             
-            // Filter transactions
             const filteredTransactions = transactions.filter(t => {
                 const transactionDate = moment(t.date);
                 return transactionDate.isBetween(startDate, endDate, null, '[]');
             });
             
-            // Calculate profit data
             let totalRevenue = 0;
             let totalCost = 0;
             let totalProfit = 0;
@@ -3536,13 +3523,10 @@
             
             filteredTransactions.forEach(transaction => {
                 totalRevenue += transaction.total;
-                
-                // Calculate cost of goods sold
                 const transactionCost = transaction.items.reduce((sum, item) => {
                     const product = products.find(p => p.id === item.product.id);
                     return sum + (product ? product.cost * item.quantity : 0);
                 }, 0);
-                
                 totalCost += transactionCost;
                 totalItems += transaction.items.reduce((sum, item) => sum + item.quantity, 0);
             });
@@ -3550,7 +3534,6 @@
             totalProfit = totalRevenue - totalCost;
             const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
             
-            // Generate report HTML
             let reportHtml = `
                 <h4>Laporan Laba Rugi</h4>
                 <p>Periode: ${startDate.format('DD MMM YYYY')} - ${endDate.format('DD MMM YYYY')}</p>
@@ -3595,16 +3578,13 @@
                             <th>Margin</th>
                         </tr>
                     </thead>
-                    <tbody>
-            `;
+                    <tbody>`;
 
             filteredTransactions.forEach(transaction => {
-                // Calculate cost and profit for each transaction
                 const transactionCost = transaction.items.reduce((sum, item) => {
                     const product = products.find(p => p.id === item.product.id);
                     return sum + (product ? product.cost * item.quantity : 0);
                 }, 0);
-                
                 const transactionProfit = transaction.total - transactionCost;
                 const transactionMargin = transaction.total > 0 ? (transactionProfit / transaction.total) * 100 : 0;
                 
@@ -3616,16 +3596,13 @@
                         <td>${formatCurrency(transactionCost)}</td>
                         <td class="${transactionProfit >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(transactionProfit)}</td>
                         <td class="${transactionMargin >= 0 ? 'text-success' : 'text-danger'}">${transactionMargin.toFixed(2)}%</td>
-                    </tr>
-                `;
+                    </tr>`;
             });
 
             reportHtml += `
                     </tbody>
-                </table>
-            `;
+                </table>`;
 
-            // Show report
             $('#profitReportResults').html(reportHtml);
             $('#profitPrintArea').html(reportHtml);
             $('#printProfitReportBtn').show();
@@ -3672,6 +3649,19 @@
         function saveStockHistory() {
             localStorage.setItem(STORAGE_KEYS.STOCK_HISTORY, JSON.stringify(stockHistory));
         }
+
+        // Initialize the app
+        $(document).ready(function() {
+            initializeData();
+            
+            if (currentUser) {
+                loadProducts();
+                updateCart();
+                loadCategories();
+                updateCurrentDate();
+                updateStoreInfo();
+            }
+        });
     </script>
 </body>
 </html>
