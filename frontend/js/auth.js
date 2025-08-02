@@ -1,51 +1,32 @@
-// Authentication and user management
-const STORAGE_KEYS = {
-    USER: 'anekamarket_user',
-    USERS: 'anekamarket_users'
-};
+let currentUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER)) || null;
 
-// Default users
-const DEFAULT_ADMIN = {
-    id: 'U001',
-    username: 'admin',
-    password: CryptoJS.SHA256('Admin.13579').toString(),
-    name: 'Administrator',
-    role: 'admin'
-};
-
-const DEFAULT_CASHIER = {
-    id: 'U002',
-    username: 'kasir',
-    password: CryptoJS.SHA256('kasir123').toString(),
-    name: 'Kasir',
-    role: 'cashier'
-};
-
-// Initialize users
-function initializeUsers() {
-    let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || [];
+function login(username, password) {
+    const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || [];
+    const user = users.find(u => u.username === username);
     
-    if (!users.find(u => u.username === 'admin')) {
-        users.push(DEFAULT_ADMIN);
+    if (!user) {
+        return { success: false, message: 'Username tidak ditemukan' };
     }
     
-    if (!users.find(u => u.username === 'kasir')) {
-        users.push(DEFAULT_CASHIER);
+    const hashedPassword = CryptoJS.SHA256(password).toString();
+    
+    if (hashedPassword !== user.password) {
+        return { success: false, message: 'Password salah' };
     }
     
-    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    currentUser = user;
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
+    return { success: true, user };
 }
 
-// Login/logout functions
-function handleLogin(username, password) {
-    // Implementation
+function logout() {
+    currentUser = null;
+    localStorage.removeItem(STORAGE_KEYS.USER);
+    return { success: true };
 }
 
-function handleLogout() {
-    // Implementation
+function isAdmin() {
+    return currentUser && currentUser.role === 'admin';
 }
 
-// Admin verification
-function verifyAdminPassword(password, action) {
-    // Implementation
-}
+// ... other auth related functions ...
