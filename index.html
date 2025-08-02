@@ -757,6 +757,24 @@
         .stock-out {
             color: var(--danger);
         }
+
+        /* Store Info */
+        .store-info {
+            margin-bottom: 16px;
+            padding: 12px;
+            background-color: var(--light);
+            border-radius: var(--rounded-sm);
+        }
+
+        .store-info h4 {
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .store-info p {
+            margin-bottom: 4px;
+            color: var(--gray);
+        }
     </style>
 </head>
 <body>
@@ -815,8 +833,8 @@
         <!-- Header -->
         <header class="app-header">
             <div>
-                <h1 class="app-title">APLIKASI PENJUALAN ANEKAMARKET</h1>
-                <p id="currentDate">Senin, 1 Jan 2023</p>
+                <h1 class="app-title" id="storeNameHeader">APLIKASI PENJUALAN ANEKAMARKET</h1>
+                <p id="currentDate">Senin, 1 Januari 2023</p>
             </div>
             <div class="header-info">
                 <p>Kasir: <span id="loggedInUser">Admin</span></p>
@@ -854,8 +872,8 @@
                     <button id="manageCategoriesBtn" class="btn btn-sm mb-2">Kelola Kategori</button>
                     <button id="manageCashiersBtn" class="btn btn-sm mb-2">Kelola Kasir</button>
                     <button id="viewReportsBtn" class="btn btn-sm mb-2">Laporan Penjualan</button>
-                    <button id="backupDataBtn" class="btn btn-sm mb-2">Backup Data</button>
-                    <button id="restoreDataBtn" class="btn btn-sm">Restore Data</button>
+                    <button id="manageStoreInfoBtn" class="btn btn-sm mb-2">Kelola Info Toko</button>
+                    <button id="backupDataBtn" class="btn btn-sm">Backup Data</button>
                 </div>
             </section>
 
@@ -899,7 +917,7 @@
 
         <!-- Footer -->
         <footer class="app-footer">
-            <p>&copy; 2023 APLIKASI PENJUALAN ANEKAMARKET - Hak Cipta oleh Lentera Karya Situbondo</p>
+            <p>&copy; <span id="currentYear"></span> APLIKASI PENJUALAN ANEKAMARKET - Hak Cipta oleh Lentera Karya Situbondo</p>
         </footer>
     </div>
 
@@ -1249,6 +1267,44 @@
         </div>
     </div>
 
+    <!-- Manage Store Info Modal -->
+    <div id="manageStoreInfoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Kelola Info Toko</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="storeInfoForm">
+                    <div class="form-group">
+                        <label class="form-label">Nama Toko</label>
+                        <input type="text" id="storeName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Alamat Toko</label>
+                        <textarea id="storeAddress" class="form-control" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nomor Telepon</label>
+                        <input type="text" id="storePhone" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Deskripsi/Keterangan (opsional)</label>
+                        <textarea id="storeDescription" class="form-control"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tarif Pajak (%)</label>
+                        <input type="number" id="taxRate" class="form-control" min="0" max="100" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" id="cancelStoreInfo">Batal</button>
+                <button class="btn btn-success" id="saveStoreInfoBtn">Simpan</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Backup/Restore Modal -->
     <div id="backupModal" class="modal">
         <div class="modal-content">
@@ -1294,9 +1350,9 @@
     <div id="receiptTemplate" style="display: none;">
         <div class="receipt">
             <div class="text-center mb-2">
-                <h3>APLIKASI PENJUALAN ANEKAMARKET</h3>
-                <p>Jl. Contoh No. 123, Kota</p>
-                <p>Telp: 081234567890</p>
+                <h3 id="receiptStoreName">APLIKASI PENJUALAN ANEKAMARKET</h3>
+                <p id="receiptStoreAddress">Jl. Contoh No. 123, Kota</p>
+                <p id="receiptStorePhone">Telp: 081234567890</p>
             </div>
             
             <div class="mb-2">
@@ -1349,6 +1405,7 @@
             <div class="text-center mt-3">
                 <p>Terima kasih telah berbelanja</p>
                 <p>Barang yang sudah dibeli tidak dapat ditukar</p>
+                <p class="receipt-footer">&copy; <span id="receiptYear"></span> APLIKASI PENJUALAN ANEKAMARKET - Hak Cipta oleh Lentera Karya Situbondo</p>
             </div>
         </div>
     </div>
@@ -1357,6 +1414,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script>
+        // Set locale to Indonesian
+        moment.locale('id');
+
         // Data storage
         const STORAGE_KEYS = {
             PRODUCTS: 'anekamarket_products',
@@ -1405,28 +1465,15 @@
             
             // Initialize other data if not exists
             if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
-                localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([
-                    { id: 'P001', barcode: '8999999012345', name: 'Indomie Goreng', category: 'Makanan', price: 3000, stock: 50 },
-                    { id: 'P002', barcode: '8999999012356', name: 'Aqua 600ml', category: 'Minuman', price: 5000, stock: 30 },
-                    { id: 'P003', barcode: '8999999012367', name: 'Pocari Sweat', category: 'Minuman', price: 10000, stock: 20 },
-                    { id: 'P004', barcode: '8999999012378', name: 'Chitato', category: 'Snack', price: 12000, stock: 25 },
-                    { id: 'P005', barcode: '8999999012389', name: 'Teh Botol', category: 'Minuman', price: 6000, stock: 15 },
-                    { id: 'P006', barcode: '8999999012390', name: 'Roti Tawar', category: 'Makanan', price: 15000, stock: 10 }
-                ]));
+                localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
             }
             
             if (!localStorage.getItem(STORAGE_KEYS.CATEGORIES)) {
-                localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify([
-                    { id: 'C001', name: 'Makanan' },
-                    { id: 'C002', name: 'Minuman' },
-                    { id: 'C003', name: 'Snack' }
-                ]));
+                localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify([]));
             }
             
             if (!localStorage.getItem(STORAGE_KEYS.CUSTOMERS)) {
-                localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify([
-                    { id: 'M001', name: 'Pelanggan Member', phone: '081234567890', type: 'member', discount: 10 }
-                ]));
+                localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify([]));
             }
             
             if (!localStorage.getItem(STORAGE_KEYS.TRANSACTIONS)) {
@@ -1438,6 +1485,7 @@
                     storeName: 'APLIKASI PENJUALAN ANEKAMARKET',
                     storeAddress: 'Jl. Contoh No. 123, Kota',
                     storePhone: '081234567890',
+                    storeDescription: '',
                     taxRate: 10
                 }));
             }
@@ -1475,6 +1523,9 @@
             // Initialize data
             initializeData();
             
+            // Set current year in footer
+            $('#currentYear, #receiptYear').text(new Date().getFullYear());
+            
             // Check if user is logged in
             if (currentUser) {
                 $('#loggedInUser').text(currentUser.name);
@@ -1484,6 +1535,7 @@
                 updateCart();
                 loadCategories();
                 updateCurrentDate();
+                updateStoreInfo();
                 
                 // Show admin panel if user is admin
                 if (currentUser.role === 'admin') {
@@ -1539,6 +1591,7 @@
                 updateCart();
                 loadCategories();
                 updateCurrentDate();
+                updateStoreInfo();
                 
                 showToast('Login berhasil', 'success');
             });
@@ -1997,6 +2050,16 @@
                 }
             });
             
+            $('#manageStoreInfoBtn').click(function() {
+                if (currentUser.role === 'admin') {
+                    $('#manageStoreInfoModal').show();
+                    loadStoreInfo();
+                } else {
+                    pendingAdminAction = 'manageStoreInfo';
+                    $('#adminPasswordModal').show();
+                }
+            });
+            
             $('#backupDataBtn').click(function() {
                 if (currentUser.role === 'admin') {
                     $('#backupModal').show();
@@ -2006,19 +2069,6 @@
                     $('#backupTab').addClass('active');
                 } else {
                     pendingAdminAction = 'backupData';
-                    $('#adminPasswordModal').show();
-                }
-            });
-            
-            $('#restoreDataBtn').click(function() {
-                if (currentUser.role === 'admin') {
-                    $('#backupModal').show();
-                    $('.tab').removeClass('active');
-                    $('[data-tab="restore"]').addClass('active');
-                    $('.tab-content').removeClass('active');
-                    $('#restoreTab').addClass('active');
-                } else {
-                    pendingAdminAction = 'restoreData';
                     $('#adminPasswordModal').show();
                 }
             });
@@ -2087,19 +2137,16 @@
                         $('#reportPeriod').val('today');
                         $('#customDateRange').hide();
                         break;
+                    case 'manageStoreInfo':
+                        $('#manageStoreInfoModal').show();
+                        loadStoreInfo();
+                        break;
                     case 'backupData':
                         $('#backupModal').show();
                         $('.tab').removeClass('active');
                         $('[data-tab="backup"]').addClass('active');
                         $('.tab-content').removeClass('active');
                         $('#backupTab').addClass('active');
-                        break;
-                    case 'restoreData':
-                        $('#backupModal').show();
-                        $('.tab').removeClass('active');
-                        $('[data-tab="restore"]').addClass('active');
-                        $('.tab-content').removeClass('active');
-                        $('#restoreTab').addClass('active');
                         break;
                 }
                 
@@ -2408,6 +2455,61 @@
                 $('#cashierModal').hide();
             });
             
+            // Load store info
+            function loadStoreInfo() {
+                $('#storeName').val(settings.storeName);
+                $('#storeAddress').val(settings.storeAddress);
+                $('#storePhone').val(settings.storePhone);
+                $('#storeDescription').val(settings.storeDescription || '');
+                $('#taxRate').val(settings.taxRate || 10);
+            }
+            
+            // Save store info
+            $('#saveStoreInfoBtn').click(function() {
+                const storeName = $('#storeName').val().trim();
+                const storeAddress = $('#storeAddress').val().trim();
+                const storePhone = $('#storePhone').val().trim();
+                const storeDescription = $('#storeDescription').val().trim();
+                const taxRate = parseFloat($('#taxRate').val()) || 0;
+                
+                if (!storeName || !storeAddress || !storePhone) {
+                    showToast('Nama toko, alamat, dan nomor telepon harus diisi', 'error');
+                    return;
+                }
+                
+                if (taxRate < 0 || taxRate > 100) {
+                    showToast('Tarif pajak harus antara 0-100%', 'error');
+                    return;
+                }
+                
+                // Update settings
+                settings.storeName = storeName;
+                settings.storeAddress = storeAddress;
+                settings.storePhone = storePhone;
+                settings.storeDescription = storeDescription;
+                settings.taxRate = taxRate;
+                
+                saveSettings();
+                updateStoreInfo();
+                
+                $('#manageStoreInfoModal').hide();
+                
+                showToast('Info toko berhasil diperbarui', 'success');
+            });
+            
+            // Cancel store info modal
+            $('#cancelStoreInfo').click(function() {
+                $('#manageStoreInfoModal').hide();
+            });
+            
+            // Update store info in UI
+            function updateStoreInfo() {
+                $('#storeNameHeader').text(settings.storeName);
+                $('#receiptStoreName').text(settings.storeName);
+                $('#receiptStoreAddress').text(settings.storeAddress);
+                $('#receiptStorePhone').text('Telp: ' + settings.storePhone);
+            }
+            
             // Report period change
             $('#reportPeriod').change(function() {
                 if ($(this).val() === 'custom') {
@@ -2556,6 +2658,7 @@
                             // Reload UI
                             loadProducts();
                             loadCategories();
+                            updateStoreInfo();
                             
                             showToast('Data berhasil di-restore', 'success');
                             $('#backupModal').hide();
@@ -2675,9 +2778,13 @@
             const $select = $('#productCategory, #newProductCategory');
             $select.empty();
             
-            categories.forEach(category => {
-                $select.append(`<option value="${category.name}">${category.name}</option>`);
-            });
+            if (categories.length === 0) {
+                $select.append('<option value="" disabled selected>Tidak ada kategori</option>');
+            } else {
+                categories.forEach(category => {
+                    $select.append(`<option value="${category.name}">${category.name}</option>`);
+                });
+            }
         }
         
         // Load categories for management
@@ -2988,6 +3095,7 @@
                     </div>
                 </div>
                 
+                ${Object.keys(paymentMethods).length > 0 ? `
                 <div class="panel mt-3">
                     <h4>Metode Pembayaran</h4>
                     ${Object.entries(paymentMethods).map(([method, data]) => `
@@ -2999,7 +3107,9 @@
                         </div>
                     `).join('')}
                 </div>
+                ` : ''}
                 
+                ${topProducts.length > 0 ? `
                 <div class="panel mt-3">
                     <h4>Produk Terlaris</h4>
                     ${topProducts.map(product => `
@@ -3009,7 +3119,9 @@
                         </div>
                     `).join('')}
                 </div>
+                ` : ''}
                 
+                ${filteredTransactions.length > 0 ? `
                 <div class="panel mt-3">
                     <h4>Detail Transaksi</h4>
                     <table>
@@ -3035,6 +3147,7 @@
                         </tbody>
                     </table>
                 </div>
+                ` : ''}
             `;
             
             // Display report
@@ -3043,9 +3156,15 @@
             // Copy to print area
             $('#reportPrintArea').html(`
                 <h3>Laporan Penjualan</h3>
+                <p>${settings.storeName}</p>
                 <p>Periode: ${startDate.format('DD/MM/YYYY')} - ${endDate.format('DD/MM/YYYY')}</p>
-                <p>Dicetak pada: ${moment().format('DD/MM/YYYY HH:mm')}</p>
+                <p>Dicetak pada: ${moment().format('DD/MM/YYYY HH:mm')} oleh ${currentUser.name}</p>
+                <hr>
                 ${reportHTML}
+                <hr>
+                <div class="text-center">
+                    <p>&copy; ${new Date().getFullYear()} ${settings.storeName} - Hak Cipta oleh Lentera Karya Situbondo</p>
+                </div>
             `);
             
             $('#printReportBtn').show();
@@ -3116,7 +3235,7 @@
         
         // Update current date
         function updateCurrentDate() {
-            $('#currentDate').text(moment().format('dddd, D MMM YYYY, HH:mm'));
+            $('#currentDate').text(moment().format('dddd, D MMMM YYYY, HH:mm'));
         }
     </script>
 </body>
