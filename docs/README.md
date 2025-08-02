@@ -34,7 +34,4 @@
    - Admin: username `admin`, password `********`
    - Kasir: username `kasir`, password `********`
 
-## Screenshot
 
-![Login Screen](/screenshots/login.png)
-![Dashboard](/screenshots/dashboard.png)
