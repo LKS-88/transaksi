@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>POS KASIR PRO</title>
+  <title>POS ANEKAMARKET PRO</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-daterangepicker/3.0.5/daterangepicker.min.css">
   <style>
     :root {
       --primary-color: #4361ee;
@@ -269,6 +271,157 @@
       background: var(--primary-light);
     }
     
+    /* Dashboard Stats */
+    .stats-card {
+      display: flex;
+      align-items: center;
+      padding: 20px;
+      border-radius: var(--rounded);
+      color: white;
+      margin-bottom: 20px;
+    }
+    
+    .stats-card i {
+      font-size: 2rem;
+      margin-right: 15px;
+      opacity: 0.8;
+    }
+    
+    .stats-card .stats-info h3 {
+      font-size: 1.8rem;
+      margin: 0;
+      font-weight: 600;
+    }
+    
+    .stats-card .stats-info p {
+      margin: 0;
+      opacity: 0.9;
+    }
+    
+    .stats-card.sales {
+      background: linear-gradient(135deg, #4361ee, #3f37c9);
+    }
+    
+    .stats-card.products {
+      background: linear-gradient(135deg, #06d6a0, #04a57a);
+    }
+    
+    .stats-card.customers {
+      background: linear-gradient(135deg, #ffd166, #f6aa1c);
+    }
+    
+    .stats-card.transactions {
+      background: linear-gradient(135deg, #ef476f, #d90429);
+    }
+    
+    /* Login Styles */
+    .login-container {
+      max-width: 400px;
+      margin: 10vh auto;
+      padding: 30px;
+      background: white;
+      border-radius: var(--rounded);
+      box-shadow: var(--shadow-md);
+      text-align: center;
+    }
+    
+    .login-logo {
+      margin-bottom: 30px;
+    }
+    
+    .login-title {
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 30px;
+    }
+    
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 1050;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .modal-content {
+      background-color: #fff;
+      border-radius: var(--rounded);
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .modal-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid #eee;
+      background: var(--primary-color);
+      color: white;
+    }
+    
+    .modal-title {
+      font-weight: 600;
+      margin: 0;
+    }
+    
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .modal-footer {
+      padding: 15px 20px;
+      border-top: 1px solid #eee;
+      text-align: right;
+    }
+    
+    /* Toast Styles */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      color: white;
+      padding: 15px 20px;
+      border-radius: var(--rounded-sm);
+      z-index: 10000;
+      opacity: 0;
+      transition: var(--transition);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: center;
+    }
+    
+    .toast.show {
+      opacity: 1;
+    }
+    
+    .toast i {
+      margin-right: 10px;
+      font-size: 1.2rem;
+    }
+    
+    .toast.success {
+      background: var(--success-color);
+    }
+    
+    .toast.error {
+      background: var(--danger-color);
+    }
+    
+    .toast.warning {
+      background: var(--warning-color);
+      color: var(--dark-color);
+    }
+    
     /* Cashier View */
     .cashier-view-container {
       display: flex;
@@ -372,64 +525,6 @@
       color: var(--gray-color);
     }
     
-    /* Cart Summary */
-    .cart-summary {
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: var(--rounded-sm);
-      margin-top: 15px;
-    }
-
-    .cart-summary-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-
-    .cart-summary-row.total {
-      font-weight: bold;
-      font-size: 1.1rem;
-      border-top: 1px solid #eee;
-      padding-top: 10px;
-      margin-top: 10px;
-    }
-
-    .payment-inputs {
-      display: flex;
-      gap: 15px;
-    }
-
-    .payment-inputs .form-control {
-      flex: 1;
-    }
-
-    .payment-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-    }
-
-    .payment-actions .btn {
-      flex: 1;
-    }
-
-    .product-search-container {
-      position: relative;
-    }
-
-    .product-search-container .btn {
-      position: absolute;
-      right: 0;
-      top: 0;
-      height: 100%;
-      border-top-left-radius: 0;
-      border-bottom-left-radius: 0;
-    }
-
-    .product-search-container input {
-      padding-right: 45px;
-    }
-
     /* Responsive Styles */
     @media (min-width: 992px) {
       .cashier-view-container {
@@ -463,6 +558,16 @@
     @media (max-width: 768px) {
       .product-grid {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      }
+      
+      .stats-card {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .stats-card i {
+        margin-right: 0;
+        margin-bottom: 10px;
       }
     }
     
@@ -535,42 +640,62 @@
       color: white;
     }
 
-    /* Toast Notification */
-    .toast {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      color: white;
-      padding: 15px 20px;
+    /* Cashier improvements */
+    .cart-summary {
+      background: #f8f9fa;
+      padding: 15px;
       border-radius: var(--rounded-sm);
-      z-index: 10000;
-      opacity: 0;
-      transition: var(--transition);
-      box-shadow: var(--shadow-md);
+      margin-top: 15px;
+    }
+
+    .cart-summary-row {
       display: flex;
-      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
     }
-    
-    .toast.show {
-      opacity: 1;
+
+    .cart-summary-row.total {
+      font-weight: bold;
+      font-size: 1.1rem;
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+      margin-top: 10px;
     }
-    
-    .toast i {
-      margin-right: 10px;
-      font-size: 1.2rem;
+
+    .payment-inputs {
+      display: flex;
+      gap: 15px;
     }
-    
-    .toast.success {
-      background: var(--success-color);
+
+    .payment-inputs .form-control {
+      flex: 1;
     }
-    
-    .toast.error {
-      background: var(--danger-color);
+
+    .payment-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
     }
-    
-    .toast.warning {
-      background: var(--warning-color);
-      color: var(--dark-color);
+
+    .payment-actions .btn {
+      flex: 1;
+    }
+
+    .product-search-container {
+      position: relative;
+    }
+
+    .product-search-container .btn {
+      position: absolute;
+      right: 0;
+      top: 0;
+      height: 100%;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+
+    .product-search-container input {
+      padding-right: 45px;
     }
   </style>
 </head>
@@ -579,8 +704,8 @@
   <div id="loginModal" class="modal" style="display: flex;">
     <div class="login-container">
       <div class="login-logo">
-        <i class="fas fa-cash-register" style="font-size: 3rem; color: var(--primary-color);"></i>
-        <h1 class="login-title">POS KASIR PRO</h1>
+        <i class="fas fa-store-alt" style="font-size: 3rem; color: var(--primary-color);"></i>
+        <h1 class="login-title">POS ANEKAMARKET PRO</h1>
       </div>
       <form id="loginForm">
         <div class="form-floating mb-3">
@@ -605,7 +730,7 @@
       <div class="sidebar-header">
         <div class="sidebar-brand">
           <i class="fas fa-store-alt"></i>
-          <span id="sidebarStoreName">POS KASIR PRO</span>
+          <span id="sidebarStoreName">ANEKAMARKET PRO</span>
         </div>
         <button class="btn btn-sm btn-link sidebar-toggle d-none">
           <i class="fas fa-times"></i>
@@ -614,7 +739,11 @@
       
       <div class="sidebar-menu">
         <div class="menu-title">Menu Utama</div>
-        <a href="#" class="menu-item active" data-tab="cashier">
+        <a href="#" class="menu-item active" data-tab="dashboard">
+          <i class="fas fa-tachometer-alt"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="menu-item" data-tab="cashier">
           <i class="fas fa-cash-register"></i>
           <span>Kasir</span>
         </a>
@@ -632,8 +761,20 @@
           <i class="fas fa-tags"></i>
           <span>Kategori</span>
         </a>
+        <a href="#" class="menu-item" data-tab="customers">
+          <i class="fas fa-users"></i>
+          <span>Pelanggan</span>
+        </a>
         
         <div class="menu-title">Administrasi</div>
+        <a href="#" class="menu-item" data-tab="cashiers">
+          <i class="fas fa-user-tie"></i>
+          <span>Kasir</span>
+        </a>
+        <a href="#" class="menu-item" data-tab="reports">
+          <i class="fas fa-chart-bar"></i>
+          <span>Laporan</span>
+        </a>
         <a href="#" class="menu-item" data-tab="settings">
           <i class="fas fa-cog"></i>
           <span>Pengaturan</span>
@@ -667,19 +808,117 @@
             <span id="topbarCashierName">Admin</span>
           </button>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+            <li><a class="dropdown-item" href="#" data-tab="profile"><i class="fas fa-user me-2"></i>Profil</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item text-danger" href="#" id="topbarLogoutBtn"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
           </ul>
         </div>
       </div>
       
+      <!-- Tab Contents -->
+      <div class="tab-content active" id="dashboardTab">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h3 class="mb-0">Dashboard</h3>
+          <div class="btn-group">
+            <button class="btn btn-sm btn-outline-secondary active" id="todayBtn">Hari Ini</button>
+            <button class="btn btn-sm btn-outline-secondary" id="weekBtn">Minggu Ini</button>
+            <button class="btn btn-sm btn-outline-secondary" id="monthBtn">Bulan Ini</button>
+          </div>
+        </div>
+        
+        <div class="row mb-4">
+          <div class="col-md-3">
+            <div class="stats-card sales">
+              <i class="fas fa-shopping-cart"></i>
+              <div class="stats-info">
+                <p>Total Penjualan</p>
+                <h3 id="totalSales">Rp0</h3>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stats-card products">
+              <i class="fas fa-box-open"></i>
+              <div class="stats-info">
+                <p>Total Produk</p>
+                <h3 id="totalProducts">0</h3>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stats-card customers">
+              <i class="fas fa-users"></i>
+              <div class="stats-info">
+                <p>Pelanggan</p>
+                <h3 id="totalCustomers">0</h3>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stats-card transactions">
+              <i class="fas fa-receipt"></i>
+              <div class="stats-info">
+                <p>Transaksi</p>
+                <h3 id="totalTransactions">0</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-lg-8">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title">Grafik Penjualan</h5>
+                <div class="btn-group">
+                  <button class="btn btn-sm btn-outline-secondary active" data-chart-period="day">Harian</button>
+                  <button class="btn btn-sm btn-outline-secondary" data-chart-period="week">Mingguan</button>
+                  <button class="btn btn-sm btn-outline-secondary" data-chart-period="month">Bulanan</button>
+                </div>
+              </div>
+              <div class="card-body">
+                <canvas id="salesChart" height="300"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title">Produk Terlaris</h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Produk</th>
+                        <th>Terjual</th>
+                      </tr>
+                    </thead>
+                    <tbody id="topProductsTable">
+                      <tr><td colspan="2" class="text-center">Memuat data...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <!-- Cashier Tab -->
-      <div class="tab-content active" id="cashierTab">
+      <div class="tab-content" id="cashierTab">
         <div class="d-flex justify-content-between align-items-center mb-4">
           <h3 class="mb-0">Kasir</h3>
           <div class="d-flex gap-2">
             <button class="btn btn-sm btn-outline-primary" id="newTransactionBtn">
               <i class="fas fa-plus me-1"></i> Transaksi Baru
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" id="holdTransactionBtn" disabled>
+              <i class="fas fa-pause me-1"></i> Tahan
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" id="recallTransactionBtn">
+              <i class="fas fa-history me-1"></i> Panggil
             </button>
           </div>
         </div>
@@ -717,6 +956,10 @@
                     <span>Diskon:</span>
                     <span id="cartDiscount">-Rp0</span>
                   </div>
+                  <div class="cart-summary-row">
+                    <span>Pajak:</span>
+                    <span id="cartTax">Rp0</span>
+                  </div>
                   <div class="cart-summary-row total">
                     <span>Total:</span>
                     <span id="cartTotal">Rp0</span>
@@ -737,6 +980,9 @@
                       <select class="form-select" id="customerSelect">
                         <option value="">Umum</option>
                       </select>
+                      <button class="btn btn-outline-secondary" type="button" id="addCustomerBtn">
+                        <i class="fas fa-plus"></i>
+                      </button>
                     </div>
                   </div>
                   <div class="col-md-6">
@@ -746,6 +992,7 @@
                         <option value="cash">Tunai</option>
                         <option value="debit">Debit</option>
                         <option value="credit">Kredit</option>
+                        <option value="transfer">Transfer</option>
                       </select>
                     </div>
                   </div>
@@ -760,6 +1007,13 @@
                         <option value="percent">%</option>
                         <option value="amount">Rp</option>
                       </select>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="input-group">
+                      <span class="input-group-text">Pajak</span>
+                      <input type="number" class="form-control" id="taxAmount" placeholder="0" min="0" value="0">
+                      <span class="input-group-text">%</span>
                     </div>
                   </div>
                 </div>
@@ -800,6 +1054,7 @@
             
             <div class="tabs mb-3">
               <div class="tab active" data-category="all">Semua</div>
+              <div class="tab" data-category="favorites">Favorit</div>
               <!-- Categories will be injected here -->
             </div>
             
@@ -817,6 +1072,9 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
           <h3 class="mb-0">Daftar Transaksi</h3>
           <div class="btn-group">
+            <button class="btn btn-sm btn-outline-primary" id="exportTransactionsBtn">
+              <i class="fas fa-file-export me-1"></i> Export
+            </button>
             <button class="btn btn-sm btn-outline-secondary" id="filterTransactionsBtn">
               <i class="fas fa-filter me-1"></i> Filter
             </button>
@@ -839,14 +1097,16 @@
                   <tr>
                     <th>ID</th>
                     <th>Tanggal</th>
+                    <th>Pelanggan</th>
                     <th>Items</th>
                     <th>Total</th>
                     <th>Metode</th>
+                    <th>Kasir</th>
                     <th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="transactionsTable">
-                  <tr><td colspan="6" class="text-center py-5">Memuat data transaksi...</td></tr>
+                  <tr><td colspan="8" class="text-center py-5">Memuat data transaksi...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -922,6 +1182,121 @@
                   <tr><td colspan="4" class="text-center py-5">Memuat data kategori...</td></tr>
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Customers Tab -->
+      <div class="tab-content" id="customersTab">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h3 class="mb-0">Manajemen Pelanggan</h3>
+          <button class="btn btn-sm btn-primary" id="addCustomerBtn2">
+            <i class="fas fa-plus me-1"></i> Tambah Pelanggan
+          </button>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <div class="input-group" style="max-width: 300px;">
+              <input type="text" class="form-control" id="customerSearch" placeholder="Cari pelanggan...">
+              <button class="btn btn-outline-secondary" type="button" id="searchCustomerBtn">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Nama</th>
+                    <th>Telepon</th>
+                    <th>Email</th>
+                    <th>Total Belanja</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="adminCustomersTable">
+                  <tr><td colspan="5" class="text-center py-5">Memuat data pelanggan...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Cashiers Tab -->
+      <div class="tab-content" id="cashiersTab">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h3 class="mb-0">Manajemen Kasir</h3>
+          <button class="btn btn-sm btn-primary" id="addCashierBtn">
+            <i class="fas fa-plus me-1"></i> Tambah Kasir
+          </button>
+        </div>
+        
+        <div class="card">
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Nama</th>
+                    <th>Peran</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="adminCashiersTable">
+                  <tr><td colspan="5" class="text-center py-5">Memuat data kasir...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Reports Tab -->
+      <div class="tab-content" id="reportsTab">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h3 class="mb-0">Laporan</h3>
+          <div>
+            <button class="btn btn-sm btn-outline-primary me-2" id="printReportBtn">
+              <i class="fas fa-print me-1"></i> Cetak
+            </button>
+            <button class="btn btn-sm btn-primary" id="generateReportBtn">
+              <i class="fas fa-file-export me-1"></i> Generate
+            </button>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <div class="row">
+              <div class="col-md-4">
+                <select class="form-select" id="reportType">
+                  <option value="sales">Laporan Penjualan</option>
+                  <option value="products">Laporan Produk</option>
+                  <option value="transactions">Laporan Transaksi</option>
+                </select>
+              </div>
+              <div class="col-md-5">
+                <input type="text" class="form-control" id="reportDateRange" placeholder="Pilih rentang tanggal">
+              </div>
+              <div class="col-md-3">
+                <button class="btn btn-primary w-100" id="applyReportFilterBtn">
+                  <i class="fas fa-filter me-1"></i> Filter
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="reportContainer">
+              <div class="text-center py-5">
+                <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                <p>Pilih parameter laporan dan klik "Generate" untuk melihat data</p>
+              </div>
             </div>
           </div>
         </div>
@@ -1018,6 +1393,35 @@
       </div>
     </div>
   </div>
+  
+  <div id="holdTransactionModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h5 class="modal-title">Transaksi Ditahan</h5>
+        <button type="button" class="btn-close close-modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tanggal</th>
+                <th>Items</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="heldTransactionsTable">
+              <tr><td colspan="4" class="text-center py-3">Tidak ada transaksi ditahan</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary close-modal">Tutup</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Toast Notification -->
   <div id="toast" class="toast">
@@ -1028,6 +1432,7 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-daterangepicker/3.0.5/daterangepicker.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <script>
@@ -1037,8 +1442,10 @@
       PRODUCTS: 'pos_pro_products',
       CATEGORIES: 'pos_pro_categories',
       CASHIERS: 'pos_pro_cashiers',
+      CUSTOMERS: 'pos_pro_customers',
       SETTINGS: 'pos_pro_settings',
       TRANSACTIONS: 'pos_pro_transactions',
+      HELD_TRANSACTIONS: 'pos_pro_held_transactions',
       CURRENT_CASHIER: 'pos_pro_current_cashier'
     };
 
@@ -1048,10 +1455,12 @@
       customer: null,
       paymentMethod: 'cash',
       discount: { amount: 0, type: 'percent' },
+      tax: 0,
       date: new Date()
     };
     
     let currentCashier = null;
+    let salesChart = null;
 
     // Initialize the application
     function initApp() {
@@ -1078,12 +1487,13 @@
       
       if (!appState.settings || Array.isArray(appState.settings)) {
         appState.settings = { 
-          storeName: 'POS KASIR PRO',
+          storeName: 'ANEKAMARKET PRO',
           storeAddress: '',
           storePhone: '',
           storeEmail: '',
           receiptHeader: 'Terima kasih telah berbelanja',
           receiptFooter: 'Barang yang sudah dibeli tidak dapat ditukar atau dikembalikan',
+          defaultTax: 0,
           stockWarning: true
         };
       }
@@ -1124,6 +1534,26 @@
           }
         ];
         saveState('products');
+      }
+      
+      if (appState.customers.length === 0) {
+        appState.customers = [
+          {
+            id: 'cust-' + Date.now(),
+            name: 'Pelanggan Umum',
+            phone: '',
+            email: '',
+            address: '',
+            active: true
+          }
+        ];
+        saveState('customers');
+      }
+      
+      // Initialize held transactions if not exists
+      if (!appState.held_transactions) {
+        appState.held_transactions = [];
+        saveState('held_transactions');
       }
     }
 
@@ -1309,6 +1739,39 @@
             </div>
           `;
           break;
+          
+        case 'customers':
+          title.textContent = actionText + ' Pelanggan';
+          if (id) {
+            item = appState.customers.find(function(c) { return c.id === id; });
+          }
+          
+          formHtml = `
+            <input type="hidden" name="id" value="${item.id || ''}">
+            <div class="mb-3">
+              <label class="form-label">Nama Pelanggan</label>
+              <input type="text" class="form-control" name="name" value="${item.name || ''}" required>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Telepon</label>
+                <input type="text" class="form-control" name="phone" value="${item.phone || ''}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" name="email" value="${item.email || ''}">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Alamat</label>
+              <textarea class="form-control" name="address" rows="2">${item.address || ''}</textarea>
+            </div>
+            <div class="mb-3 form-check">
+              <input type="checkbox" class="form-check-input" name="active" id="customerActive" ${item.active !== false ? 'checked' : ''}>
+              <label class="form-check-label" for="customerActive">Aktif</label>
+            </div>
+          `;
+          break;
       }
       
       // If editing, load the item data
@@ -1354,10 +1817,198 @@
       if (firstInput) firstInput.focus();
     }
     
-    // Render functions for cashier view
+    // Render functions for different sections
+    function renderDashboard() {
+      // Calculate totals
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const todayTransactions = appState.transactions.filter(function(t) {
+        const transDate = new Date(t.date);
+        return transDate >= today;
+      });
+      
+      const totalSales = todayTransactions.reduce(function(sum, t) {
+        return sum + t.total;
+      }, 0);
+      const totalProducts = appState.products.filter(function(p) { return p.active; }).length;
+      const totalCustomers = appState.customers.filter(function(c) { return c.active; }).length;
+      const totalTransactions = todayTransactions.length;
+      
+      // Update stats cards
+      $('#totalSales').textContent = formatCurrency(totalSales);
+      $('#totalProducts').textContent = totalProducts;
+      $('#totalCustomers').textContent = totalCustomers;
+      $('#totalTransactions').textContent = totalTransactions;
+      
+      // Render sales chart
+      renderSalesChart('day');
+      
+      // Render top products
+      renderTopProducts();
+    }
+    
+    function renderSalesChart(period) {
+      const ctx = $('#salesChart');
+      
+      // Destroy previous chart if exists
+      if (salesChart) {
+        salesChart.destroy();
+      }
+      
+      // Prepare data based on period
+      let labels = [];
+      let data = [];
+      const now = new Date();
+      
+      if (period === 'day') {
+        // Last 7 days
+        for (let i = 6; i >= 0; i--) {
+          const date = new Date();
+          date.setDate(now.getDate() - i);
+          labels.push(date.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' }));
+          
+          const dayStart = new Date(date);
+          dayStart.setHours(0, 0, 0, 0);
+          const dayEnd = new Date(date);
+          dayEnd.setHours(23, 59, 59, 999);
+          
+          const dayTransactions = appState.transactions.filter(function(t) {
+            const transDate = new Date(t.date);
+            return transDate >= dayStart && transDate <= dayEnd;
+          });
+          
+          data.push(dayTransactions.reduce(function(sum, t) {
+            return sum + t.total;
+          }, 0));
+        }
+      } else if (period === 'week') {
+        // Last 8 weeks
+        for (let i = 7; i >= 0; i--) {
+          const weekStart = new Date();
+          weekStart.setDate(now.getDate() - (now.getDay() + (i * 7)));
+          weekStart.setHours(0, 0, 0, 0);
+          
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekStart.getDate() + 6);
+          weekEnd.setHours(23, 59, 59, 999);
+          
+          labels.push('Minggu ' + (i === 0 ? 'Ini' : i));
+          
+          const weekTransactions = appState.transactions.filter(function(t) {
+            const transDate = new Date(t.date);
+            return transDate >= weekStart && transDate <= weekEnd;
+          });
+          
+          data.push(weekTransactions.reduce(function(sum, t) {
+            return sum + t.total;
+          }, 0));
+        }
+      } else if (period === 'month') {
+        // Last 6 months
+        for (let i = 5; i >= 0; i--) {
+          const month = new Date();
+          month.setMonth(now.getMonth() - i);
+          labels.push(month.toLocaleDateString('id-ID', { month: 'short' }));
+          
+          const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
+          const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+          monthEnd.setHours(23, 59, 59, 999);
+          
+          const monthTransactions = appState.transactions.filter(function(t) {
+            const transDate = new Date(t.date);
+            return transDate >= monthStart && transDate <= monthEnd;
+          });
+          
+          data.push(monthTransactions.reduce(function(sum, t) {
+            return sum + t.total;
+          }, 0));
+        }
+      }
+      
+      // Create new chart
+      salesChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Total Penjualan',
+            data: data,
+            backgroundColor: 'rgba(67, 97, 238, 0.7)',
+            borderColor: 'rgba(67, 97, 238, 1)',
+            borderWidth: 1,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return formatCurrency(context.raw);
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return formatCurrency(value);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    function renderTopProducts() {
+      // Count product sales
+      const productSales = {};
+      
+      appState.transactions.forEach(function(transaction) {
+        transaction.items.forEach(function(item) {
+          if (!productSales[item.id]) {
+            productSales[item.id] = 0;
+          }
+          productSales[item.id] += item.quantity;
+        });
+      });
+      
+      // Sort by sales quantity
+      const sortedProducts = Object.entries(productSales)
+        .sort(function(a, b) { return b[1] - a[1]; })
+        .slice(0, 5);
+      
+      // Render table
+      const tbody = $('#topProductsTable');
+      
+      if (sortedProducts.length === 0) {
+        render(tbody, '<tr><td colspan="2" class="text-center">Tidak ada data penjualan</td></tr>');
+        return;
+      }
+      
+      render(tbody, sortedProducts.map(function([productId, quantity]) {
+        const product = appState.products.find(function(p) { return p.id === productId; });
+        return `
+          <tr>
+            <td>${product ? product.name : 'Produk tidak ditemukan'}</td>
+            <td>${quantity}</td>
+          </tr>
+        `;
+      }).join(''));
+    }
+    
     function renderCashierView() {
       renderProductGrid();
       renderCart();
+      renderCustomerSelect();
     }
     
     function renderProductGrid() {
@@ -1370,7 +2021,7 @@
       });
       
       // Filter by category
-      if (activeCategory !== 'all') {
+      if (activeCategory !== 'all' && activeCategory !== 'favorites') {
         filteredProducts = filteredProducts.filter(function(p) { 
           return p.categoryId === activeCategory;
         });
@@ -1406,6 +2057,7 @@
       
       render(categoryTabsContainer, `
         <div class="tab active" data-category="all">Semua</div>
+        <div class="tab" data-category="favorites">Favorit</div>
         ${categories.map(function(c) { 
           return `<div class="tab" data-category="${c.id}">${c.name}</div>`;
         }).join('')}
@@ -1463,12 +2115,16 @@
         }
       }
       
+      // Calculate tax
+      const tax = subtotal * (currentCart.tax / 100);
+      
       // Calculate total
-      const total = subtotal - discount;
+      const total = subtotal - discount + tax;
       
       // Update UI
       $('#cartSubtotal').textContent = formatCurrency(subtotal);
       $('#cartDiscount').textContent = '-' + formatCurrency(discount);
+      $('#cartTax').textContent = formatCurrency(tax);
       $('#cartTotal').textContent = formatCurrency(total);
       $('#cartItemCount').textContent = currentCart.items.reduce(function(sum, item) {
         return sum + item.quantity;
@@ -1477,9 +2133,10 @@
       // Update change amount if payment has been entered
       updateChange();
       
-      // Save current cart to state
+      // Save current cart to state (for hold functionality)
       currentCart.subtotal = subtotal;
       currentCart.discountAmount = discount;
+      currentCart.taxAmount = tax;
       currentCart.total = total;
     }
     
@@ -1489,79 +2146,79 @@
       $('#changeAmount').textContent = formatCurrency(change > 0 ? change : 0);
     }
     
-    // Transaction handlers
-    function handleCheckout() {
-      if (currentCart.items.length === 0) {
-        showToast('Keranjang kosong', 'error');
-        return;
+    function renderCustomerSelect() {
+      const select = $('#customerSelect');
+      const customers = appState.customers.filter(function(c) { return c.active; });
+      
+      render(select, `
+        <option value="">Umum</option>
+        ${customers.map(function(c) { 
+          return `<option value="${c.id}">${c.name}</option>`;
+        }).join('')}
+      `);
+      
+      // Set selected customer if exists in current cart
+      if (currentCart.customer) {
+        select.value = currentCart.customer.id;
       }
-      
-      const paymentAmount = parseFloat($('#paymentAmount').value) || 0;
-      if (paymentAmount < currentCart.total) {
-        showToast('Jumlah pembayaran kurang', 'error');
-        return;
-      }
-      
-      // Create transaction
-      const transaction = {
-        id: 'TRX-' + Date.now().toString().slice(-6),
-        date: new Date().toISOString(),
-        customer: $('#customerSelect').value || null,
-        items: currentCart.items.slice(),
-        subtotal: currentCart.subtotal,
-        discount: Object.assign({}, currentCart.discount),
-        discountAmount: currentCart.discountAmount,
-        total: currentCart.total,
-        paymentMethod: $('#paymentMethod').value,
-        paymentAmount: paymentAmount,
-        cashierId: currentCashier.id
-      };
-      
-      // Update product stocks
-      currentCart.items.forEach(function(item) {
-        const product = appState.products.find(function(p) { return p.id === item.id; });
-        if (product) {
-          product.stock -= item.quantity;
-          if (product.stock < 0) product.stock = 0;
-        }
-      });
-      
-      // Add to transactions
-      appState.transactions.push(transaction);
-      saveState('transactions');
-      saveState('products');
-      
-      // Reset cart
-      resetCart();
-      
-      // Show receipt
-      renderTransactionDetail(transaction.id);
-      
-      showToast('Transaksi berhasil', 'success');
     }
     
-    function resetCart() {
-      currentCart = { 
-        items: [],
-        customer: null,
-        paymentMethod: 'cash',
-        discount: { amount: 0, type: 'percent' },
-        date: new Date()
-      };
+    function renderTransactions() {
+      const tbody = $('#transactionsTable');
+      const search = $('#transactionSearch').value.toLowerCase();
       
-      // Reset UI
-      $('#paymentAmount').value = '';
-      $('#discountAmount').value = '0';
-      $('#discountType').value = 'percent';
-      $('#paymentMethod').value = 'cash';
-      $('#customerSelect').value = '';
+      let transactions = appState.transactions.slice().reverse(); // Show latest first
       
-      renderCart();
+      // Filter by search term
+      if (search) {
+        transactions = transactions.filter(function(t) {
+          const customer = appState.customers.find(function(c) { return c.id === t.customer; }) || { name: 'Umum' };
+          const cashier = appState.cashiers.find(function(c) { return c.id === t.cashierId; }) || { name: 'Unknown' };
+          
+          return t.id.toLowerCase().includes(search) || 
+                 customer.name.toLowerCase().includes(search) ||
+                 cashier.name.toLowerCase().includes(search);
+        });
+      }
+      
+      if (transactions.length === 0) {
+        render(tbody, '<tr><td colspan="8" class="text-center py-5">Tidak ada data transaksi</td></tr>');
+        return;
+      }
+      
+      render(tbody, transactions.map(function(t) {
+        const customer = appState.customers.find(function(c) { return c.id === t.customer; }) || { name: 'Umum' };
+        const cashier = appState.cashiers.find(function(c) { return c.id === t.cashierId; }) || { name: 'Unknown' };
+        
+        return `
+          <tr>
+            <td>${t.id}</td>
+            <td>${formatDate(t.date)}</td>
+            <td>${customer.name}</td>
+            <td>${t.items.reduce(function(sum, item) { 
+              return sum + item.quantity; 
+            }, 0)}</td>
+            <td>${formatCurrency(t.total)}</td>
+            <td>${t.paymentMethod === 'cash' ? 'Tunai' : 
+                  t.paymentMethod === 'debit' ? 'Debit' : 
+                  t.paymentMethod === 'credit' ? 'Kredit' : 'Transfer'}</td>
+            <td>${cashier.name}</td>
+            <td>
+              <button class="btn btn-sm btn-primary view-transaction-btn" data-id="${t.id}">
+                <i class="fas fa-eye"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join(''));
     }
     
     function renderTransactionDetail(transactionId) {
       const transaction = appState.transactions.find(function(t) { return t.id === transactionId; });
       if (!transaction) return;
+      
+      const customer = appState.customers.find(function(c) { return c.id === transaction.customer; }) || { name: 'Umum' };
+      const cashier = appState.cashiers.find(function(c) { return c.id === transaction.cashierId; }) || { name: 'Unknown' };
       
       const receiptContent = `
         <div class="text-center mb-3">
@@ -1575,7 +2232,8 @@
             <span>No: ${transaction.id}</span>
             <span>${formatDate(transaction.date)}</span>
           </div>
-          <div>Kasir: ${currentCashier.name}</div>
+          <div>Kasir: ${cashier.name}</div>
+          <div>Pelanggan: ${customer.name}</div>
         </div>
         
         <table class="table mb-3">
@@ -1611,13 +2269,20 @@
                 <td class="text-end">-${formatCurrency(transaction.discountAmount)}</td>
               </tr>
             ` : ''}
+            ${transaction.taxAmount > 0 ? `
+              <tr>
+                <td>Pajak (${transaction.tax}%)</td>
+                <td class="text-end">${formatCurrency(transaction.taxAmount)}</td>
+              </tr>
+            ` : ''}
             <tr class="fw-bold">
               <td>TOTAL</td>
               <td class="text-end">${formatCurrency(transaction.total)}</td>
             </tr>
             <tr>
               <td>Bayar (${transaction.paymentMethod === 'cash' ? 'Tunai' : 
-                  transaction.paymentMethod === 'debit' ? 'Debit' : 'Kredit'})</td>
+                  transaction.paymentMethod === 'debit' ? 'Debit' : 
+                  transaction.paymentMethod === 'credit' ? 'Kredit' : 'Transfer'})</td>
               <td class="text-end">${formatCurrency(transaction.paymentAmount)}</td>
             </tr>
             <tr>
@@ -1635,45 +2300,6 @@
       
       render($('#printable-receipt'), receiptContent);
       $('#transactionDetailModal').style.display = 'flex';
-    }
-    
-    function renderTransactions() {
-      const tbody = $('#transactionsTable');
-      const search = $('#transactionSearch').value.toLowerCase();
-      
-      let transactions = appState.transactions.slice().reverse(); // Show latest first
-      
-      // Filter by search term
-      if (search) {
-        transactions = transactions.filter(function(t) {
-          return t.id.toLowerCase().includes(search);
-        });
-      }
-      
-      if (transactions.length === 0) {
-        render(tbody, '<tr><td colspan="6" class="text-center py-5">Tidak ada data transaksi</td></tr>');
-        return;
-      }
-      
-      render(tbody, transactions.map(function(t) {
-        return `
-          <tr>
-            <td>${t.id}</td>
-            <td>${formatDate(t.date)}</td>
-            <td>${t.items.reduce(function(sum, item) { 
-              return sum + item.quantity; 
-            }, 0)}</td>
-            <td>${formatCurrency(t.total)}</td>
-            <td>${t.paymentMethod === 'cash' ? 'Tunai' : 
-                  t.paymentMethod === 'debit' ? 'Debit' : 'Kredit'}</td>
-            <td>
-              <button class="btn btn-sm btn-primary view-transaction-btn" data-id="${t.id}">
-                <i class="fas fa-eye"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join(''));
     }
     
     function renderProductsTable() {
@@ -1766,12 +2392,106 @@
       }).join(''));
     }
     
+    function renderCustomersTable() {
+      const tbody = $('#adminCustomersTable');
+      const search = $('#customerSearch').value.toLowerCase();
+      
+      let filteredCustomers = appState.customers.filter(function(c) { 
+        return c.name.toLowerCase().includes(search) && c.active;
+      });
+      
+      if (filteredCustomers.length === 0) {
+        render(tbody, '<tr><td colspan="5" class="text-center py-5">Tidak ada pelanggan</td></tr>');
+        return;
+      }
+      
+      render(tbody, filteredCustomers.map(function(c) {
+        // Calculate total spending
+        const customerTransactions = appState.transactions.filter(function(t) { return t.customer === c.id; });
+        const totalSpending = customerTransactions.reduce(function(sum, t) { 
+          return sum + t.total; 
+        }, 0);
+        
+        return `
+          <tr>
+            <td>
+              <div class="fw-bold">${c.name}</div>
+              <small class="text-muted">ID: ${c.id}</small>
+            </td>
+            <td>${c.phone || '-'}</td>
+            <td>${c.email || '-'}</td>
+            <td>${formatCurrency(totalSpending)}</td>
+            <td>
+              <button class="btn btn-sm btn-primary edit-btn" data-type="customers" data-id="${c.id}">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-danger delete-btn" data-type="customers" data-id="${c.id}">
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join(''));
+    }
+    
+    function renderCashiersTable() {
+      const tbody = $('#adminCashiersTable');
+      const cashiers = appState.cashiers;
+      
+      if (cashiers.length === 0) {
+        render(tbody, '<tr><td colspan="5" class="text-center py-5">Tidak ada kasir</td></tr>');
+        return;
+      }
+      
+      render(tbody, cashiers.map(function(c) {
+        return `
+          <tr>
+            <td>${c.id}</td>
+            <td>${c.name}</td>
+            <td>${c.role === 'admin' ? 'Administrator' : 'Kasir'}</td>
+            <td>
+              <span class="badge ${c.active ? 'badge-success' : 'badge-danger'}">
+                ${c.active ? 'Aktif' : 'Nonaktif'}
+              </span>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-primary edit-btn" data-type="cashiers" data-id="${c.id}">
+                <i class="fas fa-edit"></i>
+              </button>
+              ${c.id !== currentCashier.id ? `
+                <button class="btn btn-sm btn-danger delete-btn" data-type="cashiers" data-id="${c.id}">
+                  <i class="fas fa-trash"></i>
+                </button>
+              ` : ''}
+            </td>
+          </tr>
+        `;
+      }).join(''));
+    }
+    
+    function renderReports() {
+      const reportContainer = $('#reportContainer');
+      const reportType = $('#reportType').value;
+      const dateRange = $('#reportDateRange').value;
+      
+      // For demo purposes, we'll just show a placeholder
+      render(reportContainer, `
+        <div class="text-center py-5">
+          <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+          <h5>Laporan ${reportType === 'sales' ? 'Penjualan' : 
+                reportType === 'products' ? 'Produk' : 'Transaksi'}</h5>
+          <p class="text-muted">Rentang: ${dateRange || 'Semua waktu'}</p>
+        </div>
+      `);
+    }
+    
     function renderSettings() {
-      $('#settingStoreName').value = appState.settings.storeName;
-      $('#settingStoreAddress').value = appState.settings.storeAddress;
-      $('#settingStorePhone').value = appState.settings.storePhone;
-      $('#settingStoreEmail').value = appState.settings.storeEmail;
-      $('#settingStockWarning').checked = appState.settings.stockWarning;
+      // General settings
+      $('#settingStoreName').value = appState.settings.storeName || '';
+      $('#settingStoreAddress').value = appState.settings.storeAddress || '';
+      $('#settingStorePhone').value = appState.settings.storePhone || '';
+      $('#settingStoreEmail').value = appState.settings.storeEmail || '';
+      $('#settingStockWarning').checked = appState.settings.stockWarning !== false;
     }
     
     // Form handlers
@@ -1850,6 +2570,13 @@
           renderCategoriesTable();
           renderProductGrid(); // Update category tabs
           break;
+        case 'customers':
+          renderCustomersTable();
+          renderCustomerSelect();
+          break;
+        case 'cashiers':
+          renderCashiersTable();
+          break;
         case 'settings':
           // Update store name in sidebar and topbar
           $('#sidebarStoreName').textContent = appState.settings.storeName;
@@ -1872,6 +2599,8 @@
         warning = 'Yakin ingin menghapus kategori "' + item.name + '"?';
       } else if (type === 'products') {
         warning = 'Yakin ingin menghapus produk "' + item.name + '"?';
+      } else if (type === 'customers') {
+        warning = 'Yakin ingin menghapus pelanggan "' + item.name + '"?';
       } else if (type === 'cashiers') {
         if (item.id === currentCashier.id) {
           showToast('Tidak dapat menghapus akun sendiri', 'error');
@@ -1886,6 +2615,210 @@
         updateUIAfterChange(type);
         showToast('Item berhasil dihapus');
       });
+    }
+    
+    // Transaction handlers
+    function handleCheckout() {
+      if (currentCart.items.length === 0) {
+        showToast('Keranjang kosong', 'error');
+        return;
+      }
+      
+      const paymentAmount = parseFloat($('#paymentAmount').value) || 0;
+      if (paymentAmount < currentCart.total) {
+        showToast('Jumlah pembayaran kurang', 'error');
+        return;
+      }
+      
+      // Create transaction
+      const transaction = {
+        id: 'TRX-' + Date.now().toString().slice(-6),
+        date: new Date().toISOString(),
+        customer: $('#customerSelect').value || null,
+        items: currentCart.items.slice(),
+        subtotal: currentCart.subtotal,
+        discount: Object.assign({}, currentCart.discount),
+        discountAmount: currentCart.discountAmount,
+        tax: currentCart.tax,
+        taxAmount: currentCart.taxAmount,
+        total: currentCart.total,
+        paymentMethod: $('#paymentMethod').value,
+        paymentAmount: paymentAmount,
+        cashierId: currentCashier.id
+      };
+      
+      // Update product stocks
+      currentCart.items.forEach(function(item) {
+        const product = appState.products.find(function(p) { return p.id === item.id; });
+        if (product) {
+          product.stock -= item.quantity;
+          if (product.stock < 0) product.stock = 0;
+        }
+      });
+      
+      // Add to transactions
+      appState.transactions.push(transaction);
+      saveState('transactions');
+      saveState('products');
+      
+      // Reset cart
+      resetCart();
+      
+      // Show receipt
+      renderTransactionDetail(transaction.id);
+      
+      showToast('Transaksi berhasil', 'success');
+    }
+    
+    function resetCart() {
+      currentCart = { 
+        items: [],
+        customer: null,
+        paymentMethod: 'cash',
+        discount: { amount: 0, type: 'percent' },
+        tax: appState.settings.defaultTax || 0,
+        date: new Date()
+      };
+      
+      // Reset UI
+      $('#paymentAmount').value = '';
+      $('#discountAmount').value = '0';
+      $('#discountType').value = 'percent';
+      $('#taxAmount').value = appState.settings.defaultTax || '0';
+      $('#paymentMethod').value = 'cash';
+      $('#customerSelect').value = '';
+      
+      renderCart();
+    }
+    
+    function holdCurrentTransaction() {
+      if (currentCart.items.length === 0) {
+        showToast('Keranjang kosong', 'error');
+        return;
+      }
+      
+      const heldTransaction = {
+        id: 'HLD-' + Date.now().toString().slice(-6),
+        date: new Date().toISOString(),
+        items: currentCart.items.slice(),
+        customer: currentCart.customer,
+        paymentMethod: currentCart.paymentMethod,
+        discount: Object.assign({}, currentCart.discount),
+        tax: currentCart.tax,
+        subtotal: currentCart.subtotal,
+        discountAmount: currentCart.discountAmount,
+        taxAmount: currentCart.taxAmount,
+        total: currentCart.total
+      };
+      
+      if (!appState.held_transactions) {
+        appState.held_transactions = [];
+      }
+      
+      appState.held_transactions.push(heldTransaction);
+      saveState('held_transactions');
+      
+      resetCart();
+      showToast('Transaksi ditahan', 'success');
+    }
+    
+    function recallHeldTransaction(transactionId) {
+      const transaction = appState.held_transactions.find(function(t) { return t.id === transactionId; });
+      if (!transaction) return;
+      
+      // Check if products are still available
+      for (let i = 0; i < transaction.items.length; i++) {
+        const item = transaction.items[i];
+        const product = appState.products.find(function(p) { return p.id === item.id; });
+        if (!product || product.stock < item.quantity) {
+          showToast('Produk ' + item.name + ' tidak tersedia cukup', 'error');
+          return;
+        }
+      }
+      
+      // Set current cart to held transaction
+      currentCart = {
+        items: transaction.items.slice(),
+        customer: transaction.customer,
+        paymentMethod: transaction.paymentMethod,
+        discount: Object.assign({}, transaction.discount),
+        tax: transaction.tax,
+        subtotal: transaction.subtotal,
+        discountAmount: transaction.discountAmount,
+        taxAmount: transaction.taxAmount,
+        total: transaction.total,
+        date: new Date()
+      };
+      
+      // Update UI
+      $('#paymentMethod').value = currentCart.paymentMethod;
+      $('#discountAmount').value = currentCart.discount.amount;
+      $('#discountType').value = currentCart.discount.type;
+      $('#taxAmount').value = currentCart.tax;
+      
+      if (currentCart.customer) {
+        $('#customerSelect').value = currentCart.customer.id;
+      }
+      
+      renderCart();
+      $('#holdTransactionModal').style.display = 'none';
+      showToast('Transaksi dipanggil', 'success');
+    }
+    
+    function renderHeldTransactions() {
+      const tbody = $('#heldTransactionsTable');
+      
+      if (!appState.held_transactions || appState.held_transactions.length === 0) {
+        render(tbody, '<tr><td colspan="4" class="text-center py-3">Tidak ada transaksi ditahan</td></tr>');
+        return;
+      }
+      
+      render(tbody, appState.held_transactions.map(function(t) {
+        const itemCount = t.items.reduce(function(sum, item) { 
+          return sum + item.quantity; 
+        }, 0);
+        
+        return `
+          <tr>
+            <td>${t.id}</td>
+            <td>${formatDate(t.date)}</td>
+            <td>${itemCount} item</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-primary recall-transaction-btn" data-id="${t.id}">
+                <i class="fas fa-redo"></i>
+              </button>
+              <button class="btn btn-sm btn-danger delete-held-transaction-btn" data-id="${t.id}">
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join(''));
+    }
+    
+    function deleteHeldTransaction(transactionId) {
+      appState.held_transactions = appState.held_transactions.filter(function(t) { 
+        return t.id !== transactionId; 
+      });
+      saveState('held_transactions');
+      renderHeldTransactions();
+      showToast('Transaksi dihapus', 'success');
+    }
+    
+    // Settings handlers
+    function saveSettings() {
+      // General settings
+      appState.settings.storeName = $('#settingStoreName').value;
+      appState.settings.storeAddress = $('#settingStoreAddress').value;
+      appState.settings.storePhone = $('#settingStorePhone').value;
+      appState.settings.storeEmail = $('#settingStoreEmail').value;
+      appState.settings.stockWarning = $('#settingStockWarning').checked;
+      
+      saveState('settings');
+      showToast('Pengaturan disimpan', 'success');
+      
+      // Update UI
+      $('#sidebarStoreName').textContent = appState.settings.storeName;
     }
     
     // Cart functions
@@ -1987,17 +2920,46 @@
       
       // Show/hide menu items based on role
       if (currentCashier.role !== 'admin') {
-        $$('[data-tab="products"], [data-tab="categories"], [data-tab="settings"]').forEach(function(el) {
+        $$('[data-tab="products"], [data-tab="categories"], [data-tab="customers"], [data-tab="cashiers"], [data-tab="reports"], [data-tab="settings"]').forEach(function(el) {
           el.style.display = 'none';
         });
       }
       
       // Load initial data
+      renderDashboard();
       renderCashierView();
       renderTransactions();
       renderProductsTable();
       renderCategoriesTable();
+      renderCustomersTable();
+      renderCashiersTable();
+      renderReports();
       renderSettings();
+      
+      // Initialize date range picker
+      $('#reportDateRange').daterangepicker({
+        locale: {
+          format: 'DD/MM/YYYY',
+          applyLabel: 'Pilih',
+          cancelLabel: 'Batal',
+          fromLabel: 'Dari',
+          toLabel: 'Sampai',
+          customRangeLabel: 'Custom',
+          daysOfWeek: ['Mg', 'Sn', 'Sl', 'Rb', 'Km', 'Jm', 'Sb'],
+          monthNames: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'],
+          firstDay: 1
+        },
+        opens: 'left',
+        autoUpdateInput: false
+      });
+      
+      $('#reportDateRange').on('apply.daterangepicker', function(ev, picker) {
+        $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+      });
+      
+      $('#reportDateRange').on('cancel.daterangepicker', function(ev, picker) {
+        $(this).val('');
+      });
     }
     
     // Event listeners setup
@@ -2038,31 +3000,28 @@
           });
           
           // Show selected tab and mark menu item as active
-          const tabElement = $('#' + tab + 'Tab');
-          if (tabElement) {
-            tabElement.classList.add('active');
-            this.classList.add('active');
-            
-            // Load data for the selected tab
-            switch(tab) {
-              case 'cashier':
-                renderCashierView();
-                break;
-              case 'transactions':
-                renderTransactions();
-                break;
-              case 'products':
-                renderProductsTable();
-                break;
-              case 'categories':
-                renderCategoriesTable();
-                break;
-              case 'settings':
-                renderSettings();
-                break;
-            }
-          } else {
-            showToast('Fitur ini belum tersedia', 'warning');
+          $('#' + tab + 'Tab').classList.add('active');
+          this.classList.add('active');
+          
+          // Special handling for certain tabs
+          if (tab === 'dashboard') {
+            renderDashboard();
+          } else if (tab === 'cashier') {
+            renderCashierView();
+          } else if (tab === 'transactions') {
+            renderTransactions();
+          } else if (tab === 'products') {
+            renderProductsTable();
+          } else if (tab === 'categories') {
+            renderCategoriesTable();
+          } else if (tab === 'customers') {
+            renderCustomersTable();
+          } else if (tab === 'cashiers') {
+            renderCashiersTable();
+          } else if (tab === 'reports') {
+            renderReports();
+          } else if (tab === 'settings') {
+            renderSettings();
           }
         });
       });
@@ -2078,8 +3037,16 @@
         currentCart.discount.type = this.value;
         updateCartSummary();
       });
+      $('#taxAmount').addEventListener('input', function() {
+        currentCart.tax = parseFloat(this.value) || 0;
+        updateCartSummary();
+      });
       $('#paymentMethod').addEventListener('change', function() {
         currentCart.paymentMethod = this.value;
+      });
+      $('#customerSelect').addEventListener('change', function() {
+        currentCart.customer = this.value ? 
+          appState.customers.find(function(c) { return c.id === this.value; }.bind(this)) : null;
       });
       
       // Product grid
@@ -2121,6 +3088,27 @@
       // Checkout button
       $('#checkoutBtn').addEventListener('click', handleCheckout);
       
+      // Hold/Recall transactions
+      $('#holdTransactionBtn').addEventListener('click', holdCurrentTransaction);
+      $('#recallTransactionBtn').addEventListener('click', function() {
+        renderHeldTransactions();
+        $('#holdTransactionModal').style.display = 'flex';
+      });
+      
+      document.addEventListener('click', function(e) {
+        const recallBtn = e.target.closest('.recall-transaction-btn');
+        if (recallBtn) {
+          const transactionId = recallBtn.dataset.id;
+          recallHeldTransaction(transactionId);
+        }
+        
+        const deleteBtn = e.target.closest('.delete-held-transaction-btn');
+        if (deleteBtn) {
+          const transactionId = deleteBtn.dataset.id;
+          deleteHeldTransaction(transactionId);
+        }
+      });
+      
       // New transaction button
       $('#newTransactionBtn').addEventListener('click', resetCart);
       
@@ -2149,27 +3137,50 @@
       // Add buttons
       $('#addProductBtn').addEventListener('click', function() { openModal('products'); });
       $('#addCategoryBtn').addEventListener('click', function() { openModal('categories'); });
-      $('#saveSettingsBtn').addEventListener('click', function() {
-        appState.settings.storeName = $('#settingStoreName').value;
-        appState.settings.storeAddress = $('#settingStoreAddress').value;
-        appState.settings.storePhone = $('#settingStorePhone').value;
-        appState.settings.storeEmail = $('#settingStoreEmail').value;
-        appState.settings.stockWarning = $('#settingStockWarning').checked;
-        
-        saveState('settings');
-        showToast('Pengaturan disimpan', 'success');
-        
-        // Update UI
-        $('#sidebarStoreName').textContent = appState.settings.storeName;
-      });
+      $('#addCashierBtn').addEventListener('click', function() { openModal('cashiers'); });
+      $('#addCustomerBtn').addEventListener('click', function() { openModal('customers'); });
+      $('#addCustomerBtn2').addEventListener('click', function() { openModal('customers'); });
       
       // Product search
       $('#productSearch').addEventListener('input', renderProductsTable);
       $('#searchProductBtn').addEventListener('click', renderProductsTable);
       
+      // Customer search
+      $('#customerSearch').addEventListener('input', renderCustomersTable);
+      $('#searchCustomerBtn').addEventListener('click', renderCustomersTable);
+      
       // Transaction search
       $('#transactionSearch').addEventListener('input', renderTransactions);
       $('#searchTransactionBtn').addEventListener('click', renderTransactions);
+      
+      // Report generation
+      $('#applyReportFilterBtn').addEventListener('click', renderReports);
+      $('#generateReportBtn').addEventListener('click', renderReports);
+      $('#printReportBtn').addEventListener('click', function() {
+        window.print();
+      });
+      
+      // Dashboard date filters
+      $$('#todayBtn, #weekBtn, #monthBtn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          $$('#todayBtn, #weekBtn, #monthBtn').forEach(function(b) {
+            b.classList.remove('active');
+          });
+          this.classList.add('active');
+          renderDashboard();
+        });
+      });
+      
+      // Sales chart period toggle
+      $$('[data-chart-period]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          $$('[data-chart-period]').forEach(function(b) {
+            b.classList.remove('active');
+          });
+          this.classList.add('active');
+          renderSalesChart(this.dataset.chartPeriod);
+        });
+      });
       
       // Responsive sidebar toggle
       $$('.sidebar-toggle').forEach(function(btn) {
