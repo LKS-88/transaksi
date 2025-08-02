@@ -1,43 +1,29 @@
-// products.js - Product management
-const Products = (function() {
-    const STORAGE_KEY = 'anekamarket_products';
+function loadProducts(searchTerm = '', category = 'all') {
+    const products = getProducts();
+    let filteredProducts = [...products];
     
-    function init() {
-        loadProducts();
-        loadCategories();
-        setupEventListeners();
-    }
-
-    function setupEventListeners() {
-        // Search product
-        $('#productSearch').on('input', function() {
-            loadProducts($(this).val());
-        });
-        
-        // Filter by category
-        $(document).on('click', '.filter-chip', function() {
-            loadProducts($('#productSearch').val(), $(this).data('category'));
-        });
-    }
-
-    function loadProducts(searchTerm = '', category = 'all') {
-        const products = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        // ... implementasi filter produk
-    }
-
-    function loadCategories() {
-        const categories = JSON.parse(localStorage.getItem('anekamarket_categories')) || [];
-        // ... implementasi load kategori
-    }
-
-    return {
-        init,
-        loadProducts,
-        loadCategories
-    };
-})();
-
-// Ekspor untuk testing
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = Products;
+    // Apply filters...
+    
+    return filteredProducts;
 }
+
+function addProduct(product) {
+    const products = getProducts();
+    products.unshift(product);
+    saveProducts(products);
+    return products;
+}
+
+function updateProduct(id, updatedProduct) {
+    const products = getProducts();
+    const index = products.findIndex(p => p.id === id);
+    
+    if (index !== -1) {
+        products[index] = { ...products[index], ...updatedProduct };
+        saveProducts(products);
+    }
+    
+    return products;
+}
+
+// ... other product related functions ...
