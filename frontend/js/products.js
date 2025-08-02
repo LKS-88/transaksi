@@ -1,37 +1,43 @@
-// Product management
-const STORAGE_KEYS = {
-    PRODUCTS: 'anekamarket_products',
-    CATEGORIES: 'anekamarket_categories',
-    STOCK_HISTORY: 'anekamarket_stock_history'
-};
+// products.js - Product management
+const Products = (function() {
+    const STORAGE_KEY = 'anekamarket_products';
+    
+    function init() {
+        loadProducts();
+        loadCategories();
+        setupEventListeners();
+    }
 
-// Product functions
-function loadProducts(searchTerm = '', category = 'all') {
-    // Implementation
-}
+    function setupEventListeners() {
+        // Search product
+        $('#productSearch').on('input', function() {
+            loadProducts($(this).val());
+        });
+        
+        // Filter by category
+        $(document).on('click', '.filter-chip', function() {
+            loadProducts($('#productSearch').val(), $(this).data('category'));
+        });
+    }
 
-function addProduct(productData) {
-    // Implementation
-}
+    function loadProducts(searchTerm = '', category = 'all') {
+        const products = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        // ... implementasi filter produk
+    }
 
-function updateProduct(productId, productData) {
-    // Implementation
-}
+    function loadCategories() {
+        const categories = JSON.parse(localStorage.getItem('anekamarket_categories')) || [];
+        // ... implementasi load kategori
+    }
 
-function deleteProduct(productId) {
-    // Implementation
-}
+    return {
+        init,
+        loadProducts,
+        loadCategories
+    };
+})();
 
-// Category functions
-function loadCategories() {
-    // Implementation
-}
-
-function addCategory(categoryName) {
-    // Implementation
-}
-
-// Stock management
-function manageStock(productId, transactionData) {
-    // Implementation
+// Ekspor untuk testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Products;
 }
