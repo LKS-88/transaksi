@@ -801,6 +801,42 @@
             margin-top: 15px;
             font-size: 12px;
         }
+
+        /* Role Badge */
+        .role-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-left: 6px;
+        }
+
+        .role-admin {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .role-cashier {
+            background-color: var(--info);
+            color: white;
+        }
+
+        .role-assistant {
+            background-color: var(--success);
+            color: white;
+        }
+
+        /* Role Permissions */
+        .permission-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .permission-checkbox {
+            margin-right: 8px;
+        }
     </style>
 </head>
 <body>
@@ -864,7 +900,7 @@
                 <p class="copyright-notice">© 2024 Lentera Karya Situbondo. All Rights Reserved.</p>
             </div>
             <div class="header-info">
-                <p>Kasir: <span id="loggedInUser">Admin</span></p>
+                <p>Kasir: <span id="loggedInUser">Admin</span> <span id="userRoleBadge" class="role-badge role-admin">Admin</span></p>
                 <p><a href="#" id="logoutBtn" style="color: white;">Logout</a></p>
             </div>
         </header>
@@ -899,6 +935,7 @@
                     <button id="manageCategoriesBtn" class="btn btn-sm mb-2">Kelola Kategori</button>
                     <button id="manageCashiersBtn" class="btn btn-sm mb-2">Kelola Kasir</button>
                     <button id="manageMembersBtn" class="btn btn-sm mb-2">Kelola Member</button>
+                    <button id="manageRolesBtn" class="btn btn-sm mb-2">Kelola Role</button>
                     <button id="viewReportsBtn" class="btn btn-sm mb-2">Laporan Penjualan</button>
                     <button id="profitReportBtn" class="btn btn-sm mb-2 profit-report-btn">Laporan Laba Rugi</button>
                     <button id="manageStoreInfoBtn" class="btn btn-sm">Kelola Info Toko</button>
@@ -1176,6 +1213,76 @@
         </div>
     </div>
 
+    <!-- Manage Roles Modal -->
+    <div id="manageRolesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Kelola Role</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="rolesList">
+                    <!-- Roles will be listed here -->
+                </div>
+                
+                <button id="addRoleBtn" class="btn btn-sm btn-success mt-3">Tambah Role</button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" id="cancelManageRoles">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Role Modal -->
+    <div id="roleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Tambah Role Baru</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="roleForm">
+                    <input type="hidden" id="roleId">
+                    <div class="form-group">
+                        <label class="form-label">Nama Role</label>
+                        <input type="text" id="roleName" class="form-control" placeholder="Contoh: Asisten Toko Chantika" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Kode Role</label>
+                        <input type="text" id="roleCode" class="form-control" placeholder="Contoh: asisten_chantika" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Diskon Member (%)</label>
+                        <input type="number" id="memberDiscount" class="form-control" placeholder="Masukkan diskon untuk member" min="0" max="100" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Hak Akses</label>
+                        <div class="permission-item">
+                            <input type="checkbox" id="permAddProduct" class="permission-checkbox">
+                            <label for="permAddProduct">Tambah Produk</label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="permManageCategories" class="permission-checkbox">
+                            <label for="permManageCategories">Kelola Kategori</label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="permViewReports" class="permission-checkbox">
+                            <label for="permViewReports">Laporan Penjualan</label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="permManageProducts" class="permission-checkbox">
+                            <label for="permManageProducts">Kelola Produk</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" id="cancelRole">Batal</button>
+                <button class="btn btn-success" id="saveRoleBtn">Simpan</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Add/Edit Member Modal -->
     <div id="memberModal" class="modal">
         <div class="modal-content">
@@ -1419,6 +1526,7 @@
                         <select id="cashierRole" class="form-control" required>
                             <option value="cashier">Kasir</option>
                             <option value="admin">Admin</option>
+                            <!-- Dynamic roles will be added here -->
                         </select>
                     </div>
                 </form>
@@ -1485,7 +1593,9 @@
             SETTINGS: 'kasir_settings',
             USERS: 'kasir_users',
             STOCK_HISTORY: 'kasir_stock_history',
-            MEMBERS: 'kasir_members'
+            MEMBERS: 'kasir_members',
+            ROLES: 'kasir_roles',
+            DISCOUNTS: 'kasir_discounts'
         };
         
         // Default admin user (username: admin, password: admin123)
@@ -1506,6 +1616,44 @@
             role: 'cashier'
         };
         
+        // Default roles
+        const DEFAULT_ROLES = [
+            {
+                id: 'R001',
+                name: 'Admin',
+                code: 'admin',
+                permissions: {
+                    addProduct: true,
+                    manageCategories: true,
+                    viewReports: true,
+                    manageProducts: true,
+                    manageCashiers: true,
+                    manageMembers: true,
+                    manageStoreInfo: true,
+                    viewProfitReports: true,
+                    manageRoles: true
+                },
+                memberDiscount: 0
+            },
+            {
+                id: 'R002',
+                name: 'Kasir',
+                code: 'cashier',
+                permissions: {
+                    addProduct: false,
+                    manageCategories: false,
+                    viewReports: false,
+                    manageProducts: false,
+                    manageCashiers: false,
+                    manageMembers: false,
+                    manageStoreInfo: false,
+                    viewProfitReports: false,
+                    manageRoles: false
+                },
+                memberDiscount: 0
+            }
+        ];
+        
         // Initialize data
         function initializeData() {
             // Check if users exist, if not create default users
@@ -1520,6 +1668,13 @@
             }
             
             localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+            
+            // Initialize roles if not exists
+            let roles = JSON.parse(localStorage.getItem(STORAGE_KEYS.ROLES)) || [];
+            if (roles.length === 0) {
+                roles = DEFAULT_ROLES;
+                localStorage.setItem(STORAGE_KEYS.ROLES, JSON.stringify(roles));
+            }
             
             // Initialize other data if not exists
             if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
@@ -1550,6 +1705,12 @@
             if (!localStorage.getItem(STORAGE_KEYS.MEMBERS)) {
                 localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify([]));
             }
+            
+            if (!localStorage.getItem(STORAGE_KEYS.DISCOUNTS)) {
+                localStorage.setItem(STORAGE_KEYS.DISCOUNTS, JSON.stringify({
+                    memberDiscount: 10 // Default 10% discount for members
+                }));
+            }
         }
         
         // Load data
@@ -1559,6 +1720,8 @@
         let settings = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS)) || {};
         let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || [];
         let members = JSON.parse(localStorage.getItem(STORAGE_KEYS.MEMBERS)) || [];
+        let roles = JSON.parse(localStorage.getItem(STORAGE_KEYS.ROLES)) || [];
+        let discounts = JSON.parse(localStorage.getItem(STORAGE_KEYS.DISCOUNTS)) || { memberDiscount: 10 };
         let currentUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER)) || null;
         let stockHistory = JSON.parse(localStorage.getItem(STORAGE_KEYS.STOCK_HISTORY)) || [];
         let currentCart = JSON.parse(localStorage.getItem(STORAGE_KEYS.CART)) || {
@@ -1576,6 +1739,7 @@
         let currentEditingProduct = null;
         let currentEditingCashier = null;
         let currentEditingMember = null;
+        let currentEditingRole = null;
 
         // Initialize the app
         $(document).ready(function() {
@@ -1588,6 +1752,10 @@
             // Check if user is logged in
             if (currentUser) {
                 $('#loggedInUser').text(currentUser.name);
+                
+                // Set role badge
+                updateRoleBadge(currentUser.role);
+                
                 $('#loginModal').hide();
                 $('#mainApp').show();
                 loadProducts();
@@ -1597,10 +1765,21 @@
                 updateStoreInfo();
                 loadMembersForSelect();
                 
-                // Show admin panel if user is admin
-                if (currentUser.role === 'admin') {
+                // Show admin panel if user has admin permissions
+                if (currentUser.role === 'admin' || hasPermission(currentUser.role, 'manageProducts')) {
                     $('#adminPanel').show();
                     $('#mainApp').addClass('admin-view');
+                    
+                    // Hide buttons based on permissions
+                    if (!hasPermission(currentUser.role, 'manageCashiers')) {
+                        $('#manageCashiersBtn').hide();
+                    }
+                    if (!hasPermission(currentUser.role, 'manageRoles')) {
+                        $('#manageRolesBtn').hide();
+                    }
+                    if (!hasPermission(currentUser.role, 'viewProfitReports')) {
+                        $('#profitReportBtn').hide();
+                    }
                 }
             }
             
@@ -1611,9 +1790,17 @@
             $('#customerType').change(function() {
                 if ($(this).val() === 'member') {
                     $('#memberSelectContainer').show();
+                    // Apply member discount if available
+                    if (discounts.memberDiscount > 0) {
+                        $('#cartDiscountInput').val(discounts.memberDiscount);
+                        currentCart.discount = currentCart.subtotal * (discounts.memberDiscount / 100);
+                        updateCart();
+                    }
                 } else {
                     $('#memberSelectContainer').hide();
                     currentCart.memberId = null;
+                    $('#cartDiscountInput').val(0);
+                    currentCart.discount = 0;
                     updateCart();
                 }
             });
@@ -1656,13 +1843,28 @@
                 currentUser = user;
                 localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
                 $('#loggedInUser').text(currentUser.name);
+                
+                // Update role badge
+                updateRoleBadge(currentUser.role);
+                
                 $('#loginModal').hide();
                 $('#mainApp').fadeIn();
                 
-                // Show admin panel if user is admin
-                if (currentUser.role === 'admin') {
+                // Show admin panel if user has admin permissions
+                if (currentUser.role === 'admin' || hasPermission(currentUser.role, 'manageProducts')) {
                     $('#adminPanel').show();
                     $('#mainApp').addClass('admin-view');
+                    
+                    // Hide buttons based on permissions
+                    if (!hasPermission(currentUser.role, 'manageCashiers')) {
+                        $('#manageCashiersBtn').hide();
+                    }
+                    if (!hasPermission(currentUser.role, 'manageRoles')) {
+                        $('#manageRolesBtn').hide();
+                    }
+                    if (!hasPermission(currentUser.role, 'viewProfitReports')) {
+                        $('#profitReportBtn').hide();
+                    }
                 }
                 
                 // Load data
@@ -1675,6 +1877,32 @@
                 
                 showToast('Login berhasil', 'success');
             });
+            
+            // Update role badge display
+            function updateRoleBadge(roleCode) {
+                const role = roles.find(r => r.code === roleCode);
+                const badge = $('#userRoleBadge');
+                
+                badge.removeClass('role-admin role-cashier role-assistant');
+                
+                if (roleCode === 'admin') {
+                    badge.addClass('role-admin').text('Admin');
+                } else if (roleCode === 'cashier') {
+                    badge.addClass('role-cashier').text('Kasir');
+                } else {
+                    badge.addClass('role-assistant').text(role ? role.name : 'Asisten');
+                }
+            }
+            
+            // Check if user has specific permission
+            function hasPermission(roleCode, permission) {
+                if (roleCode === 'admin') return true;
+                
+                const role = roles.find(r => r.code === roleCode);
+                if (!role || !role.permissions) return false;
+                
+                return role.permissions[permission] === true;
+            }
             
             // Logout handler
             $('#logoutBtn').click(function(e) {
@@ -1737,8 +1965,8 @@
                 
                 if (!product) return;
                 
-                if (currentUser.role !== 'admin') {
-                    showToast('Hanya admin yang dapat mengedit produk', 'error');
+                if (!hasPermission(currentUser.role, 'manageProducts')) {
+                    showToast('Anda tidak memiliki izin untuk mengedit produk', 'error');
                     return;
                 }
                 
@@ -1750,8 +1978,8 @@
                 e.stopPropagation();
                 const productId = $(this).data('id');
                 
-                if (currentUser.role !== 'admin') {
-                    showToast('Hanya admin yang dapat menghapus produk', 'error');
+                if (!hasPermission(currentUser.role, 'manageProducts')) {
+                    showToast('Anda tidak memiliki izin untuk menghapus produk', 'error');
                     return;
                 }
                 
@@ -1926,8 +2154,8 @@
             
             // Admin panel buttons (only for admin)
             $('#addProductBtn').click(function() {
-                if (currentUser.role !== 'admin') {
-                    showToast('Hanya admin yang dapat menambah produk', 'error');
+                if (!hasPermission(currentUser.role, 'addProduct')) {
+                    showToast('Anda tidak memiliki izin untuk menambah produk', 'error');
                     return;
                 }
                 
@@ -1939,8 +2167,8 @@
             });
             
             $('#manageCategoriesBtn').click(function() {
-                if (currentUser.role !== 'admin') {
-                    showToast('Hanya admin yang dapat mengelola kategori', 'error');
+                if (!hasPermission(currentUser.role, 'manageCategories')) {
+                    showToast('Anda tidak memiliki izin untuk mengelola kategori', 'error');
                     return;
                 }
                 
@@ -1949,8 +2177,8 @@
             });
             
             $('#manageCashiersBtn').click(function() {
-                if (currentUser.role !== 'admin') {
-                    showToast('Hanya admin yang dapat mengelola kasir', 'error');
+                if (!hasPermission(currentUser.role, 'manageCashiers')) {
+                    showToast('Anda tidak memiliki izin untuk mengelola kasir', 'error');
                     return;
                 }
                 
@@ -1963,9 +2191,19 @@
                 loadMembers();
             });
             
+            $('#manageRolesBtn').click(function() {
+                if (!hasPermission(currentUser.role, 'manageRoles')) {
+                    showToast('Anda tidak memiliki izin untuk mengelola role', 'error');
+                    return;
+                }
+                
+                $('#manageRolesModal').show();
+                loadRoles();
+            });
+            
             $('#viewReportsBtn').click(function() {
-                if (currentUser.role !== 'admin') {
-                    showToast('Hanya admin yang dapat melihat laporan', 'error');
+                if (!hasPermission(currentUser.role, 'viewReports')) {
+                    showToast('Anda tidak memiliki izin untuk melihat laporan', 'error');
                     return;
                 }
                 
@@ -1975,8 +2213,8 @@
             });
             
             $('#profitReportBtn').click(function() {
-                if (currentUser.role !== 'admin') {
-                    showToast('Hanya admin yang dapat melihat laporan laba rugi', 'error');
+                if (!hasPermission(currentUser.role, 'viewProfitReports')) {
+                    showToast('Anda tidak memiliki izin untuk melihat laporan laba rugi', 'error');
                     return;
                 }
                 
@@ -1986,8 +2224,8 @@
             });
             
             $('#manageStoreInfoBtn').click(function() {
-                if (currentUser.role !== 'admin') {
-                    showToast('Hanya admin yang dapat mengelola info toko', 'error');
+                if (!hasPermission(currentUser.role, 'manageStoreInfo')) {
+                    showToast('Anda tidak memiliki izin untuk mengelola info toko', 'error');
                     return;
                 }
                 
@@ -2000,13 +2238,14 @@
                 $('#cashierModal .modal-title').text('Tambah Kasir Baru');
                 $('#cashierForm')[0].reset();
                 $('#cashierId').val('');
+                loadRolesForSelect();
                 $('#cashierModal').show();
             });
             
             // Edit cashier button
             $(document).on('click', '.edit-cashier', function() {
                 const cashierId = $(this).data('id');
-                const cashier = users.find(u => u.id === cashierId && u.role !== 'admin');
+                const cashier = users.find(u => u.id === cashierId);
                 
                 if (!cashier) return;
                 
@@ -2016,6 +2255,7 @@
                 $('#cashierName').val(cashier.name);
                 $('#cashierPassword').val('');
                 $('#cashierConfirmPassword').val('');
+                loadRolesForSelect();
                 $('#cashierRole').val(cashier.role);
                 $('#cashierModal').show();
             });
@@ -2059,6 +2299,56 @@
                 $('#memberAddress').val(member.address);
                 $('#memberEmail').val(member.email || '');
                 $('#memberModal').show();
+            });
+            
+            // Add role button
+            $('#addRoleBtn').click(function() {
+                $('#roleModal .modal-title').text('Tambah Role Baru');
+                $('#roleForm')[0].reset();
+                $('#roleId').val('');
+                $('#roleModal').show();
+            });
+            
+            // Edit role button
+            $(document).on('click', '.edit-role', function() {
+                const roleId = $(this).data('id');
+                const role = roles.find(r => r.id === roleId);
+                
+                if (!role) return;
+                
+                $('#roleModal .modal-title').text('Edit Role');
+                $('#roleId').val(role.id);
+                $('#roleName').val(role.name);
+                $('#roleCode').val(role.code);
+                $('#memberDiscount').val(role.memberDiscount || 0);
+                
+                // Set permissions
+                $('#permAddProduct').prop('checked', role.permissions.addProduct || false);
+                $('#permManageCategories').prop('checked', role.permissions.manageCategories || false);
+                $('#permViewReports').prop('checked', role.permissions.viewReports || false);
+                $('#permManageProducts').prop('checked', role.permissions.manageProducts || false);
+                
+                $('#roleModal').show();
+            });
+            
+            // Delete role button
+            $(document).on('click', '.delete-role', function() {
+                const roleId = $(this).data('id');
+                
+                // Check if role is used by any user
+                const usersWithRole = users.filter(u => u.role === roles.find(r => r.id === roleId).code);
+                
+                if (usersWithRole.length > 0) {
+                    showToast('Tidak bisa menghapus role yang sedang digunakan oleh pengguna', 'error');
+                    return;
+                }
+                
+                if (confirm('Apakah Anda yakin ingin menghapus role ini?')) {
+                    roles = roles.filter(r => r.id !== roleId);
+                    saveRoles();
+                    loadRoles();
+                    showToast('Role berhasil dihapus', 'success');
+                }
             });
             
             // Save member
@@ -2111,9 +2401,89 @@
                 showToast('Member berhasil disimpan', 'success');
             });
             
+            // Save role
+            $('#saveRoleBtn').click(function() {
+                const id = $('#roleId').val();
+                const name = $('#roleName').val().trim();
+                const code = $('#roleCode').val().trim();
+                const memberDiscount = parseInt($('#memberDiscount').val()) || 0;
+                
+                if (!name || !code) {
+                    showToast('Nama role dan kode role harus diisi', 'error');
+                    return;
+                }
+                
+                // Validate role code format
+                if (!/^[a-z0-9_]+$/.test(code)) {
+                    showToast('Kode role hanya boleh mengandung huruf kecil, angka, dan underscore', 'error');
+                    return;
+                }
+                
+                if (id) {
+                    // Editing existing role
+                    const roleIndex = roles.findIndex(r => r.id === id);
+                    if (roleIndex === -1) return;
+                    
+                    // Update role
+                    roles[roleIndex] = {
+                        ...roles[roleIndex],
+                        name: name,
+                        code: code,
+                        memberDiscount: memberDiscount,
+                        permissions: {
+                            addProduct: $('#permAddProduct').is(':checked'),
+                            manageCategories: $('#permManageCategories').is(':checked'),
+                            viewReports: $('#permViewReports').is(':checked'),
+                            manageProducts: $('#permManageProducts').is(':checked')
+                        }
+                    };
+                } else {
+                    // Check if role code already exists
+                    if (roles.some(r => r.code === code)) {
+                        showToast('Kode role sudah digunakan', 'error');
+                        return;
+                    }
+                    
+                    // Create new role
+                    const newRole = {
+                        id: 'R' + moment().format('YYYYMMDDHHmmss'),
+                        name: name,
+                        code: code,
+                        memberDiscount: memberDiscount,
+                        permissions: {
+                            addProduct: $('#permAddProduct').is(':checked'),
+                            manageCategories: $('#permManageCategories').is(':checked'),
+                            viewReports: $('#permViewReports').is(':checked'),
+                            manageProducts: $('#permManageProducts').is(':checked')
+                        }
+                    };
+                    
+                    roles.push(newRole);
+                }
+                
+                saveRoles();
+                loadRoles();
+                
+                // Update discounts if changed
+                if (memberDiscount !== discounts.memberDiscount) {
+                    discounts.memberDiscount = memberDiscount;
+                    saveDiscounts();
+                }
+                
+                $('#roleModal').hide();
+                $('#roleForm')[0].reset();
+                
+                showToast('Role berhasil disimpan', 'success');
+            });
+            
             // Cancel member modal
             $('#cancelMember').click(function() {
                 $('#memberModal').hide();
+            });
+            
+            // Cancel role modal
+            $('#cancelRole').click(function() {
+                $('#roleModal').hide();
             });
             
             // Save cashier
@@ -2204,6 +2574,11 @@
                 $('#manageMembersModal').hide();
             });
             
+            // Cancel manage roles
+            $('#cancelManageRoles').click(function() {
+                $('#manageRolesModal').hide();
+            });
+            
             // Admin password verification
             $('#adminPasswordForm').submit(function(e) {
                 e.preventDefault();
@@ -2270,6 +2645,10 @@
                     case 'manageStoreInfo':
                         $('#manageStoreInfoModal').show();
                         loadStoreInfo();
+                        break;
+                    case 'manageRoles':
+                        $('#manageRolesModal').show();
+                        loadRoles();
                         break;
                 }
                 
@@ -3127,7 +3506,7 @@
                     
                     $('#productGrid').append(`
                         <div class="product-card" data-id="${product.id}">
-                            ${currentUser.role === 'admin' ? `
+                            ${hasPermission(currentUser.role, 'manageProducts') ? `
                             <div class="product-actions">
                                 <button class="action-btn edit-btn edit-product" data-id="${product.id}">
                                     <i class="fas fa-edit"></i>
@@ -3139,7 +3518,7 @@
                             ` : ''}
                             <div class="product-name">${product.name}</div>
                             <div class="product-price">${formatCurrency(product.price)} <span class="product-unit">${product.unit}</span></div>
-                            ${product.cost > 0 && currentUser.role === 'admin' ? `<div class="product-cost">Harga pokok: ${formatCurrency(product.cost)}</div>` : ''}
+                            ${product.cost > 0 && hasPermission(currentUser.role, 'manageProducts') ? `<div class="product-cost">Harga pokok: ${formatCurrency(product.cost)}</div>` : ''}
                             <div class="product-stock ${stockClass}">Stok: ${product.stock}</div>
                         </div>
                     `);
@@ -3208,11 +3587,12 @@
                 }
                 
                 filteredUsers.forEach(user => {
+                    const role = roles.find(r => r.code === user.role);
                     $('#cashiersList').append(`
                         <tr>
                             <td>${user.username}</td>
                             <td>${user.name}</td>
-                            <td>${user.role === 'admin' ? 'Admin' : 'Kasir'}</td>
+                            <td>${role ? role.name : user.role}</td>
                             <td>
                                 <button class="btn btn-sm btn-info edit-cashier" data-id="${user.id}">
                                     <i class="fas fa-edit"></i>
@@ -3255,6 +3635,56 @@
                             </div>
                         </div>
                     `);
+                });
+            }
+            
+            // Load roles
+            function loadRoles() {
+                $('#rolesList').empty();
+                
+                if (roles.length === 0) {
+                    $('#rolesList').html(`
+                        <div class="empty-state">
+                            <i class="fas fa-user-tag"></i>
+                            <p>Tidak ada role</p>
+                        </div>
+                    `);
+                    return;
+                }
+                
+                roles.forEach(role => {
+                    if (role.code !== 'admin') { // Don't show admin role for editing
+                        $('#rolesList').append(`
+                            <div class="member-card">
+                                <div class="d-flex justify-between align-center">
+                                    <div>
+                                        <div class="member-id">Kode: ${role.code}</div>
+                                        <div class="member-name">${role.name}</div>
+                                        <div class="member-contact">Diskon Member: ${role.memberDiscount}%</div>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-sm btn-info edit-role" data-id="${role.id}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-role" data-id="${role.id}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    }
+                });
+            }
+            
+            // Load roles for select dropdown
+            function loadRolesForSelect() {
+                $('#cashierRole').empty();
+                
+                roles.forEach(role => {
+                    if (role.code !== 'admin') { // Don't show admin role in dropdown
+                        $('#cashierRole').append(`<option value="${role.code}">${role.name}</option>`);
+                    }
                 });
             }
             
@@ -3475,7 +3905,16 @@
             
             // Update current date
             function updateCurrentDate() {
-                $('#currentDate').text(moment().format('dddd, D MMMM YYYY'));
+                const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                
+                const now = new Date();
+                const dayName = days[now.getDay()];
+                const date = now.getDate();
+                const monthName = months[now.getMonth()];
+                const year = now.getFullYear();
+                
+                $('#currentDate').text(`${dayName}, ${date} ${monthName} ${year}`);
             }
             
             // Update store info
@@ -3572,6 +4011,16 @@
             // Save members to localStorage
             function saveMembers() {
                 localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(members));
+            }
+            
+            // Save roles to localStorage
+            function saveRoles() {
+                localStorage.setItem(STORAGE_KEYS.ROLES, JSON.stringify(roles));
+            }
+            
+            // Save discounts to localStorage
+            function saveDiscounts() {
+                localStorage.setItem(STORAGE_KEYS.DISCOUNTS, JSON.stringify(discounts));
             }
             
             // Save stock history to localStorage
