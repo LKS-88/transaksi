@@ -8,16 +8,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         :root {
-            --primary: #4e73df;
-            --primary-light: #e8edff;
-            --secondary: #2e59d9;
-            --success: #1cc88a;
-            --danger: #e74a3b;
-            --warning: #f6c23e;
-            --info: #36b9cc;
+            --primary: #4361ee;
+            --primary-light: #e0e7ff;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --info: #4895ef;
             --light: #f8f9fc;
-            --dark: #5a5c69;
-            --gray: #858796;
+            --dark: #212529;
+            --gray: #6c757d;
             --white: #ffffff;
             --shadow-sm: 0 0.15rem 0.35rem rgba(0,0,0,0.1);
             --shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
@@ -54,9 +54,6 @@
             border-radius: var(--rounded);
             margin-bottom: 16px;
             box-shadow: var(--shadow);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             position: sticky;
             top: 0;
             z-index: 100;
@@ -74,6 +71,18 @@
 
         .header-info p {
             margin: 2px 0;
+        }
+
+        /* Action Bar */
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: var(--white);
+            border-radius: var(--rounded);
+            box-shadow: var(--shadow-sm);
         }
 
         /* Main Content Layout */
@@ -285,17 +294,16 @@
         /* Button Styles */
         .btn {
             display: inline-block;
-            padding: 12px 20px;
+            padding: 8px 16px;
             background-color: var(--primary);
             color: var(--white);
             border: none;
             border-radius: var(--rounded-sm);
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 500;
             text-align: center;
             transition: all 0.2s;
-            width: 100%;
         }
 
         .btn:hover {
@@ -309,8 +317,8 @@
         }
 
         .btn-sm {
-            padding: 8px 12px;
-            font-size: 0.9rem;
+            padding: 6px 12px;
+            font-size: 0.85rem;
         }
 
         .btn-success {
@@ -318,7 +326,7 @@
         }
 
         .btn-success:hover {
-            background-color: #17a673;
+            background-color: #3a86ff;
         }
 
         .btn-danger {
@@ -326,7 +334,7 @@
         }
 
         .btn-danger:hover {
-            background-color: #be2617;
+            background-color: #d90429;
         }
 
         .btn-warning {
@@ -335,7 +343,7 @@
         }
 
         .btn-warning:hover {
-            background-color: #dda20a;
+            background-color: #f3722c;
         }
 
         .btn-info {
@@ -343,7 +351,16 @@
         }
 
         .btn-info:hover {
-            background-color: #2a96a5;
+            background-color: #3a86ff;
+        }
+
+        .btn-light {
+            background-color: var(--light);
+            color: var(--dark);
+        }
+
+        .btn-light:hover {
+            background-color: #dee2e6;
         }
 
         /* Modal Styles */
@@ -670,6 +687,45 @@
             font-size: 0.7rem;
             margin-left: 4px;
         }
+
+        /* Backup/Restore Section */
+        .backup-section {
+            margin-top: 16px;
+            padding: 16px;
+            background-color: var(--light);
+            border-radius: var(--rounded);
+        }
+
+        .backup-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        /* File Input Custom */
+        .file-input-container {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input-btn {
+            padding: 8px 16px;
+            background-color: var(--info);
+            color: white;
+            border-radius: var(--rounded-sm);
+            cursor: pointer;
+        }
+
+        .file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -737,6 +793,34 @@
             </div>
         </header>
 
+        <!-- Action Bar -->
+        <div class="action-bar" id="actionBar">
+            <button id="addProductBtn" class="btn btn-info">
+                <i class="fas fa-plus"></i> Tambah Produk
+            </button>
+            <button id="manageCategoriesBtn" class="btn btn-info">
+                <i class="fas fa-tags"></i> Kelola Kategori
+            </button>
+            <button id="manageCashiersBtn" class="btn btn-info">
+                <i class="fas fa-users"></i> Kelola Kasir
+            </button>
+            <button id="viewReportsBtn" class="btn btn-info">
+                <i class="fas fa-chart-bar"></i> Laporan
+            </button>
+            <button id="manageStoreInfoBtn" class="btn btn-info">
+                <i class="fas fa-store"></i> Info Toko
+            </button>
+            <button id="backupDataBtn" class="btn btn-success">
+                <i class="fas fa-download"></i> Backup Data
+            </button>
+            <div class="file-input-container">
+                <button class="btn btn-warning file-input-btn">
+                    <i class="fas fa-upload"></i> Restore Data
+                </button>
+                <input type="file" id="restoreDataInput" class="file-input" accept=".json">
+            </div>
+        </div>
+
         <!-- Main Content -->
         <main class="app-content">
             <!-- Products Panel -->
@@ -758,16 +842,6 @@
                 
                 <div class="product-grid" id="productGrid">
                     <!-- Products will be added here -->
-                </div>
-
-                <!-- Admin Panel (Visible only for admin) -->
-                <div id="adminPanel" class="admin-panel">
-                    <h3 class="panel-title">Admin Panel</h3>
-                    <button id="addProductBtn" class="btn btn-sm mb-2">Tambah Produk</button>
-                    <button id="manageCategoriesBtn" class="btn btn-sm mb-2">Kelola Kategori</button>
-                    <button id="manageCashiersBtn" class="btn btn-sm mb-2">Kelola Kasir</button>
-                    <button id="viewReportsBtn" class="btn btn-sm mb-2">Laporan Penjualan</button>
-                    <button id="manageStoreInfoBtn" class="btn btn-sm">Kelola Info Toko</button>
                 </div>
             </section>
 
@@ -954,7 +1028,7 @@
                     </tbody>
                 </table>
                 
-                <button id="addCashierBtn" class="btn btn-sm btn-success mt-3">Tambah Kasir</button>
+                <button id="addCashierBtn" class="btn btn-success mt-3">Tambah Kasir</button>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-warning" id="cancelManageCashiers">Tutup</button>
@@ -1240,14 +1314,21 @@
                 updateCurrentDate();
                 updateStoreInfo();
                 
-                // Show admin panel if user is admin
-                if (currentUser.role === 'admin') {
-                    $('#adminPanel').show();
-                }
+                // Show/hide admin buttons based on role
+                toggleAdminButtons();
             }
             
             // Update date every minute
             setInterval(updateCurrentDate, 60000);
+            
+            // Toggle admin buttons based on role
+            function toggleAdminButtons() {
+                if (currentUser.role === 'admin') {
+                    $('#actionBar').show();
+                } else {
+                    $('#actionBar').hide();
+                }
+            }
             
             // Login form handler with password hashing
             $('#loginForm').submit(function(e) {
@@ -1284,17 +1365,13 @@
                 $('#loginModal').hide();
                 $('#mainApp').fadeIn();
                 
-                // Show admin panel if user is admin
-                if (currentUser.role === 'admin') {
-                    $('#adminPanel').show();
-                }
-                
                 // Load data
                 loadProducts();
                 updateCart();
                 loadCategories();
                 updateCurrentDate();
                 updateStoreInfo();
+                toggleAdminButtons();
                 
                 showToast('Login berhasil', 'success');
             });
@@ -1512,7 +1589,7 @@
                 loadProducts($('#productSearch').val(), $(this).data('category'));
             });
             
-            // Admin panel buttons (only for admin)
+            // Admin panel buttons
             $('#addProductBtn').click(function() {
                 if (currentUser.role === 'admin') {
                     $('#productModal .modal-title').text('Tambah Produk Baru');
@@ -1565,6 +1642,83 @@
                     pendingAdminAction = 'manageStoreInfo';
                     $('#adminPasswordModal').show();
                 }
+            });
+            
+            // Backup data
+            $('#backupDataBtn').click(function() {
+                const backupData = {
+                    products: products,
+                    categories: categories,
+                    transactions: transactions,
+                    users: users,
+                    settings: settings
+                };
+                
+                const dataStr = JSON.stringify(backupData, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportName = 'backup_kasir_' + moment().format('YYYYMMDD_HHmmss') + '.json';
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportName);
+                linkElement.click();
+                
+                showToast('Backup data berhasil', 'success');
+            });
+            
+            // Restore data
+            $('#restoreDataInput').change(function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                if (!confirm('Apakah Anda yakin ingin restore data? Semua data saat ini akan diganti dengan data backup.')) {
+                    $(this).val('');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const backupData = JSON.parse(e.target.result);
+                        
+                        // Validate backup data
+                        if (!backupData.products || !backupData.categories || !backupData.transactions || 
+                            !backupData.users || !backupData.settings) {
+                            showToast('Format file backup tidak valid', 'error');
+                            return;
+                        }
+                        
+                        // Restore data
+                        products = backupData.products;
+                        categories = backupData.categories;
+                        transactions = backupData.transactions;
+                        users = backupData.users;
+                        settings = backupData.settings;
+                        
+                        // Save to localStorage
+                        saveProducts();
+                        saveCategories();
+                        saveTransactions();
+                        saveUsers();
+                        saveSettings();
+                        
+                        // Reload UI
+                        loadProducts();
+                        updateCart();
+                        loadCategories();
+                        updateStoreInfo();
+                        
+                        showToast('Restore data berhasil', 'success');
+                    } catch (error) {
+                        showToast('Gagal membaca file backup', 'error');
+                        console.error(error);
+                    }
+                    
+                    // Reset file input
+                    $('#restoreDataInput').val('');
+                };
+                reader.readAsText(file);
             });
             
             // Add cashier button
