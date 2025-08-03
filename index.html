@@ -16,8 +16,6 @@
             --gold: #FFD700;
             --gold-light: rgba(255, 215, 0, 0.7);
             --gold-glow: rgba(255, 215, 0, 0.5);
-            --platinum: #e5e4e2;
-            --diamond: #b9f2ff;
         }
 
         * {
@@ -61,8 +59,7 @@
             height: auto;
             filter: 
                 drop-shadow(0 0 10px rgba(100, 149, 237, 0.5))
-                drop-shadow(0 0 20px rgba(255, 215, 0, 0.3))
-                drop-shadow(0 0 30px rgba(105, 182, 255, 0.2));
+                drop-shadow(0 0 20px rgba(255, 215, 0, 0.3));
             animation: 
                 fadeIn 1.5s ease-out forwards,
                 subtlePulse 4s ease-in-out infinite;
@@ -83,18 +80,6 @@
             color: transparent;
             animation: shine 3s linear infinite;
             text-shadow: 0 0 10px rgba(105, 182, 255, 0.3);
-            position: relative;
-        }
-
-        .text-animation::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--gold), transparent);
-            animation: shine 3s linear infinite;
         }
 
         .loading-content {
@@ -103,8 +88,6 @@
             align-items: center;
             width: 100%;
             max-width: 500px;
-            position: relative;
-            z-index: 2;
         }
 
         .progress-container {
@@ -114,24 +97,7 @@
             border-radius: 4px;
             overflow: hidden;
             margin: min(3vh, 30px) 0;
-            box-shadow: 
-                0 0 10px rgba(0, 0, 0, 0.2),
-                inset 0 0 5px rgba(255, 255, 255, 0.1);
-            position: relative;
-        }
-
-        .progress-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, 
-                transparent, 
-                rgba(255, 255, 255, 0.05), 
-                transparent);
-            animation: shimmer 4s infinite linear;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         }
 
         .progress-bar {
@@ -142,7 +108,6 @@
             transition: width 0.4s ease;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
         }
 
         .progress-bar::after {
@@ -154,7 +119,7 @@
             height: 100%;
             background: linear-gradient(90deg, 
                 transparent, 
-                rgba(255, 255, 255, 0.8), 
+                rgba(255, 255, 255, 0.6), 
                 transparent);
             animation: shimmer 2s infinite;
         }
@@ -170,21 +135,12 @@
             font-size: clamp(1rem, 4vw, 1.2rem);
             font-weight: 600;
             color: var(--accent);
-            text-shadow: 
-                0 0 5px rgba(105, 182, 255, 0.5),
-                0 0 10px rgba(105, 182, 255, 0.3);
-            animation: pulse 2s infinite ease-in-out;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            text-shadow: 0 0 5px rgba(105, 182, 255, 0.5);
         }
 
         .loading-time {
             font-size: clamp(0.8rem, 3vw, 0.9rem);
-            color: rgba(255, 255, 255, 0.9);
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.7);
         }
 
         .loading-animation {
@@ -200,8 +156,7 @@
             background: linear-gradient(135deg, var(--secondary), var(--primary));
             box-shadow: 
                 0 0 5px rgba(0, 210, 255, 0.7),
-                0 0 10px rgba(58, 123, 213, 0.5),
-                0 0 15px rgba(58, 123, 213, 0.3);
+                0 0 10px rgba(58, 123, 213, 0.5);
             animation: bounce 1.5s infinite ease-in-out;
         }
 
@@ -213,105 +168,27 @@
         .loading-message {
             margin-top: min(2vh, 15px);
             font-size: clamp(0.7rem, 3vw, 0.9rem);
-            color: rgba(255, 255, 255, 0.9);
+            color: rgba(255, 255, 255, 0.8);
             text-transform: uppercase;
             letter-spacing: 1px;
             text-align: center;
             line-height: 1.5;
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
             animation: fade 3s infinite ease-in-out;
-            position: relative;
-        }
-
-        .loading-message::before, .loading-message::after {
-            content: '✦';
-            position: absolute;
-            color: var(--gold);
-            font-size: 1.2em;
-            top: 50%;
-            transform: translateY(-50%);
-            animation: twinkle 2s infinite ease-in-out;
-        }
-
-        .loading-message::before {
-            left: -20px;
-        }
-
-        .loading-message::after {
-            right: -20px;
         }
 
         .copyright {
             position: absolute;
             bottom: min(4vh, 20px);
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.5);
             font-size: clamp(0.6rem, 2.5vw, 0.8rem);
             width: 100%;
             text-align: center;
             padding: 0 20px;
-            z-index: 2;
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
         }
 
-        /* Particle System */
-        .particles {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            overflow: hidden;
-        }
-
-        .particle {
-            position: absolute;
-            border-radius: 50%;
-            pointer-events: none;
-            animation-timing-function: linear;
-            animation-iteration-count: infinite;
-        }
-
-        .gold-particle {
-            background: var(--gold-light);
-            filter: blur(0.8px);
-            box-shadow: 
-                0 0 5px var(--gold-glow),
-                0 0 10px var(--gold-glow);
-            animation-name: float-gold;
-        }
-
-        .white-particle {
-            background: rgba(255, 255, 255, 0.8);
-            filter: blur(0.5px);
-            animation-name: float-white;
-        }
-
-        .diamond-particle {
-            background: var(--diamond);
-            filter: blur(0.3px);
-            box-shadow: 
-                0 0 5px rgba(185, 242, 255, 0.8),
-                0 0 10px rgba(185, 242, 255, 0.5);
-            animation-name: float-diamond;
-        }
-
-        .sparkle {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            background: var(--gold-light);
-            border-radius: 50%;
-            filter: 
-                drop-shadow(0 0 5px var(--gold))
-                drop-shadow(0 0 10px var(--gold));
-            animation: sparkle 4s infinite ease-in-out;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* Zodiac Constellation System */
-        .constellation {
+        /* Star Particle System */
+        .starfield {
             position: absolute;
             bottom: 0;
             left: 0;
@@ -326,7 +203,7 @@
             background: white;
             border-radius: 50%;
             pointer-events: none;
-            animation: twinkle 5s infinite ease-in-out;
+            animation: twinkle 3s infinite ease-in-out;
         }
 
         .star::before {
@@ -339,16 +216,7 @@
             height: 100%;
             background: radial-gradient(circle, white 30%, transparent 70%);
             border-radius: 50%;
-            filter: blur(1px);
-        }
-
-        .constellation-line {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            height: 1px;
-            transform-origin: left center;
-            pointer-events: none;
-            box-shadow: 0 0 3px rgba(255, 255, 255, 0.3);
+            filter: blur(0.5px);
         }
 
         /* Animations */
@@ -386,74 +254,9 @@
             50% { opacity: 1; }
         }
 
-        @keyframes float-gold {
-            0% {
-                transform: translate(calc(var(--start-x) * 1vw), calc(var(--start-y) * 1vh);
-                opacity: 0;
-            }
-            10% {
-                opacity: var(--opacity);
-            }
-            90% {
-                opacity: var(--opacity);
-            }
-            100% {
-                transform: translate(calc(var(--end-x) * 1vw), calc(var(--end-y) * 1vh);
-                opacity: 0;
-            }
-        }
-
-        @keyframes float-white {
-            0% {
-                transform: translate(calc(var(--start-x) * 1vw), calc(var(--start-y) * 1vh);
-                opacity: 0;
-            }
-            20% {
-                opacity: var(--opacity);
-            }
-            80% {
-                opacity: var(--opacity);
-            }
-            100% {
-                transform: translate(calc(var(--end-x) * 1vw), calc(var(--end-y) * 1vh);
-                opacity: 0;
-            }
-        }
-
-        @keyframes float-diamond {
-            0% {
-                transform: translate(calc(var(--start-x) * 1vw), calc(var(--start-y) * 1vh);
-                opacity: 0;
-            }
-            10% {
-                opacity: var(--opacity);
-            }
-            90% {
-                opacity: var(--opacity);
-            }
-            100% {
-                transform: translate(calc(var(--end-x) * 1vw), calc(var(--end-y) * 1vh);
-                opacity: 0;
-            }
-        }
-
-        @keyframes sparkle {
-            0%, 100% { 
-                opacity: 0; 
-                transform: scale(0.3); 
-            }
-            50% { 
-                opacity: 1; 
-                transform: scale(1.2); 
-                filter: 
-                    drop-shadow(0 0 8px var(--gold))
-                    drop-shadow(0 0 16px var(--gold));
-            }
-        }
-
         @keyframes twinkle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
+            0%, 100% { opacity: 0.3; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.1); }
         }
 
         .fade-out {
@@ -480,9 +283,7 @@
     </style>
 </head>
 <body>
-    <div class="particles" id="particles"></div>
-    <div id="sparkles"></div>
-    <div class="constellation" id="constellation"></div>
+    <div class="starfield" id="starfield"></div>
     
     <div class="loading-container" id="loading-container">
         <div class="logo-container">
@@ -526,190 +327,34 @@
         const progressBar = document.getElementById('progress-bar');
         const percentageElement = document.getElementById('percentage');
         const loadingTimeElement = document.getElementById('loading-time');
-        const particlesContainer = document.getElementById('particles');
-        const sparklesContainer = document.getElementById('sparkles');
-        const constellationContainer = document.getElementById('constellation');
+        const starfield = document.getElementById('starfield');
 
-        // Create zodiac constellation at the bottom
-        function createConstellation() {
-            constellationContainer.innerHTML = '';
+        // Create twinkling stars at the bottom
+        function createStars() {
+            starfield.innerHTML = '';
             
-            // Create stars
-            const starCount = 50;
-            const stars = [];
-            
-            for (let i = 0; i < starCount; i++) {
+            // Create 100 stars in the bottom 30% of the screen
+            for (let i = 0; i < 100; i++) {
                 const star = document.createElement('div');
                 star.classList.add('star');
                 
                 // Position stars in the bottom 30% of the screen
-                const left = Math.random() * 100;
-                const top = 70 + Math.random() * 30; // 70-100%
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${70 + Math.random() * 30}%`;
                 
-                // Random size
-                const size = Math.random() * 3 + 1;
-                
-                star.style.left = `${left}%`;
-                star.style.top = `${top}%`;
+                // Random size between 1-3px
+                const size = Math.random() * 2 + 1;
                 star.style.width = `${size}px`;
                 star.style.height = `${size}px`;
                 
-                // Random twinkle delay
-                star.style.animationDelay = `${Math.random() * 5}s`;
+                // Random twinkle animation
+                const duration = Math.random() * 3 + 2;
+                const delay = Math.random() * 5;
+                star.style.animationDuration = `${duration}s`;
+                star.style.animationDelay = `${delay}s`;
                 
-                constellationContainer.appendChild(star);
-                stars.push({ element: star, x: left, y: top });
+                starfield.appendChild(star);
             }
-            
-            // Create constellation lines (connect some stars)
-            const lineCount = 15;
-            for (let i = 0; i < lineCount; i++) {
-                const star1 = stars[Math.floor(Math.random() * stars.length)];
-                const star2 = stars[Math.floor(Math.random() * stars.length)];
-                
-                // Only connect if stars are somewhat close
-                const distance = Math.sqrt(
-                    Math.pow(star2.x - star1.x, 2) + 
-                    Math.pow(star2.y - star1.y, 2)
-                );
-                
-                if (distance < 20) {
-                    const line = document.createElement('div');
-                    line.classList.add('constellation-line');
-                    
-                    const angle = Math.atan2(star2.y - star1.y, star2.x - star1.x) * 180 / Math.PI;
-                    const length = distance;
-                    
-                    line.style.left = `${star1.x}%`;
-                    line.style.top = `${star1.y}%`;
-                    line.style.width = `${length}%`;
-                    line.style.transform = `rotate(${angle}deg)`;
-                    line.style.opacity = Math.random() * 0.5 + 0.3;
-                    
-                    constellationContainer.appendChild(line);
-                }
-            }
-            
-            // Add some zodiac symbols (simple representations)
-            const zodiacSymbols = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'];
-            for (let i = 0; i < 6; i++) {
-                const symbol = document.createElement('div');
-                symbol.textContent = zodiacSymbols[Math.floor(Math.random() * zodiacSymbols.length)];
-                symbol.style.position = 'absolute';
-                symbol.style.color = 'rgba(255, 255, 255, 0.7)';
-                symbol.style.fontSize = '24px';
-                symbol.style.left = `${Math.random() * 90 + 5}%`;
-                symbol.style.top = `${70 + Math.random() * 25}%`;
-                symbol.style.animation = 'twinkle 8s infinite ease-in-out';
-                symbol.style.animationDelay = `${Math.random() * 8}s`;
-                constellationContainer.appendChild(symbol);
-            }
-        }
-
-        // Create particles with dynamic movement
-        function createParticles() {
-            // Clear existing particles
-            particlesContainer.innerHTML = '';
-            sparklesContainer.innerHTML = '';
-
-            // Calculate particle count based on screen size
-            const particleCount = Math.min(
-                Math.floor((window.innerWidth * window.innerHeight) / 1500),
-                200
-            );
-
-            // Create gold particles
-            for (let i = 0; i < particleCount; i++) {
-                createParticle('gold', i);
-            }
-
-            // Create white particles
-            for (let i = 0; i < particleCount / 2; i++) {
-                createParticle('white', i);
-            }
-            
-            // Create diamond particles
-            for (let i = 0; i < particleCount / 3; i++) {
-                createParticle('diamond', i);
-            }
-
-            // Create sparkles
-            for (let i = 0; i < 40; i++) {
-                createSparkle(i);
-            }
-        }
-
-        function createParticle(type, index) {
-            const particle = document.createElement('div');
-            particle.classList.add('particle', `${type}-particle`);
-
-            // Size and appearance
-            const size = type === 'gold' 
-                ? Math.random() * 4 + 2 
-                : type === 'diamond'
-                ? Math.random() * 3 + 1.5
-                : Math.random() * 2 + 1;
-            
-            particle.style.width = `${size}px`;
-            particle.style.height = `${size}px`;
-            
-            if (type === 'gold') {
-                const opacity = Math.random() * 0.5 + 0.3;
-                particle.style.opacity = opacity;
-                particle.style.setProperty('--opacity', opacity);
-            } else if (type === 'diamond') {
-                particle.style.opacity = Math.random() * 0.4 + 0.3;
-            } else {
-                particle.style.opacity = Math.random() * 0.4 + 0.2;
-            }
-
-            // Animation properties
-            const duration = type === 'gold' 
-                ? Math.random() * 15 + 15 
-                : type === 'diamond'
-                ? Math.random() * 20 + 20
-                : Math.random() * 20 + 20;
-            
-            const delay = Math.random() * 10;
-            
-            // Random movement paths
-            const startX = Math.random() * 100;
-            const startY = type === 'gold' ? 100 + Math.random() * 10 : Math.random() * 120 - 10;
-            const endX = startX + (Math.random() * 40 - 20);
-            const endY = type === 'gold' ? -10 : Math.random() * 120 - 10;
-            
-            particle.style.setProperty('--start-x', startX);
-            particle.style.setProperty('--start-y', startY);
-            particle.style.setProperty('--end-x', endX);
-            particle.style.setProperty('--end-y', endY);
-            
-            particle.style.animationDuration = `${duration}s`;
-            particle.style.animationDelay = `${delay}s`;
-            
-            particlesContainer.appendChild(particle);
-        }
-
-        function createSparkle(index) {
-            const sparkle = document.createElement('div');
-            sparkle.classList.add('sparkle');
-            
-            // Position
-            sparkle.style.left = `${Math.random() * 100}%`;
-            sparkle.style.top = `${Math.random() * 100}%`;
-            
-            // Random size
-            const size = Math.random() * 4 + 4;
-            sparkle.style.width = `${size}px`;
-            sparkle.style.height = `${size}px`;
-            
-            // Animation
-            const duration = Math.random() * 3 + 3;
-            const delay = Math.random() * 10;
-            
-            sparkle.style.animationDuration = `${duration}s`;
-            sparkle.style.animationDelay = `${delay}s`;
-            
-            sparklesContainer.appendChild(sparkle);
         }
 
         // Loading animation with enhanced effects
@@ -748,23 +393,9 @@
                 percentageElement.textContent = `${currentMilestone.percent}%`;
                 loadingTimeElement.textContent = currentMilestone.message;
                 
-                // Special effects at different percentages
-                if (currentMilestone.percent > 50) {
-                    progressBar.style.boxShadow = `0 0 10px rgba(58, 123, 213, 0.5)`;
-                }
-                if (currentMilestone.percent > 70) {
-                    progressBar.style.boxShadow = `0 0 15px rgba(58, 123, 213, 0.7)`;
-                }
-                if (currentMilestone.percent > 90) {
-                    progressBar.style.boxShadow = `0 0 20px rgba(58, 123, 213, 0.9)`;
-                    // Add some final sparkles
-                    if (currentMilestone.percent === 95 && !redirecting) {
-                        for (let i = 0; i < 10; i++) {
-                            setTimeout(() => {
-                                createSparkle(i + 100);
-                            }, i * 100);
-                        }
-                    }
+                // Special effects at high percentages
+                if (currentMilestone.percent > 80) {
+                    progressBar.style.boxShadow = `0 0 15px rgba(58, 123, 213, 0.8)`;
                 }
                 
                 // Handle completion
@@ -790,14 +421,12 @@
         }
 
         // Initialize
-        createParticles();
-        createConstellation();
+        createStars();
         setTimeout(startLoadingAnimation, 500);
         
         // Handle window resize
         window.addEventListener('resize', () => {
-            createParticles();
-            createConstellation();
+            createStars();
         });
 
         // Preload logo image
