@@ -51,14 +51,18 @@
             position: relative;
             margin-bottom: min(5vh, 40px);
             text-align: center;
+            animation: float 6s ease-in-out infinite;
         }
 
         .logo {
             width: min(25vw, 180px);
             height: auto;
             filter: drop-shadow(0 0 min(1vw, 15px) rgba(100, 149, 237, 0.7));
-            animation: fadeIn 1.5s ease-out forwards;
+            animation: 
+                fadeIn 1.5s ease-out forwards,
+                subtlePulse 4s ease-in-out infinite;
             opacity: 0;
+            transform-origin: center;
         }
 
         .text-animation {
@@ -77,105 +81,7 @@
             animation: shine 3s linear infinite;
         }
 
-        .loading-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 500px;
-        }
-
-        .progress-container {
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            overflow: hidden;
-            margin: min(3vh, 30px) 0;
-            position: relative;
-        }
-
-        .progress-bar {
-            height: 100%;
-            width: 0;
-            background: linear-gradient(90deg, var(--secondary) 0%, var(--primary) 100%);
-            border-radius: 3px;
-            transition: width 0.4s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .progress-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            animation: shimmer 2s infinite;
-        }
-
-        .progress-info {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        .percentage {
-            font-size: clamp(1rem, 4vw, 1.2rem);
-            font-weight: 600;
-            color: var(--accent);
-            letter-spacing: 1px;
-        }
-
-        .loading-time {
-            font-size: clamp(0.8rem, 3vw, 0.9rem);
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .loading-animation {
-            display: flex;
-            gap: min(2vw, 12px);
-            margin: min(3vh, 20px) 0;
-        }
-
-        .loading-dot {
-            width: min(3vw, 12px);
-            height: min(3vw, 12px);
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--secondary), var(--primary));
-            box-shadow: 0 0 min(1vw, 8px) rgba(58, 123, 213, 0.7);
-            animation: bounce 1.5s infinite ease-in-out;
-        }
-
-        .loading-dot:nth-child(1) { animation-delay: 0s; }
-        .loading-dot:nth-child(2) { animation-delay: 0.2s; }
-        .loading-dot:nth-child(3) { animation-delay: 0.4s; }
-        .loading-dot:nth-child(4) { animation-delay: 0.6s; }
-
-        .loading-message {
-            margin-top: min(2vh, 10px);
-            font-size: clamp(0.7rem, 3vw, 0.9rem);
-            color: rgba(255, 255, 255, 0.7);
-            text-transform: uppercase;
-            letter-spacing: min(0.5vw, 3px);
-            text-align: center;
-            line-height: 1.5;
-            animation: fade 3s infinite ease-in-out;
-        }
-
-        .copyright {
-            position: absolute;
-            bottom: min(4vh, 20px);
-            color: rgba(255, 255, 255, 0.4);
-            font-size: clamp(0.6rem, 2.5vw, 0.8rem);
-            letter-spacing: 0.5px;
-            text-align: center;
-            width: 100%;
-            padding: 0 20px;
-        }
+        /* ... (keep other existing styles the same) ... */
 
         .particles {
             position: absolute;
@@ -191,14 +97,21 @@
             position: absolute;
             border-radius: 50%;
             opacity: 0;
-            animation: float-particle linear infinite;
-            box-shadow: 0 0 10px var(--gold-glow);
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
         }
 
         .gold-particle {
             background: var(--gold-light);
             filter: blur(0.5px);
             box-shadow: 0 0 15px var(--gold);
+            animation-name: float-particle-gold;
+        }
+
+        .white-particle {
+            background: rgba(255, 255, 255, 0.6);
+            filter: blur(0.5px);
+            animation-name: float-particle-white;
         }
 
         .star {
@@ -211,8 +124,8 @@
 
         .sparkle {
             position: absolute;
-            width: 4px;
-            height: 4px;
+            width: 5px;
+            height: 5px;
             background: var(--gold-light);
             border-radius: 50%;
             filter: drop-shadow(0 0 8px var(--gold));
@@ -224,26 +137,45 @@
             to { opacity: 1; }
         }
 
+        @keyframes subtlePulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.05) rotate(1deg); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
         @keyframes shine {
             0% { background-position: 0% center; }
             100% { background-position: 200% center; }
         }
 
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(min(-2vh, -15px)); }
-        }
-
-        @keyframes float-particle {
-            0% { transform: translateY(100vh) translateX(0) rotate(0deg); opacity: 0; }
+        @keyframes float-particle-gold {
+            0% { 
+                transform: translateY(100vh) translateX(0) rotate(0deg);
+                opacity: 0; 
+            }
             10% { opacity: 0.8; }
             90% { opacity: 0.8; }
-            100% { transform: translateY(-100px) translateX(50px) rotate(180deg); opacity: 0; }
+            100% { 
+                transform: translateY(-100px) translateX(calc(50px * var(--x-direction))) rotate(180deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes float-particle-white {
+            0% { 
+                transform: translateX(calc(-100px * var(--x-start))) translateY(calc(-100px * var(--y-start)));
+                opacity: 0;
+            }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { 
+                transform: translateX(calc(100px * var(--x-direction))) translateY(calc(100px * var(--y-direction)));
+                opacity: 0;
+            }
         }
 
         @keyframes twinkle {
@@ -255,6 +187,16 @@
             0%, 100% { opacity: 0; transform: scale(0.3); }
             50% { opacity: 1; transform: scale(1.5); filter: drop-shadow(0 0 12px var(--gold)); }
         }
+
+        /* ... (keep other existing keyframes the same) ... */
+
+        .fade-out {
+            animation: fadeOut 1s ease-out forwards;
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; transform: scale(0.95); }
+        }
     </style>
 </head>
 <body>
@@ -262,7 +204,7 @@
     <div id="stars"></div>
     <div id="sparkles"></div>
     
-    <div class="loading-container">
+    <div class="loading-container" id="loading-container">
         <div class="logo-container">
             <img src="https://raw.githubusercontent.com/LKS-88/aplikasi-anekamarket/refs/heads/main/LOGO%20ANEKAMARKET.png" alt="ANEKAMARKET Logo" class="logo">
         </div>
@@ -300,6 +242,7 @@
 
     <script>
         // Initialize elements
+        const loadingContainer = document.getElementById('loading-container');
         const logo = document.querySelector('.logo');
         const progressBar = document.getElementById('progress-bar');
         const percentageElement = document.getElementById('percentage');
@@ -310,8 +253,8 @@
         const starsContainer = document.getElementById('stars');
         const sparklesContainer = document.getElementById('sparkles');
         
-        // Gold particles (more visible)
-        for (let i = 0; i < 50; i++) {
+        // Gold particles (floating up)
+        for (let i = 0; i < 60; i++) {
             const particle = document.createElement('div');
             particle.classList.add('particle', 'gold-particle');
             
@@ -324,30 +267,64 @@
             particle.style.left = `${Math.random() * 100}%`;
             particle.style.bottom = `-10px`;
             
-            // Animation duration between 10s and 20s
+            // Random animation duration between 10s and 20s
             const duration = Math.random() * 10 + 10;
             particle.style.animationDuration = `${duration}s`;
             
             // Random delay
             particle.style.animationDelay = `${Math.random() * 5}s`;
             
+            // Random x-direction (-1 or 1)
+            particle.style.setProperty('--x-direction', Math.random() > 0.5 ? 1 : -1);
+            
             particlesContainer.appendChild(particle);
         }
         
-        // White subtle particles (background)
-        for (let i = 0; i < 70; i++) {
+        // White particles (floating in various directions)
+        for (let i = 0; i < 80; i++) {
             const particle = document.createElement('div');
-            particle.classList.add('particle');
+            particle.classList.add('particle', 'white-particle');
             
             // Random size between 1px and 3px
             const size = Math.random() * 2 + 1;
             particle.style.width = `${size}px`;
             particle.style.height = `${size}px`;
-            particle.style.background = `rgba(255, 255, 255, ${Math.random() * 0.5 + 0.3})`;
             
-            // Random position
-            particle.style.left = `${Math.random() * 100}%`;
-            particle.style.bottom = `-10px`;
+            // Random start position
+            const startPos = Math.random();
+            if (startPos < 0.25) {
+                // From top
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `-10px`;
+                particle.style.setProperty('--x-start', Math.random() * 2 - 1);
+                particle.style.setProperty('--y-start', 0);
+                particle.style.setProperty('--x-direction', Math.random() * 2 - 1);
+                particle.style.setProperty('--y-direction', 1);
+            } else if (startPos < 0.5) {
+                // From right
+                particle.style.right = `-10px`;
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.setProperty('--x-start', 0);
+                particle.style.setProperty('--y-start', Math.random() * 2 - 1);
+                particle.style.setProperty('--x-direction', -1);
+                particle.style.setProperty('--y-direction', Math.random() * 2 - 1);
+            } else if (startPos < 0.75) {
+                // From bottom
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.bottom = `-10px`;
+                particle.style.setProperty('--x-start', Math.random() * 2 - 1);
+                particle.style.setProperty('--y-start', 0);
+                particle.style.setProperty('--x-direction', Math.random() * 2 - 1);
+                particle.style.setProperty('--y-direction', -1);
+            } else {
+                // From left
+                particle.style.left = `-10px`;
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.setProperty('--x-start', 0);
+                particle.style.setProperty('--y-start', Math.random() * 2 - 1);
+                particle.style.setProperty('--x-direction', 1);
+                particle.style.setProperty('--y-direction', Math.random() * 2 - 1);
+            }
             
             // Animation duration
             const duration = Math.random() * 15 + 15;
@@ -357,8 +334,8 @@
             particlesContainer.appendChild(particle);
         }
         
-        // Create stars (more visible twinkling effect)
-        for (let i = 0; i < 80; i++) {
+        // Create stars (twinkling effect)
+        for (let i = 0; i < 100; i++) {
             const star = document.createElement('div');
             star.classList.add('star');
             
@@ -378,14 +355,10 @@
             starsContainer.appendChild(star);
         }
         
-        // Create gold sparkles (more prominent)
-        for (let i = 0; i < 30; i++) {
+        // Create gold sparkles
+        for (let i = 0; i < 40; i++) {
             const sparkle = document.createElement('div');
             sparkle.classList.add('sparkle');
-            
-            // Larger size
-            sparkle.style.width = '4px';
-            sparkle.style.height = '4px';
             
             // Random position
             sparkle.style.left = `${Math.random() * 100}%`;
@@ -398,7 +371,7 @@
             sparklesContainer.appendChild(sparkle);
         }
 
-        // Loading animation logic (same as before)
+        // Loading animation with enhanced effects
         const milestones = [
             { time: 1000, percent: 5, message: "Starting systems..." },
             { time: 2500, percent: 20, message: "Loading core modules..." },
@@ -407,12 +380,13 @@
             { time: 7000, percent: 65, message: "Optimizing performance..." },
             { time: 8500, percent: 80, message: "Finalizing components..." },
             { time: 10000, percent: 95, message: "Almost ready..." },
-            { time: 11000, percent: 100, message: "Ready to launch!" }
+            { time: 11000, percent: 100, message: "Launching application..." }
         ];
         
         const startTime = Date.now();
         const loadingDuration = 10000;
         const totalDuration = 12000;
+        let redirecting = false;
         
         function updateLoading() {
             const currentTime = Date.now();
@@ -434,10 +408,14 @@
             if (currentMilestone.percent === 100) {
                 progressBar.style.boxShadow = `0 0 min(1vw, 15px) rgba(58, 123, 213, 0.9)`;
                 
-                if (elapsed >= loadingDuration) {
+                if (elapsed >= loadingDuration && !redirecting) {
                     const remaining = totalDuration - elapsed;
                     if (remaining <= 0) {
-                        window.location.href = 'https://lks-88.github.io/transaksi/';
+                        redirecting = true;
+                        loadingContainer.classList.add('fade-out');
+                        setTimeout(() => {
+                            window.location.href = 'https://lks-88.github.io/transaksi/';
+                        }, 1000);
                     } else {
                         loadingTimeElement.textContent = `Launching in ${(remaining/1000).toFixed(1)}s...`;
                     }
@@ -446,14 +424,19 @@
             
             if (elapsed < totalDuration) {
                 requestAnimationFrame(updateLoading);
-            } else {
-                window.location.href = 'https://lks-88.github.io/transaksi/';
+            } else if (!redirecting) {
+                redirecting = true;
+                loadingContainer.classList.add('fade-out');
+                setTimeout(() => {
+                    window.location.href = 'https://lks-88.github.io/transaksi/';
+                }, 1000);
             }
         }
         
+        // Start the loading animation after 0.5s delay
         setTimeout(() => {
             requestAnimationFrame(updateLoading);
-        }, 1000);
+        }, 500);
     </script>
 </body>
 </html>
