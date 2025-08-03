@@ -26,6 +26,9 @@
             --rounded-sm: 0.35rem;
             --rounded: 0.75rem;
             --rounded-lg: 1rem;
+            --premium-dark: #1a1a2e;
+            --premium-primary: #4a00e0;
+            --premium-gradient: linear-gradient(135deg, var(--premium-primary), #8e2de2);
         }
 
         * {
@@ -50,7 +53,7 @@
 
         /* Header Styles */
         .app-header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: var(--premium-gradient);
             color: var(--white);
             padding: 12px 16px;
             border-radius: var(--rounded);
@@ -76,6 +79,12 @@
 
         .header-info p {
             margin: 2px 0;
+        }
+
+        .copyright-notice {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            margin-top: 4px;
         }
 
         /* Main Content Layout */
@@ -712,6 +721,86 @@
         .admin-view .profit-report-btn {
             display: inline-block;
         }
+
+        /* Member Card */
+        .member-card {
+            background: var(--white);
+            border-radius: var(--rounded-sm);
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 16px;
+            border: 1px solid #eee;
+        }
+
+        .member-id {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .member-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .member-contact {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        /* Receipt Styles */
+        .receipt {
+            font-family: Arial, sans-serif;
+            max-width: 300px;
+            margin: 0 auto;
+            padding: 15px;
+            border: 1px solid #ddd;
+        }
+
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .receipt-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .receipt-header p {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+
+        .receipt-body {
+            font-size: 14px;
+        }
+
+        .receipt-body hr {
+            border: none;
+            border-top: 1px dashed #ddd;
+            margin: 10px 0;
+        }
+
+        .receipt-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .receipt-item.total-row {
+            font-weight: bold;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+        .receipt-footer {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -772,6 +861,7 @@
             <div>
                 <h1 class="app-title" id="storeNameHeader">APLIKASI KASIR MODERN</h1>
                 <p id="currentDate">Senin, 1 Januari 2023</p>
+                <p class="copyright-notice">© 2024 Lentera Karya Situbondo. All Rights Reserved.</p>
             </div>
             <div class="header-info">
                 <p>Kasir: <span id="loggedInUser">Admin</span></p>
@@ -808,6 +898,7 @@
                     <button id="addProductBtn" class="btn btn-sm mb-2">Tambah Produk</button>
                     <button id="manageCategoriesBtn" class="btn btn-sm mb-2">Kelola Kategori</button>
                     <button id="manageCashiersBtn" class="btn btn-sm mb-2">Kelola Kasir</button>
+                    <button id="manageMembersBtn" class="btn btn-sm mb-2">Kelola Member</button>
                     <button id="viewReportsBtn" class="btn btn-sm mb-2">Laporan Penjualan</button>
                     <button id="profitReportBtn" class="btn btn-sm mb-2 profit-report-btn">Laporan Laba Rugi</button>
                     <button id="manageStoreInfoBtn" class="btn btn-sm">Kelola Info Toko</button>
@@ -820,6 +911,23 @@
                     <span>Keranjang</span>
                     <span id="cartCount">(0 item)</span>
                 </h2>
+                
+                <div class="form-group">
+                    <label class="form-label">Pelanggan</label>
+                    <select id="customerType" class="form-control">
+                        <option value="regular">Pelanggan Biasa</option>
+                        <option value="member">Member</option>
+                    </select>
+                </div>
+                
+                <div id="memberSelectContainer" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Pilih Member</label>
+                        <select id="memberSelect" class="form-control">
+                            <!-- Members will be added here -->
+                        </select>
+                    </div>
+                </div>
                 
                 <div id="cartItems">
                     <!-- Cart items will be added here -->
@@ -868,7 +976,7 @@
 
         <!-- Footer -->
         <footer class="app-footer">
-            <p>&copy; <span id="currentYear"></span> APLIKASI KASIR MODERN</p>
+            <p>&copy; <span id="currentYear"></span> APLIKASI KASIR MODERN - Hak Cipta Dilindungi oleh Lentera Karya Situbondo</p>
         </footer>
     </div>
 
@@ -1048,6 +1156,61 @@
         </div>
     </div>
 
+    <!-- Manage Members Modal -->
+    <div id="manageMembersModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Kelola Member</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="membersList">
+                    <!-- Members will be listed here -->
+                </div>
+                
+                <button id="addMemberBtn" class="btn btn-sm btn-success mt-3">Tambah Member</button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" id="cancelManageMembers">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Member Modal -->
+    <div id="memberModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Tambah Member Baru</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="memberForm">
+                    <input type="hidden" id="memberId">
+                    <div class="form-group">
+                        <label class="form-label">Nama Lengkap</label>
+                        <input type="text" id="memberName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nomor Telepon</label>
+                        <input type="text" id="memberPhone" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Alamat</label>
+                        <textarea id="memberAddress" class="form-control"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="memberEmail" class="form-control">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" id="cancelMember">Batal</button>
+                <button class="btn btn-success" id="saveMemberBtn">Simpan</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Reports Modal -->
     <div id="reportsModal" class="modal">
         <div class="modal-content">
@@ -1149,7 +1312,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Deskripsi/Keterangan Toko</label>
-                        <textarea id="storeDescription" class="form-control"></textarea>
+                        <textarea id="storeDescription" class="form-control" placeholder="Contoh: Toko serba ada dengan harga terjangkau"></textarea>
                     </div>
                 </form>
             </div>
@@ -1174,6 +1337,7 @@
                 <p>No. Transaksi: <span id="receiptId">TRX001</span></p>
                 <p>Kasir: <span id="receiptCashier">Admin</span></p>
                 <p>Pelanggan: <span id="receiptCustomer">Pelanggan Biasa</span></p>
+                <p>Member: <span id="receiptMember">-</span></p>
                 
                 <hr>
                 
@@ -1213,13 +1377,13 @@
             
             <div class="receipt-footer">
                 <p>Terima kasih telah berbelanja</p>
-                <p>&copy; <span id="receiptYear"></span> APLIKASI KASIR MODERN</p>
+                <p>&copy; <span id="receiptYear"></span> <span id="receiptCopyright">Lentera Karya Situbondo</span></p>
             </div>
         </div>
-        <button id="printReceiptBtn" class="btn btn-info no-print" onclick="printReceipt()">
+        <button id="printReceiptBtn" class="btn btn-info no-print" onclick="window.printReceipt()">
             <i class="fas fa-print"></i> Cetak Struk
         </button>
-        <button id="downloadReceiptBtn" class="btn btn-success no-print mt-2" onclick="downloadReceiptPDF()">
+        <button id="downloadReceiptBtn" class="btn btn-success no-print mt-2" onclick="window.downloadReceiptPDF()">
             <i class="fas fa-file-pdf"></i> Download PDF
         </button>
     </div>
@@ -1320,7 +1484,8 @@
             CART: 'kasir_cart',
             SETTINGS: 'kasir_settings',
             USERS: 'kasir_users',
-            STOCK_HISTORY: 'kasir_stock_history'
+            STOCK_HISTORY: 'kasir_stock_history',
+            MEMBERS: 'kasir_members'
         };
         
         // Default admin user (username: admin, password: admin123)
@@ -1381,6 +1546,10 @@
             if (!localStorage.getItem(STORAGE_KEYS.STOCK_HISTORY)) {
                 localStorage.setItem(STORAGE_KEYS.STOCK_HISTORY, JSON.stringify([]));
             }
+            
+            if (!localStorage.getItem(STORAGE_KEYS.MEMBERS)) {
+                localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify([]));
+            }
         }
         
         // Load data
@@ -1389,6 +1558,7 @@
         let transactions = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRANSACTIONS)) || [];
         let settings = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS)) || {};
         let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || [];
+        let members = JSON.parse(localStorage.getItem(STORAGE_KEYS.MEMBERS)) || [];
         let currentUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER)) || null;
         let stockHistory = JSON.parse(localStorage.getItem(STORAGE_KEYS.STOCK_HISTORY)) || [];
         let currentCart = JSON.parse(localStorage.getItem(STORAGE_KEYS.CART)) || {
@@ -1397,13 +1567,15 @@
             discount: 0,
             additionalCost: 0,
             additionalCostNote: '',
-            total: 0
+            total: 0,
+            memberId: null
         };
 
         // Variable to store the requested admin action
         let pendingAdminAction = null;
         let currentEditingProduct = null;
         let currentEditingCashier = null;
+        let currentEditingMember = null;
 
         // Initialize the app
         $(document).ready(function() {
@@ -1423,6 +1595,7 @@
                 loadCategories();
                 updateCurrentDate();
                 updateStoreInfo();
+                loadMembersForSelect();
                 
                 // Show admin panel if user is admin
                 if (currentUser.role === 'admin') {
@@ -1433,6 +1606,23 @@
             
             // Update date every minute
             setInterval(updateCurrentDate, 60000);
+            
+            // Customer type change
+            $('#customerType').change(function() {
+                if ($(this).val() === 'member') {
+                    $('#memberSelectContainer').show();
+                } else {
+                    $('#memberSelectContainer').hide();
+                    currentCart.memberId = null;
+                    updateCart();
+                }
+            });
+            
+            // Member select change
+            $('#memberSelect').change(function() {
+                currentCart.memberId = $(this).val() || null;
+                updateCart();
+            });
             
             // Login form handler with password hashing
             $('#loginForm').submit(function(e) {
@@ -1481,6 +1671,7 @@
                 loadCategories();
                 updateCurrentDate();
                 updateStoreInfo();
+                loadMembersForSelect();
                 
                 showToast('Login berhasil', 'success');
             });
@@ -1538,7 +1729,7 @@
                 showToast(`${product.name} ditambahkan ke keranjang`, 'success');
             });
             
-            // Edit product button
+            // Edit product button (admin only)
             $(document).on('click', '.edit-product', function(e) {
                 e.stopPropagation();
                 const productId = $(this).data('id');
@@ -1547,24 +1738,20 @@
                 if (!product) return;
                 
                 if (currentUser.role !== 'admin') {
-                    pendingAdminAction = 'editProduct';
-                    currentEditingProduct = productId;
-                    $('#adminPasswordModal').show();
+                    showToast('Hanya admin yang dapat mengedit produk', 'error');
                     return;
                 }
                 
                 openEditProductModal(product);
             });
             
-            // Delete product button
+            // Delete product button (admin only)
             $(document).on('click', '.delete-product', function(e) {
                 e.stopPropagation();
                 const productId = $(this).data('id');
                 
                 if (currentUser.role !== 'admin') {
-                    pendingAdminAction = 'deleteProduct';
-                    currentEditingProduct = productId;
-                    $('#adminPasswordModal').show();
+                    showToast('Hanya admin yang dapat menghapus produk', 'error');
                     return;
                 }
                 
@@ -1659,12 +1846,19 @@
                     return;
                 }
                 
+                // Get member info if exists
+                let memberInfo = null;
+                if (currentCart.memberId) {
+                    memberInfo = members.find(m => m.id === currentCart.memberId);
+                }
+                
                 // Create transaction
                 const transaction = {
                     id: 'TRX' + moment().format('YYYYMMDDHHmmss'),
                     date: new Date(),
                     items: currentCart.items,
-                    customer: $('#customerName').val() || 'Pelanggan Biasa',
+                    customer: $('#customerName').val() || (memberInfo ? memberInfo.name : 'Pelanggan Biasa'),
+                    member: memberInfo ? memberInfo.id : null,
                     subtotal: currentCart.subtotal,
                     discount: currentCart.discount,
                     additionalCost: currentCart.additionalCost,
@@ -1732,68 +1926,73 @@
             
             // Admin panel buttons (only for admin)
             $('#addProductBtn').click(function() {
-                if (currentUser.role === 'admin') {
-                    $('#productModal .modal-title').text('Tambah Produk Baru');
-                    $('#productForm')[0].reset();
-                    $('#productId').val('');
-                    loadCategoriesForSelect();
-                    $('#productModal').show();
-                } else {
-                    pendingAdminAction = 'addProduct';
-                    $('#adminPasswordModal').show();
+                if (currentUser.role !== 'admin') {
+                    showToast('Hanya admin yang dapat menambah produk', 'error');
+                    return;
                 }
+                
+                $('#productModal .modal-title').text('Tambah Produk Baru');
+                $('#productForm')[0].reset();
+                $('#productId').val('');
+                loadCategoriesForSelect();
+                $('#productModal').show();
             });
             
             $('#manageCategoriesBtn').click(function() {
-                if (currentUser.role === 'admin') {
-                    $('#manageCategoriesModal').show();
-                    loadCategoriesForManagement();
-                } else {
-                    pendingAdminAction = 'manageCategories';
-                    $('#adminPasswordModal').show();
+                if (currentUser.role !== 'admin') {
+                    showToast('Hanya admin yang dapat mengelola kategori', 'error');
+                    return;
                 }
+                
+                $('#manageCategoriesModal').show();
+                loadCategoriesForManagement();
             });
             
             $('#manageCashiersBtn').click(function() {
-                if (currentUser.role === 'admin') {
-                    $('#manageCashiersModal').show();
-                    loadCashiers();
-                } else {
-                    pendingAdminAction = 'manageCashiers';
-                    $('#adminPasswordModal').show();
+                if (currentUser.role !== 'admin') {
+                    showToast('Hanya admin yang dapat mengelola kasir', 'error');
+                    return;
                 }
+                
+                $('#manageCashiersModal').show();
+                loadCashiers();
+            });
+            
+            $('#manageMembersBtn').click(function() {
+                $('#manageMembersModal').show();
+                loadMembers();
             });
             
             $('#viewReportsBtn').click(function() {
-                if (currentUser.role === 'admin') {
-                    $('#reportsModal').show();
-                    $('#reportPeriod').val('today');
-                    $('#customDateRange').hide();
-                } else {
-                    pendingAdminAction = 'viewReports';
-                    $('#adminPasswordModal').show();
+                if (currentUser.role !== 'admin') {
+                    showToast('Hanya admin yang dapat melihat laporan', 'error');
+                    return;
                 }
+                
+                $('#reportsModal').show();
+                $('#reportPeriod').val('today');
+                $('#customDateRange').hide();
             });
             
             $('#profitReportBtn').click(function() {
-                if (currentUser.role === 'admin') {
-                    $('#profitReportModal').show();
-                    $('#profitReportPeriod').val('today');
-                    $('#profitCustomDateRange').hide();
-                } else {
-                    pendingAdminAction = 'profitReport';
-                    $('#adminPasswordModal').show();
+                if (currentUser.role !== 'admin') {
+                    showToast('Hanya admin yang dapat melihat laporan laba rugi', 'error');
+                    return;
                 }
+                
+                $('#profitReportModal').show();
+                $('#profitReportPeriod').val('today');
+                $('#profitCustomDateRange').hide();
             });
             
             $('#manageStoreInfoBtn').click(function() {
-                if (currentUser.role === 'admin') {
-                    $('#manageStoreInfoModal').show();
-                    loadStoreInfo();
-                } else {
-                    pendingAdminAction = 'manageStoreInfo';
-                    $('#adminPasswordModal').show();
+                if (currentUser.role !== 'admin') {
+                    showToast('Hanya admin yang dapat mengelola info toko', 'error');
+                    return;
                 }
+                
+                $('#manageStoreInfoModal').show();
+                loadStoreInfo();
             });
             
             // Add cashier button
@@ -1836,6 +2035,85 @@
                     loadCashiers();
                     showToast('Kasir berhasil dihapus', 'success');
                 }
+            });
+            
+            // Add member button
+            $('#addMemberBtn').click(function() {
+                $('#memberModal .modal-title').text('Tambah Member Baru');
+                $('#memberForm')[0].reset();
+                $('#memberId').val('');
+                $('#memberModal').show();
+            });
+            
+            // Edit member button
+            $(document).on('click', '.edit-member', function() {
+                const memberId = $(this).data('id');
+                const member = members.find(m => m.id === memberId);
+                
+                if (!member) return;
+                
+                $('#memberModal .modal-title').text('Edit Member');
+                $('#memberId').val(member.id);
+                $('#memberName').val(member.name);
+                $('#memberPhone').val(member.phone);
+                $('#memberAddress').val(member.address);
+                $('#memberEmail').val(member.email || '');
+                $('#memberModal').show();
+            });
+            
+            // Save member
+            $('#saveMemberBtn').click(function() {
+                const id = $('#memberId').val();
+                const name = $('#memberName').val().trim();
+                const phone = $('#memberPhone').val().trim();
+                const address = $('#memberAddress').val().trim();
+                const email = $('#memberEmail').val().trim();
+                
+                if (!name || !phone) {
+                    showToast('Nama dan nomor telepon harus diisi', 'error');
+                    return;
+                }
+                
+                if (id) {
+                    // Editing existing member
+                    const memberIndex = members.findIndex(m => m.id === id);
+                    if (memberIndex === -1) return;
+                    
+                    // Update member
+                    members[memberIndex] = {
+                        ...members[memberIndex],
+                        name: name,
+                        phone: phone,
+                        address: address,
+                        email: email
+                    };
+                } else {
+                    // Create new member
+                    const newMember = {
+                        id: 'M' + moment().format('YYYYMMDDHHmmss'),
+                        name: name,
+                        phone: phone,
+                        address: address,
+                        email: email,
+                        joinDate: new Date()
+                    };
+                    
+                    members.unshift(newMember);
+                }
+                
+                saveMembers();
+                loadMembers();
+                loadMembersForSelect();
+                
+                $('#memberModal').hide();
+                $('#memberForm')[0].reset();
+                
+                showToast('Member berhasil disimpan', 'success');
+            });
+            
+            // Cancel member modal
+            $('#cancelMember').click(function() {
+                $('#memberModal').hide();
             });
             
             // Save cashier
@@ -1919,6 +2197,11 @@
             // Cancel cashier modal
             $('#cancelCashier').click(function() {
                 $('#cashierModal').hide();
+            });
+            
+            // Cancel manage members
+            $('#cancelManageMembers').click(function() {
+                $('#manageMembersModal').hide();
             });
             
             // Admin password verification
@@ -2454,6 +2737,7 @@
                 doc.setFontSize(10);
                 doc.text(`Dicetak pada: ${moment().format('LLLL')}`, 14, doc.autoTable.previous.finalY + 15);
                 doc.text(`Oleh: ${currentUser.name}`, 14, doc.autoTable.previous.finalY + 20);
+                doc.text(`© ${new Date().getFullYear()} Lentera Karya Situbondo`, 105, doc.autoTable.previous.finalY + 25, { align: 'center' });
                 
                 // Save PDF
                 doc.save(`Laporan_Penjualan_${moment().format('YYYYMMDD_HHmmss')}.pdf`);
@@ -2756,6 +3040,7 @@
                 doc.setFontSize(10);
                 doc.text(`Dicetak pada: ${moment().format('LLLL')}`, 14, doc.autoTable.previous.finalY + 15);
                 doc.text(`Oleh: ${currentUser.name}`, 14, doc.autoTable.previous.finalY + 20);
+                doc.text(`© ${new Date().getFullYear()} Lentera Karya Situbondo`, 105, doc.autoTable.previous.finalY + 25, { align: 'center' });
                 
                 // Save PDF
                 doc.save(`Laporan_Laba_Rugi_${moment().format('YYYYMMDD_HHmmss')}.pdf`);
@@ -2842,6 +3127,7 @@
                     
                     $('#productGrid').append(`
                         <div class="product-card" data-id="${product.id}">
+                            ${currentUser.role === 'admin' ? `
                             <div class="product-actions">
                                 <button class="action-btn edit-btn edit-product" data-id="${product.id}">
                                     <i class="fas fa-edit"></i>
@@ -2850,9 +3136,10 @@
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
+                            ` : ''}
                             <div class="product-name">${product.name}</div>
                             <div class="product-price">${formatCurrency(product.price)} <span class="product-unit">${product.unit}</span></div>
-                            ${product.cost > 0 ? `<div class="product-cost">Harga pokok: ${formatCurrency(product.cost)}</div>` : ''}
+                            ${product.cost > 0 && currentUser.role === 'admin' ? `<div class="product-cost">Harga pokok: ${formatCurrency(product.cost)}</div>` : ''}
                             <div class="product-stock ${stockClass}">Stok: ${product.stock}</div>
                         </div>
                     `);
@@ -2939,6 +3226,48 @@
                 });
             }
             
+            // Load members
+            function loadMembers() {
+                $('#membersList').empty();
+                
+                if (members.length === 0) {
+                    $('#membersList').html(`
+                        <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <p>Tidak ada member</p>
+                        </div>
+                    `);
+                    return;
+                }
+                
+                members.forEach(member => {
+                    $('#membersList').append(`
+                        <div class="member-card">
+                            <div class="d-flex justify-between align-center">
+                                <div>
+                                    <div class="member-id">ID: ${member.id}</div>
+                                    <div class="member-name">${member.name}</div>
+                                    <div class="member-contact">${member.phone}</div>
+                                </div>
+                                <button class="btn btn-sm btn-info edit-member" data-id="${member.id}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `);
+                });
+            }
+            
+            // Load members for select dropdown
+            function loadMembersForSelect() {
+                $('#memberSelect').empty();
+                $('#memberSelect').append('<option value="">Pilih Member</option>');
+                
+                members.forEach(member => {
+                    $('#memberSelect').append(`<option value="${member.id}">${member.name} (${member.phone})</option>`);
+                });
+            }
+            
             // Update cart display
             function updateCart() {
                 // Calculate cart values
@@ -3017,12 +3346,15 @@
                     discount: 0,
                     additionalCost: 0,
                     additionalCostNote: '',
-                    total: 0
+                    total: 0,
+                    memberId: null
                 };
                 
                 $('#cartDiscountInput').val(0);
                 $('#additionalCostInput').val(0);
                 $('#additionalCostNote').val('');
+                $('#customerType').val('regular');
+                $('#memberSelectContainer').hide();
                 
                 updateCart();
             }
@@ -3036,6 +3368,8 @@
                 $('#receiptId').text(transaction.id);
                 $('#receiptCashier').text(transaction.cashier.name);
                 $('#receiptCustomer').text(transaction.customer);
+                $('#receiptMember').text(transaction.member ? transaction.member : '-');
+                $('#receiptCopyright').text('Lentera Karya Situbondo');
                 
                 // Receipt items
                 $('#receiptItems').empty();
@@ -3062,7 +3396,7 @@
             }
             
             // Print receipt
-            function printReceipt() {
+            window.printReceipt = function() {
                 const printContents = document.getElementById('receiptTemplate').innerHTML;
                 const originalContents = document.body.innerHTML;
                 
@@ -3072,10 +3406,10 @@
                 
                 // Reload products to reflect stock changes
                 loadProducts();
-            }
+            };
             
             // Download receipt as PDF
-            function downloadReceiptPDF() {
+            window.downloadReceiptPDF = function() {
                 const receipt = $('#receiptTemplate').clone();
                 
                 // Create PDF
@@ -3083,13 +3417,12 @@
                 
                 // Title
                 doc.setFontSize(18);
-                doc.text('STRUK PEMBAYARAN', 105, 15, { align: 'center' });
+                doc.text(settings.storeName, 105, 15, { align: 'center' });
                 
                 // Store info
                 doc.setFontSize(10);
-                doc.text($('#receiptStoreName').text(), 105, 25, { align: 'center' });
-                doc.text($('#receiptStoreAddress').text(), 105, 30, { align: 'center' });
-                doc.text($('#receiptStorePhone').text(), 105, 35, { align: 'center' });
+                doc.text(settings.storeAddress, 105, 25, { align: 'center' });
+                doc.text(`Telp: ${settings.storePhone}`, 105, 30, { align: 'center' });
                 
                 // Transaction info
                 doc.setFontSize(12);
@@ -3097,6 +3430,7 @@
                 doc.text(`No. Transaksi: ${$('#receiptId').text()}`, 14, 50);
                 doc.text(`Kasir: ${$('#receiptCashier').text()}`, 14, 55);
                 doc.text(`Pelanggan: ${$('#receiptCustomer').text()}`, 14, 60);
+                doc.text(`Member: ${$('#receiptMember').text()}`, 14, 65);
                 
                 // Items table
                 const itemsData = [];
@@ -3107,7 +3441,7 @@
                 });
                 
                 doc.autoTable({
-                    startY: 70,
+                    startY: 75,
                     head: [['Item', 'Harga']],
                     body: itemsData,
                     theme: 'grid',
@@ -3133,11 +3467,11 @@
                 // Footer
                 doc.setFontSize(10);
                 doc.text('Terima kasih telah berbelanja', 105, doc.autoTable.previous.finalY + 65, { align: 'center' });
-                doc.text(`© ${new Date().getFullYear()} ${settings.storeName}`, 105, doc.autoTable.previous.finalY + 70, { align: 'center' });
+                doc.text(`© ${new Date().getFullYear()} Lentera Karya Situbondo`, 105, doc.autoTable.previous.finalY + 70, { align: 'center' });
                 
                 // Save PDF
                 doc.save(`Struk_${$('#receiptId').text()}.pdf`);
-            }
+            };
             
             // Update current date
             function updateCurrentDate() {
@@ -3233,6 +3567,11 @@
             // Save users to localStorage
             function saveUsers() {
                 localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+            }
+            
+            // Save members to localStorage
+            function saveMembers() {
+                localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(members));
             }
             
             // Save stock history to localStorage
