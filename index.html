@@ -837,6 +837,83 @@
         .permission-checkbox {
             margin-right: 8px;
         }
+
+        /* Memo/Warning Styles */
+        .memo-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 300px;
+        }
+
+        .memo-card {
+            background-color: var(--warning);
+            color: #000;
+            border-radius: var(--rounded-sm);
+            padding: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .memo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .memo-title {
+            font-weight: 600;
+        }
+
+        .memo-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #000;
+        }
+
+        .memo-content {
+            font-size: 0.9rem;
+        }
+
+        .memo-date {
+            font-size: 0.7rem;
+            text-align: right;
+            margin-top: 8px;
+            color: rgba(0, 0, 0, 0.7);
+        }
+
+        .memo-pin {
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background-color: var(--danger);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+        }
+
+        /* Data Management Buttons */
+        .data-management-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        /* Reset Data Warning */
+        .reset-warning {
+            color: var(--danger);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -845,6 +922,9 @@
         <i class="fas fa-info-circle"></i>
         <span id="toast-message">Notification message</span>
     </div>
+
+    <!-- Memo/Warning Container -->
+    <div id="memoContainer" class="memo-container"></div>
 
     <!-- Login Modal -->
     <div id="loginModal" class="modal" style="display: block;">
@@ -939,6 +1019,14 @@
                     <button id="viewReportsBtn" class="btn btn-sm mb-2">Laporan Penjualan</button>
                     <button id="profitReportBtn" class="btn btn-sm mb-2 profit-report-btn">Laporan Laba Rugi</button>
                     <button id="manageStoreInfoBtn" class="btn btn-sm">Kelola Info Toko</button>
+                    <button id="manageMemosBtn" class="btn btn-sm mt-2">Kelola Memo</button>
+                    
+                    <!-- Data Management Buttons -->
+                    <div class="data-management-buttons">
+                        <button id="backupDataBtn" class="btn btn-sm btn-info">Backup Data</button>
+                        <button id="restoreDataBtn" class="btn btn-sm btn-warning">Restore Data</button>
+                        <button id="resetDataBtn" class="btn btn-sm btn-danger">Reset Data</button>
+                    </div>
                 </div>
             </section>
 
@@ -1273,6 +1361,34 @@
                             <input type="checkbox" id="permManageProducts" class="permission-checkbox">
                             <label for="permManageProducts">Kelola Produk</label>
                         </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="permManageCashiers" class="permission-checkbox">
+                            <label for="permManageCashiers">Kelola Kasir</label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="permManageMembers" class="permission-checkbox">
+                            <label for="permManageMembers">Kelola Member</label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="permManageStoreInfo" class="permission-checkbox">
+                            <label for="permManageStoreInfo">Kelola Info Toko</label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="permViewProfitReports" class="permission-checkbox">
+                            <label for="permViewProfitReports">Laporan Laba Rugi</label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="permManageRoles" class="permission-checkbox">
+                            <label for="permManageRoles">Kelola Role</label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="permDataManagement" class="permission-checkbox">
+                            <label for="permDataManagement">Manajemen Data (Backup/Restore/Reset)</label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="permManageMemos" class="permission-checkbox">
+                            <label for="permManageMemos">Kelola Memo</label>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -1426,6 +1542,145 @@
             <div class="modal-footer">
                 <button class="btn btn-warning" id="cancelStoreInfo">Batal</button>
                 <button class="btn btn-success" id="saveStoreInfoBtn">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Memos Modal -->
+    <div id="manageMemosModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Kelola Memo</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="memosList">
+                    <!-- Memos will be listed here -->
+                </div>
+                
+                <button id="addMemoBtn" class="btn btn-sm btn-success mt-3">Tambah Memo</button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" id="cancelManageMemos">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Memo Modal -->
+    <div id="memoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Tambah Memo Baru</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="memoForm">
+                    <input type="hidden" id="memoId">
+                    <div class="form-group">
+                        <label class="form-label">Judul</label>
+                        <input type="text" id="memoTitle" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Isi Memo</label>
+                        <textarea id="memoContent" class="form-control" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Warna Latar Belakang</label>
+                        <select id="memoColor" class="form-control">
+                            <option value="warning">Kuning (Peringatan)</option>
+                            <option value="info">Biru (Informasi)</option>
+                            <option value="success">Hijau (Sukses)</option>
+                            <option value="danger">Merah (Penting)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tampilkan Mulai</label>
+                        <input type="datetime-local" id="memoStartDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tampilkan Sampai</label>
+                        <input type="datetime-local" id="memoEndDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Pin/Sematkan</label>
+                        <input type="checkbox" id="memoPinned" class="permission-checkbox">
+                        <label for="memoPinned">Tampilkan selalu di atas</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" id="cancelMemo">Batal</button>
+                <button class="btn btn-success" id="saveMemoBtn">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup Data Modal -->
+    <div id="backupDataModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Backup Data</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Backup semua data aplikasi ke file JSON. File ini dapat digunakan untuk memulihkan data di kemudian hari.</p>
+                <div class="form-group">
+                    <label class="form-label">Nama File Backup</label>
+                    <input type="text" id="backupFileName" class="form-control" value="backup_kasir" placeholder="Nama file backup">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" id="cancelBackup">Batal</button>
+                <button class="btn btn-success" id="confirmBackupBtn">Buat Backup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Restore Data Modal -->
+    <div id="restoreDataModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Restore Data</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Restore data dari file backup JSON. Semua data saat ini akan diganti dengan data dari file backup.</p>
+                <div class="form-group">
+                    <label class="form-label">Pilih File Backup</label>
+                    <input type="file" id="restoreFileInput" class="form-control" accept=".json">
+                </div>
+                <div class="reset-warning">
+                    <p><i class="fas fa-exclamation-triangle"></i> PERINGATAN: Restore data akan mengganti semua data saat ini dengan data dari file backup.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" id="cancelRestore">Batal</button>
+                <button class="btn btn-success" id="confirmRestoreBtn">Restore Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Data Modal -->
+    <div id="resetDataModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Reset Data</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="reset-warning">
+                    <p><i class="fas fa-exclamation-triangle"></i> PERINGATAN 1: Reset data akan menghapus SEMUA data kecuali pengguna admin.</p>
+                    <p><i class="fas fa-exclamation-triangle"></i> PERINGATAN 2: Tindakan ini tidak dapat dibatalkan dan semua data akan hilang permanen.</p>
+                    <p><i class="fas fa-exclamation-triangle"></i> PERINGATAN 3: Pastikan Anda sudah membuat backup sebelum melakukan reset.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Konfirmasi Reset Data</label>
+                    <input type="text" id="resetConfirmText" class="form-control" placeholder="Ketik 'RESET DATA' untuk konfirmasi">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" id="cancelReset">Batal</button>
+                <button class="btn btn-danger" id="confirmResetBtn" disabled>Reset Data</button>
             </div>
         </div>
     </div>
@@ -1595,7 +1850,8 @@
             STOCK_HISTORY: 'kasir_stock_history',
             MEMBERS: 'kasir_members',
             ROLES: 'kasir_roles',
-            DISCOUNTS: 'kasir_discounts'
+            DISCOUNTS: 'kasir_discounts',
+            MEMOS: 'kasir_memos'
         };
         
         // Default admin user (username: admin, password: admin123)
@@ -1631,7 +1887,9 @@
                     manageMembers: true,
                     manageStoreInfo: true,
                     viewProfitReports: true,
-                    manageRoles: true
+                    manageRoles: true,
+                    dataManagement: true,
+                    manageMemos: true
                 },
                 memberDiscount: 0
             },
@@ -1648,7 +1906,9 @@
                     manageMembers: false,
                     manageStoreInfo: false,
                     viewProfitReports: false,
-                    manageRoles: false
+                    manageRoles: false,
+                    dataManagement: false,
+                    manageMemos: false
                 },
                 memberDiscount: 0
             }
@@ -1711,6 +1971,10 @@
                     memberDiscount: 10 // Default 10% discount for members
                 }));
             }
+            
+            if (!localStorage.getItem(STORAGE_KEYS.MEMOS)) {
+                localStorage.setItem(STORAGE_KEYS.MEMOS, JSON.stringify([]));
+            }
         }
         
         // Load data
@@ -1724,6 +1988,7 @@
         let discounts = JSON.parse(localStorage.getItem(STORAGE_KEYS.DISCOUNTS)) || { memberDiscount: 10 };
         let currentUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER)) || null;
         let stockHistory = JSON.parse(localStorage.getItem(STORAGE_KEYS.STOCK_HISTORY)) || [];
+        let memos = JSON.parse(localStorage.getItem(STORAGE_KEYS.MEMOS)) || [];
         let currentCart = JSON.parse(localStorage.getItem(STORAGE_KEYS.CART)) || {
             items: [],
             subtotal: 0,
@@ -1740,6 +2005,7 @@
         let currentEditingCashier = null;
         let currentEditingMember = null;
         let currentEditingRole = null;
+        let currentEditingMemo = null;
 
         // Initialize the app
         $(document).ready(function() {
@@ -1764,6 +2030,7 @@
                 updateCurrentDate();
                 updateStoreInfo();
                 loadMembersForSelect();
+                loadActiveMemos();
                 
                 // Show admin panel if user has admin permissions
                 if (currentUser.role === 'admin' || hasPermission(currentUser.role, 'manageProducts')) {
@@ -1780,11 +2047,22 @@
                     if (!hasPermission(currentUser.role, 'viewProfitReports')) {
                         $('#profitReportBtn').hide();
                     }
+                    if (!hasPermission(currentUser.role, 'dataManagement')) {
+                        $('#backupDataBtn').hide();
+                        $('#restoreDataBtn').hide();
+                        $('#resetDataBtn').hide();
+                    }
+                    if (!hasPermission(currentUser.role, 'manageMemos')) {
+                        $('#manageMemosBtn').hide();
+                    }
                 }
             }
             
             // Update date every minute
             setInterval(updateCurrentDate, 60000);
+            
+            // Check for active memos every minute
+            setInterval(loadActiveMemos, 60000);
             
             // Customer type change
             $('#customerType').change(function() {
@@ -1865,6 +2143,14 @@
                     if (!hasPermission(currentUser.role, 'viewProfitReports')) {
                         $('#profitReportBtn').hide();
                     }
+                    if (!hasPermission(currentUser.role, 'dataManagement')) {
+                        $('#backupDataBtn').hide();
+                        $('#restoreDataBtn').hide();
+                        $('#resetDataBtn').hide();
+                    }
+                    if (!hasPermission(currentUser.role, 'manageMemos')) {
+                        $('#manageMemosBtn').hide();
+                    }
                 }
                 
                 // Load data
@@ -1874,6 +2160,7 @@
                 updateCurrentDate();
                 updateStoreInfo();
                 loadMembersForSelect();
+                loadActiveMemos();
                 
                 showToast('Login berhasil', 'success');
             });
@@ -2233,6 +2520,422 @@
                 loadStoreInfo();
             });
             
+            // Data management buttons
+            $('#backupDataBtn').click(function() {
+                if (!hasPermission(currentUser.role, 'dataManagement')) {
+                    showToast('Anda tidak memiliki izin untuk mengelola data', 'error');
+                    return;
+                }
+                
+                $('#backupDataModal').show();
+            });
+            
+            $('#restoreDataBtn').click(function() {
+                if (!hasPermission(currentUser.role, 'dataManagement')) {
+                    showToast('Anda tidak memiliki izin untuk mengelola data', 'error');
+                    return;
+                }
+                
+                $('#restoreDataModal').show();
+            });
+            
+            $('#resetDataBtn').click(function() {
+                if (!hasPermission(currentUser.role, 'dataManagement')) {
+                    showToast('Anda tidak memiliki izin untuk mengelola data', 'error');
+                    return;
+                }
+                
+                $('#resetDataModal').show();
+                $('#resetConfirmText').val('');
+                $('#confirmResetBtn').prop('disabled', true);
+            });
+            
+            // Confirm backup data
+            $('#confirmBackupBtn').click(function() {
+                const backupData = {
+                    products: products,
+                    categories: categories,
+                    transactions: transactions,
+                    settings: settings,
+                    users: users,
+                    members: members,
+                    roles: roles,
+                    discounts: discounts,
+                    stockHistory: stockHistory,
+                    memos: memos,
+                    backupDate: new Date(),
+                    backupBy: currentUser.username
+                };
+                
+                const fileName = $('#backupFileName').val().trim() || 'backup_kasir';
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", fileName + ".json");
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+                
+                $('#backupDataModal').hide();
+                showToast('Backup data berhasil dibuat', 'success');
+            });
+            
+            // Cancel backup
+            $('#cancelBackup').click(function() {
+                $('#backupDataModal').hide();
+            });
+            
+            // Confirm restore data
+            $('#confirmRestoreBtn').click(function() {
+                const fileInput = $('#restoreFileInput')[0];
+                if (fileInput.files.length === 0) {
+                    showToast('Pilih file backup terlebih dahulu', 'error');
+                    return;
+                }
+                
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    try {
+                        const backupData = JSON.parse(e.target.result);
+                        
+                        // Validate backup data
+                        if (!backupData.products || !backupData.users || !backupData.settings) {
+                            showToast('File backup tidak valid', 'error');
+                            return;
+                        }
+                        
+                        // Restore data
+                        products = backupData.products || [];
+                        categories = backupData.categories || [];
+                        transactions = backupData.transactions || [];
+                        settings = backupData.settings || {};
+                        users = backupData.users || [];
+                        members = backupData.members || [];
+                        roles = backupData.roles || [];
+                        discounts = backupData.discounts || { memberDiscount: 10 };
+                        stockHistory = backupData.stockHistory || [];
+                        memos = backupData.memos || [];
+                        
+                        // Save all data
+                        saveProducts();
+                        saveCategories();
+                        saveTransactions();
+                        saveSettings();
+                        saveUsers();
+                        saveMembers();
+                        saveRoles();
+                        saveDiscounts();
+                        saveStockHistory();
+                        saveMemos();
+                        
+                        // Reload UI
+                        loadProducts();
+                        updateCart();
+                        loadCategories();
+                        updateStoreInfo();
+                        loadMembersForSelect();
+                        loadActiveMemos();
+                        
+                        $('#restoreDataModal').hide();
+                        showToast('Data berhasil di-restore', 'success');
+                    } catch (error) {
+                        showToast('Gagal membaca file backup', 'error');
+                        console.error(error);
+                    }
+                };
+                
+                reader.readAsText(file);
+            });
+            
+            // Cancel restore
+            $('#cancelRestore').click(function() {
+                $('#restoreDataModal').hide();
+            });
+            
+            // Reset confirmation text change
+            $('#resetConfirmText').on('input', function() {
+                const confirmText = $(this).val().trim();
+                $('#confirmResetBtn').prop('disabled', confirmText !== 'RESET DATA');
+            });
+            
+            // Confirm reset data
+            $('#confirmResetBtn').click(function() {
+                // Keep admin user
+                const adminUser = users.find(u => u.username === 'admin');
+                
+                // Reset all data except admin user
+                products = [];
+                categories = [];
+                transactions = [];
+                settings = {
+                    storeName: 'APLIKASI KASIR MODERN',
+                    storeAddress: 'Jl. Contoh No. 123, Kota',
+                    storePhone: '081234567890',
+                    storeDescription: 'Toko serba ada dengan harga terjangkau'
+                };
+                users = adminUser ? [adminUser, DEFAULT_CASHIER] : [DEFAULT_ADMIN, DEFAULT_CASHIER];
+                members = [];
+                roles = DEFAULT_ROLES;
+                discounts = { memberDiscount: 10 };
+                stockHistory = [];
+                memos = [];
+                resetCart();
+                
+                // Save all data
+                saveProducts();
+                saveCategories();
+                saveTransactions();
+                saveSettings();
+                saveUsers();
+                saveMembers();
+                saveRoles();
+                saveDiscounts();
+                saveStockHistory();
+                saveMemos();
+                
+                // Reload UI
+                loadProducts();
+                updateCart();
+                loadCategories();
+                updateStoreInfo();
+                loadMembersForSelect();
+                loadActiveMemos();
+                
+                $('#resetDataModal').hide();
+                showToast('Semua data telah direset ke pengaturan awal', 'success');
+            });
+            
+            // Cancel reset
+            $('#cancelReset').click(function() {
+                $('#resetDataModal').hide();
+            });
+            
+            // Manage memos button
+            $('#manageMemosBtn').click(function() {
+                if (!hasPermission(currentUser.role, 'manageMemos')) {
+                    showToast('Anda tidak memiliki izin untuk mengelola memo', 'error');
+                    return;
+                }
+                
+                $('#manageMemosModal').show();
+                loadMemos();
+            });
+            
+            // Add memo button
+            $('#addMemoBtn').click(function() {
+                $('#memoModal .modal-title').text('Tambah Memo Baru');
+                $('#memoForm')[0].reset();
+                $('#memoId').val('');
+                $('#memoModal').show();
+            });
+            
+            // Edit memo button
+            $(document).on('click', '.edit-memo', function() {
+                const memoId = $(this).data('id');
+                const memo = memos.find(m => m.id === memoId);
+                
+                if (!memo) return;
+                
+                $('#memoModal .modal-title').text('Edit Memo');
+                $('#memoId').val(memo.id);
+                $('#memoTitle').val(memo.title);
+                $('#memoContent').val(memo.content);
+                $('#memoColor').val(memo.color || 'warning');
+                $('#memoPinned').prop('checked', memo.pinned || false);
+                
+                if (memo.startDate) {
+                    $('#memoStartDate').val(moment(memo.startDate).format('YYYY-MM-DDTHH:mm'));
+                } else {
+                    $('#memoStartDate').val('');
+                }
+                
+                if (memo.endDate) {
+                    $('#memoEndDate').val(moment(memo.endDate).format('YYYY-MM-DDTHH:mm'));
+                } else {
+                    $('#memoEndDate').val('');
+                }
+                
+                $('#memoModal').show();
+            });
+            
+            // Delete memo button
+            $(document).on('click', '.delete-memo', function() {
+                const memoId = $(this).data('id');
+                
+                if (confirm('Apakah Anda yakin ingin menghapus memo ini?')) {
+                    memos = memos.filter(m => m.id !== memoId);
+                    saveMemos();
+                    loadMemos();
+                    loadActiveMemos();
+                    showToast('Memo berhasil dihapus', 'success');
+                }
+            });
+            
+            // Save memo
+            $('#saveMemoBtn').click(function() {
+                const id = $('#memoId').val();
+                const title = $('#memoTitle').val().trim();
+                const content = $('#memoContent').val().trim();
+                const color = $('#memoColor').val();
+                const pinned = $('#memoPinned').is(':checked');
+                const startDate = $('#memoStartDate').val() ? new Date($('#memoStartDate').val()) : null;
+                const endDate = $('#memoEndDate').val() ? new Date($('#memoEndDate').val()) : null;
+                
+                if (!title || !content) {
+                    showToast('Judul dan isi memo harus diisi', 'error');
+                    return;
+                }
+                
+                if (id) {
+                    // Editing existing memo
+                    const memoIndex = memos.findIndex(m => m.id === id);
+                    if (memoIndex === -1) return;
+                    
+                    // Update memo
+                    memos[memoIndex] = {
+                        ...memos[memoIndex],
+                        title: title,
+                        content: content,
+                        color: color,
+                        pinned: pinned,
+                        startDate: startDate,
+                        endDate: endDate,
+                        updatedAt: new Date(),
+                        updatedBy: currentUser.username
+                    };
+                } else {
+                    // Create new memo
+                    const newMemo = {
+                        id: 'MEMO' + moment().format('YYYYMMDDHHmmss'),
+                        title: title,
+                        content: content,
+                        color: color,
+                        pinned: pinned,
+                        startDate: startDate,
+                        endDate: endDate,
+                        createdAt: new Date(),
+                        createdBy: currentUser.username,
+                        updatedAt: new Date(),
+                        updatedBy: currentUser.username
+                    };
+                    
+                    memos.unshift(newMemo);
+                }
+                
+                saveMemos();
+                loadMemos();
+                loadActiveMemos();
+                
+                $('#memoModal').hide();
+                $('#memoForm')[0].reset();
+                
+                showToast('Memo berhasil disimpan', 'success');
+            });
+            
+            // Cancel memo modal
+            $('#cancelMemo').click(function() {
+                $('#memoModal').hide();
+            });
+            
+            // Cancel manage memos
+            $('#cancelManageMemos').click(function() {
+                $('#manageMemosModal').hide();
+            });
+            
+            // Close memo
+            $(document).on('click', '.memo-close', function() {
+                $(this).closest('.memo-card').remove();
+            });
+            
+            // Load active memos
+            function loadActiveMemos() {
+                $('#memoContainer').empty();
+                const now = new Date();
+                
+                // Filter active memos
+                const activeMemos = memos.filter(memo => {
+                    // Check if memo is pinned
+                    if (memo.pinned) return true;
+                    
+                    // Check date range
+                    const startValid = !memo.startDate || new Date(memo.startDate) <= now;
+                    const endValid = !memo.endDate || new Date(memo.endDate) >= now;
+                    
+                    return startValid && endValid;
+                });
+                
+                // Sort by pinned first, then by date
+                activeMemos.sort((a, b) => {
+                    if (a.pinned && !b.pinned) return -1;
+                    if (!a.pinned && b.pinned) return 1;
+                    return new Date(b.updatedAt) - new Date(a.updatedAt);
+                });
+                
+                // Display memos
+                activeMemos.forEach(memo => {
+                    const memoCard = $(`
+                        <div class="memo-card" style="background-color: var(--${memo.color || 'warning'}); color: ${memo.color === 'warning' ? '#000' : '#fff'};">
+                            ${memo.pinned ? '<div class="memo-pin"><i class="fas fa-thumbtack"></i></div>' : ''}
+                            <div class="memo-header">
+                                <div class="memo-title">${memo.title}</div>
+                                <button class="memo-close">&times;</button>
+                            </div>
+                            <div class="memo-content">${memo.content}</div>
+                            <div class="memo-date">
+                                ${moment(memo.updatedAt).format('LLL')} - ${memo.updatedBy}
+                            </div>
+                        </div>
+                    `);
+                    
+                    $('#memoContainer').append(memoCard);
+                });
+            }
+            
+            // Load memos for management
+            function loadMemos() {
+                $('#memosList').empty();
+                
+                if (memos.length === 0) {
+                    $('#memosList').html(`
+                        <div class="empty-state">
+                            <i class="fas fa-sticky-note"></i>
+                            <p>Tidak ada memo</p>
+                        </div>
+                    `);
+                    return;
+                }
+                
+                // Sort by updated date (newest first)
+                const sortedMemos = [...memos].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+                
+                sortedMemos.forEach(memo => {
+                    $('#memosList').append(`
+                        <div class="member-card">
+                            <div class="d-flex justify-between align-center">
+                                <div>
+                                    <div class="member-id">ID: ${memo.id}</div>
+                                    <div class="member-name">${memo.title}</div>
+                                    <div class="member-contact">
+                                        ${memo.pinned ? '<i class="fas fa-thumbtack"></i> ' : ''}
+                                        ${moment(memo.updatedAt).format('LLL')} - ${memo.updatedBy}
+                                    </div>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-info edit-memo" data-id="${memo.id}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger delete-memo" data-id="${memo.id}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                });
+            }
+            
             // Add cashier button
             $('#addCashierBtn').click(function() {
                 $('#cashierModal .modal-title').text('Tambah Kasir Baru');
@@ -2327,6 +3030,13 @@
                 $('#permManageCategories').prop('checked', role.permissions.manageCategories || false);
                 $('#permViewReports').prop('checked', role.permissions.viewReports || false);
                 $('#permManageProducts').prop('checked', role.permissions.manageProducts || false);
+                $('#permManageCashiers').prop('checked', role.permissions.manageCashiers || false);
+                $('#permManageMembers').prop('checked', role.permissions.manageMembers || false);
+                $('#permManageStoreInfo').prop('checked', role.permissions.manageStoreInfo || false);
+                $('#permViewProfitReports').prop('checked', role.permissions.viewProfitReports || false);
+                $('#permManageRoles').prop('checked', role.permissions.manageRoles || false);
+                $('#permDataManagement').prop('checked', role.permissions.dataManagement || false);
+                $('#permManageMemos').prop('checked', role.permissions.manageMemos || false);
                 
                 $('#roleModal').show();
             });
@@ -2434,7 +3144,14 @@
                             addProduct: $('#permAddProduct').is(':checked'),
                             manageCategories: $('#permManageCategories').is(':checked'),
                             viewReports: $('#permViewReports').is(':checked'),
-                            manageProducts: $('#permManageProducts').is(':checked')
+                            manageProducts: $('#permManageProducts').is(':checked'),
+                            manageCashiers: $('#permManageCashiers').is(':checked'),
+                            manageMembers: $('#permManageMembers').is(':checked'),
+                            manageStoreInfo: $('#permManageStoreInfo').is(':checked'),
+                            viewProfitReports: $('#permViewProfitReports').is(':checked'),
+                            manageRoles: $('#permManageRoles').is(':checked'),
+                            dataManagement: $('#permDataManagement').is(':checked'),
+                            manageMemos: $('#permManageMemos').is(':checked')
                         }
                     };
                 } else {
@@ -2454,7 +3171,14 @@
                             addProduct: $('#permAddProduct').is(':checked'),
                             manageCategories: $('#permManageCategories').is(':checked'),
                             viewReports: $('#permViewReports').is(':checked'),
-                            manageProducts: $('#permManageProducts').is(':checked')
+                            manageProducts: $('#permManageProducts').is(':checked'),
+                            manageCashiers: $('#permManageCashiers').is(':checked'),
+                            manageMembers: $('#permManageMembers').is(':checked'),
+                            manageStoreInfo: $('#permManageStoreInfo').is(':checked'),
+                            viewProfitReports: $('#permViewProfitReports').is(':checked'),
+                            manageRoles: $('#permManageRoles').is(':checked'),
+                            dataManagement: $('#permDataManagement').is(':checked'),
+                            manageMemos: $('#permManageMemos').is(':checked')
                         }
                     };
                     
@@ -2649,6 +3373,13 @@
                     case 'manageRoles':
                         $('#manageRolesModal').show();
                         loadRoles();
+                        break;
+                    case 'dataManagement':
+                        $('#backupDataModal').show();
+                        break;
+                    case 'manageMemos':
+                        $('#manageMemosModal').show();
+                        loadMemos();
                         break;
                 }
                 
@@ -3462,12 +4193,29 @@
                 showToast('Info toko berhasil diperbarui', 'success');
             });
             
-            // Cancel store info
+                        // Cancel store info
             $('#cancelStoreInfo').click(function() {
                 $('#manageStoreInfoModal').hide();
             });
-            
-            // Load products
+
+            // Modal close buttons
+            $('.modal-close').click(function() {
+                $(this).closest('.modal').hide();
+            });
+
+            // Close modal when clicking outside
+            $('.modal').click(function(e) {
+                if (e.target === this) {
+                    $(this).hide();
+                }
+            });
+
+            // Prevent modal content from closing modal when clicked
+            $('.modal-content').click(function(e) {
+                e.stopPropagation();
+            });
+
+            // Load products with optional search and category filter
             function loadProducts(searchTerm = '', category = 'all') {
                 let filteredProducts = [...products];
                 
@@ -3475,8 +4223,8 @@
                 if (searchTerm) {
                     const searchLower = searchTerm.toLowerCase();
                     filteredProducts = filteredProducts.filter(p => 
-                        p.name.toLowerCase().includes(searchLower)
-                    );
+                        p.name.toLowerCase().includes(searchLower) || 
+                        (p.category && p.category.toLowerCase().includes(searchLower))
                 }
                 
                 // Apply category filter
@@ -3490,48 +4238,65 @@
                 // Clear product grid
                 $('#productGrid').empty();
                 
-                // Add products to grid
                 if (filteredProducts.length === 0) {
                     $('#productGrid').html(`
-                        <div class="empty-state">
+                        <div class="empty-state" style="grid-column: 1 / -1">
                             <i class="fas fa-box-open"></i>
-                            <p>Tidak ada produk yang ditemukan</p>
+                            <p>Tidak ada produk ditemukan</p>
                         </div>
                     `);
                     return;
                 }
                 
+                // Add products to grid
                 filteredProducts.forEach(product => {
-                    const stockClass = product.stock <= 5 ? 'low' : '';
-                    
-                    $('#productGrid').append(`
+                    const productCard = $(`
                         <div class="product-card" data-id="${product.id}">
-                            ${hasPermission(currentUser.role, 'manageProducts') ? `
-                            <div class="product-actions">
-                                <button class="action-btn edit-btn edit-product" data-id="${product.id}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="action-btn delete-btn delete-product" data-id="${product.id}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                            ` : ''}
                             <div class="product-name">${product.name}</div>
-                            <div class="product-price">${formatCurrency(product.price)} <span class="product-unit">${product.unit}</span></div>
-                            ${product.cost > 0 && hasPermission(currentUser.role, 'manageProducts') ? `<div class="product-cost">Harga pokok: ${formatCurrency(product.cost)}</div>` : ''}
-                            <div class="product-stock ${stockClass}">Stok: ${product.stock}</div>
+                            <div class="product-price">${formatCurrency(product.price)}</div>
+                            <div class="product-cost">HPP: ${formatCurrency(product.cost)}</div>
+                            <div class="product-stock ${product.stock <= 5 ? 'low' : ''}">
+                                Stok: ${product.stock} ${product.unit || 'pcs'}
+                            </div>
+                            ${hasPermission(currentUser.role, 'manageProducts') ? `
+                                <div class="product-actions">
+                                    <button class="action-btn edit-btn edit-product" data-id="${product.id}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn delete-btn delete-product" data-id="${product.id}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            ` : ''}
                         </div>
                     `);
+                    
+                    $('#productGrid').append(productCard);
                 });
             }
             
             // Load categories for product select
             function loadCategoriesForSelect() {
                 $('#productCategory').empty();
-                $('#productCategory').append('<option value="">Pilih Kategori</option>');
+                $('#productCategory').append('<option value="" disabled selected>Pilih kategori</option>');
                 
                 categories.forEach(category => {
                     $('#productCategory').append(`<option value="${category.name}">${category.name}</option>`);
+                });
+                
+                // Add option to create new category if no categories exist
+                if (categories.length === 0) {
+                    $('#productCategory').append('<option value="" disabled>Belum ada kategori</option>');
+                }
+            }
+            
+            // Load categories for filter chips
+            function loadCategories() {
+                $('.filter-row').empty();
+                $('.filter-row').append('<div class="filter-chip active" data-category="all">Semua</div>');
+                
+                categories.forEach(category => {
+                    $('.filter-row').append(`<div class="filter-chip" data-category="${category.name}">${category.name}</div>`);
                 });
             }
             
@@ -3551,42 +4316,36 @@
                 
                 categories.forEach(category => {
                     $('#categoriesList').append(`
-                        <div class="d-flex justify-between align-center mb-2">
-                            <span>${category.name}</span>
-                            <button class="btn btn-sm btn-danger remove-category" data-id="${category.id}">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <div class="member-card">
+                            <div class="d-flex justify-between align-center">
+                                <div class="member-name">${category.name}</div>
+                                <button class="btn btn-sm btn-danger remove-category" data-id="${category.id}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     `);
                 });
             }
             
-            // Load categories for filter chips
-            function loadCategories() {
-                $('.filter-row').empty();
-                $('.filter-row').append('<div class="filter-chip active" data-category="all">Semua</div>');
-                
-                categories.forEach(category => {
-                    $('.filter-row').append(`<div class="filter-chip" data-category="${category.name}">${category.name}</div>`);
-                });
-            }
-            
-            // Load cashiers
+            // Load cashiers for management
             function loadCashiers() {
                 $('#cashiersList').empty();
                 
-                const filteredUsers = users.filter(u => u.role !== 'admin');
-                
-                if (filteredUsers.length === 0) {
+                if (users.length === 0) {
                     $('#cashiersList').html(`
-                        <tr>
-                            <td colspan="4" class="text-center">Tidak ada kasir</td>
-                        </tr>
+                        <div class="empty-state">
+                            <i class="fas fa-user"></i>
+                            <p>Tidak ada kasir</p>
+                        </div>
                     `);
                     return;
                 }
                 
-                filteredUsers.forEach(user => {
+                users.forEach(user => {
+                    // Skip current user (can't edit/delete yourself)
+                    if (user.id === currentUser.id) return;
+                    
                     const role = roles.find(r => r.code === user.role);
                     $('#cashiersList').append(`
                         <tr>
@@ -3606,7 +4365,7 @@
                 });
             }
             
-            // Load members
+            // Load members for management
             function loadMembers() {
                 $('#membersList').empty();
                 
@@ -3629,16 +4388,35 @@
                                     <div class="member-name">${member.name}</div>
                                     <div class="member-contact">${member.phone}</div>
                                 </div>
-                                <button class="btn btn-sm btn-info edit-member" data-id="${member.id}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
+                                <div>
+                                    <button class="btn btn-sm btn-info edit-member" data-id="${member.id}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger delete-member" data-id="${member.id}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `);
                 });
             }
             
-            // Load roles
+            // Load members for select dropdown
+            function loadMembersForSelect() {
+                $('#memberSelect').empty();
+                $('#memberSelect').append('<option value="" disabled selected>Pilih member</option>');
+                
+                members.forEach(member => {
+                    $('#memberSelect').append(`<option value="${member.id}">${member.name} - ${member.phone}</option>`);
+                });
+                
+                if (members.length === 0) {
+                    $('#memberSelect').append('<option value="" disabled>Tidak ada member</option>');
+                }
+            }
+            
+            // Load roles for management
             function loadRoles() {
                 $('#rolesList').empty();
                 
@@ -3653,27 +4431,27 @@
                 }
                 
                 roles.forEach(role => {
-                    if (role.code !== 'admin') { // Don't show admin role for editing
-                        $('#rolesList').append(`
-                            <div class="member-card">
-                                <div class="d-flex justify-between align-center">
-                                    <div>
-                                        <div class="member-id">Kode: ${role.code}</div>
-                                        <div class="member-name">${role.name}</div>
-                                        <div class="member-contact">Diskon Member: ${role.memberDiscount}%</div>
-                                    </div>
-                                    <div>
-                                        <button class="btn btn-sm btn-info edit-role" data-id="${role.id}">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger delete-role" data-id="${role.id}">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+                    // Skip admin role (can't edit/delete admin)
+                    if (role.code === 'admin') return;
+                    
+                    $('#rolesList').append(`
+                        <div class="member-card">
+                            <div class="d-flex justify-between align-center">
+                                <div>
+                                    <div class="member-name">${role.name}</div>
+                                    <div class="member-contact">Kode: ${role.code} | Diskon Member: ${role.memberDiscount}%</div>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-info edit-role" data-id="${role.id}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger delete-role" data-id="${role.id}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </div>
-                        `);
-                    }
+                        </div>
+                    `);
                 });
             }
             
@@ -3682,50 +4460,31 @@
                 $('#cashierRole').empty();
                 
                 roles.forEach(role => {
-                    if (role.code !== 'admin') { // Don't show admin role in dropdown
-                        $('#cashierRole').append(`<option value="${role.code}">${role.name}</option>`);
-                    }
-                });
-            }
-            
-            // Load members for select dropdown
-            function loadMembersForSelect() {
-                $('#memberSelect').empty();
-                $('#memberSelect').append('<option value="">Pilih Member</option>');
-                
-                members.forEach(member => {
-                    $('#memberSelect').append(`<option value="${member.id}">${member.name} (${member.phone})</option>`);
+                    // Skip admin role (can't assign admin role to new users)
+                    if (role.code === 'admin') return;
+                    
+                    $('#cashierRole').append(`<option value="${role.code}">${role.name}</option>`);
                 });
             }
             
             // Update cart display
             function updateCart() {
-                // Calculate cart values
-                currentCart.subtotal = currentCart.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+                // Calculate subtotal
+                currentCart.subtotal = currentCart.items.reduce((sum, item) => {
+                    return sum + (item.product.price * item.quantity);
+                }, 0);
                 
-                // Update discount if changed
-                const discountPercentage = parseFloat($('#cartDiscountInput').val()) || 0;
-                currentCart.discount = currentCart.subtotal * (discountPercentage / 100);
-                
-                // Update additional cost if changed
-                currentCart.additionalCost = parseFloat($('#additionalCostInput').val()) || 0;
-                currentCart.additionalCostNote = $('#additionalCostNote').val();
-                
+                // Calculate total
                 currentCart.total = currentCart.subtotal - currentCart.discount + currentCart.additionalCost;
                 
-                // Update cart count
-                const itemCount = currentCart.items.reduce((sum, item) => sum + item.quantity, 0);
-                $('#cartCount').text(`(${itemCount} item)`);
-                
-                // Clear cart items
+                // Update cart display
                 $('#cartItems').empty();
                 
-                // Add items to cart
                 if (currentCart.items.length === 0) {
                     $('#cartItems').html(`
                         <div class="empty-state">
                             <i class="fas fa-shopping-cart"></i>
-                            <p>Keranjang belanja kosong</p>
+                            <p>Keranjang kosong</p>
                         </div>
                     `);
                 } else {
@@ -3737,10 +4496,9 @@
                                     <div class="cart-item-price">${formatCurrency(item.product.price)} x ${item.quantity}</div>
                                 </div>
                                 <div class="cart-item-qty">
-                                    <button class="qty-btn minus" data-id="${item.product.id}">-</button>
-                                    <input type="number" class="qty-input item-qty" data-id="${item.product.id}" 
-                                        value="${item.quantity}" min="1" max="${item.product.stock}">
-                                    <button class="qty-btn plus" data-id="${item.product.id}">+</button>
+                                    <button class="qty-btn minus-item" data-id="${item.product.id}">-</button>
+                                    <input type="number" class="qty-input item-qty" data-id="${item.product.id}" value="${item.quantity}" min="1">
+                                    <button class="qty-btn plus-item" data-id="${item.product.id}">+</button>
                                     <button class="remove-btn remove-item" data-id="${item.product.id}">
                                         <i class="fas fa-trash"></i>
                                     </button>
@@ -3756,11 +4514,15 @@
                 $('#cartAdditionalCost').text(formatCurrency(currentCart.additionalCost));
                 $('#cartTotal').text(formatCurrency(currentCart.total));
                 
+                // Update cart count
+                const totalItems = currentCart.items.reduce((sum, item) => sum + item.quantity, 0);
+                $('#cartCount').text(`(${totalItems} item)`);
+                
                 // Save cart to localStorage
-                localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(currentCart));
+                saveCart();
             }
             
-            // Update payment summary
+            // Update payment summary in checkout modal
             function updatePaymentSummary() {
                 $('#paymentSubtotal').text(formatCurrency(currentCart.subtotal));
                 $('#paymentDiscount').text(formatCurrency(currentCart.discount));
@@ -3780,28 +4542,36 @@
                     memberId: null
                 };
                 
+                // Reset UI
+                $('#customerType').val('regular');
+                $('#memberSelectContainer').hide();
                 $('#cartDiscountInput').val(0);
                 $('#additionalCostInput').val(0);
                 $('#additionalCostNote').val('');
-                $('#customerType').val('regular');
-                $('#memberSelectContainer').hide();
                 
                 updateCart();
             }
             
-            // Generate receipt
+            // Generate receipt HTML
             function generateReceipt(transaction) {
-                $('#receiptStoreName').text(settings.storeName);
-                $('#receiptStoreAddress').text(settings.storeAddress);
-                $('#receiptStorePhone').text(`Telp: ${settings.storePhone}`);
+                // Update receipt header
+                $('#receiptStoreName').text(settings.storeName || 'APLIKASI KASIR MODERN');
+                $('#receiptStoreAddress').text(settings.storeAddress || 'Jl. Contoh No. 123, Kota');
+                $('#receiptStorePhone').text(`Telp: ${settings.storePhone || '081234567890'}`);
                 $('#receiptDate').text(moment(transaction.date).format('DD/MM/YYYY HH:mm'));
                 $('#receiptId').text(transaction.id);
                 $('#receiptCashier').text(transaction.cashier.name);
                 $('#receiptCustomer').text(transaction.customer);
-                $('#receiptMember').text(transaction.member ? transaction.member : '-');
-                $('#receiptCopyright').text('Lentera Karya Situbondo');
                 
-                // Receipt items
+                // Update member info
+                if (transaction.member) {
+                    const member = members.find(m => m.id === transaction.member);
+                    $('#receiptMember').text(member ? `${member.name} (${member.phone})` : '-');
+                } else {
+                    $('#receiptMember').text('-');
+                }
+                
+                // Update items
                 $('#receiptItems').empty();
                 transaction.items.forEach(item => {
                     $('#receiptItems').append(`
@@ -3812,114 +4582,48 @@
                     `);
                 });
                 
-                // Summary
+                // Update summary
                 $('#receiptSubtotal').text(formatCurrency(transaction.subtotal));
                 $('#receiptDiscount').text(formatCurrency(transaction.discount));
                 $('#receiptAdditionalCost').text(formatCurrency(transaction.additionalCost));
                 $('#receiptTotal').text(formatCurrency(transaction.total));
-                $('#receiptPaymentMethod').text(`${formatPaymentMethod(transaction.paymentMethod)}:`);
+                
+                // Update payment info
+                const paymentMethod = formatPaymentMethod(transaction.paymentMethod);
+                $('#receiptPaymentMethod').text(`${paymentMethod}:`);
                 $('#receiptPaymentAmount').text(formatCurrency(transaction.paymentAmount));
                 $('#receiptChange').text(formatCurrency(transaction.change));
+                
+                // Update copyright year
+                $('#receiptYear').text(new Date().getFullYear());
+                $('#receiptCopyright').text(settings.storeName ? settings.storeName.split(' - ')[0] : 'Lentera Karya Situbondo');
                 
                 // Show receipt template
                 $('#receiptTemplate').show();
             }
             
-            // Print receipt
-            window.printReceipt = function() {
-                const printContents = document.getElementById('receiptTemplate').innerHTML;
-                const originalContents = document.body.innerHTML;
-                
-                document.body.innerHTML = printContents;
-                window.print();
-                document.body.innerHTML = originalContents;
-                
-                // Reload products to reflect stock changes
-                loadProducts();
-            };
-            
-            // Download receipt as PDF
-            window.downloadReceiptPDF = function() {
-                const receipt = $('#receiptTemplate').clone();
-                
-                // Create PDF
-                const doc = new jsPDF();
-                
-                // Title
-                doc.setFontSize(18);
-                doc.text(settings.storeName, 105, 15, { align: 'center' });
-                
-                // Store info
-                doc.setFontSize(10);
-                doc.text(settings.storeAddress, 105, 25, { align: 'center' });
-                doc.text(`Telp: ${settings.storePhone}`, 105, 30, { align: 'center' });
-                
-                // Transaction info
-                doc.setFontSize(12);
-                doc.text(`Tanggal: ${$('#receiptDate').text()}`, 14, 45);
-                doc.text(`No. Transaksi: ${$('#receiptId').text()}`, 14, 50);
-                doc.text(`Kasir: ${$('#receiptCashier').text()}`, 14, 55);
-                doc.text(`Pelanggan: ${$('#receiptCustomer').text()}`, 14, 60);
-                doc.text(`Member: ${$('#receiptMember').text()}`, 14, 65);
-                
-                // Items table
-                const itemsData = [];
-                $('#receiptItems .receipt-item').each(function() {
-                    const itemText = $(this).find('span:first').text();
-                    const itemPrice = $(this).find('span:last').text();
-                    itemsData.push([itemText, itemPrice]);
-                });
-                
-                doc.autoTable({
-                    startY: 75,
-                    head: [['Item', 'Harga']],
-                    body: itemsData,
-                    theme: 'grid',
-                    headStyles: { fillColor: [67, 97, 238] },
-                    columnStyles: {
-                        0: { cellWidth: 120 },
-                        1: { cellWidth: 60 }
-                    }
-                });
-                
-                // Summary
-                doc.setFontSize(12);
-                doc.text('Ringkasan Pembayaran', 14, doc.autoTable.previous.finalY + 15);
-                
-                doc.setFontSize(10);
-                doc.text(`Subtotal: ${$('#receiptSubtotal').text()}`, 14, doc.autoTable.previous.finalY + 25);
-                doc.text(`Diskon: ${$('#receiptDiscount').text()}`, 14, doc.autoTable.previous.finalY + 30);
-                doc.text(`Biaya Tambahan: ${$('#receiptAdditionalCost').text()}`, 14, doc.autoTable.previous.finalY + 35);
-                doc.text(`TOTAL: ${$('#receiptTotal').text()}`, 14, doc.autoTable.previous.finalY + 40);
-                doc.text(`${$('#receiptPaymentMethod').text()} ${$('#receiptPaymentAmount').text()}`, 14, doc.autoTable.previous.finalY + 45);
-                doc.text(`Kembali: ${$('#receiptChange').text()}`, 14, doc.autoTable.previous.finalY + 50);
-                
-                // Footer
-                doc.setFontSize(10);
-                doc.text('Terima kasih telah berbelanja', 105, doc.autoTable.previous.finalY + 65, { align: 'center' });
-                doc.text(`© ${new Date().getFullYear()} Lentera Karya Situbondo`, 105, doc.autoTable.previous.finalY + 70, { align: 'center' });
-                
-                // Save PDF
-                doc.save(`Struk_${$('#receiptId').text()}.pdf`);
-            };
-            
-            // Update current date
-            function updateCurrentDate() {
-                const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-                
-                const now = new Date();
-                const dayName = days[now.getDay()];
-                const date = now.getDate();
-                const monthName = months[now.getMonth()];
-                const year = now.getFullYear();
-                
-                $('#currentDate').text(`${dayName}, ${date} ${monthName} ${year}`);
+            // Open edit product modal
+            function openEditProductModal(product) {
+                $('#productModal .modal-title').text('Edit Produk');
+                $('#productId').val(product.id);
+                $('#productName').val(product.name);
+                loadCategoriesForSelect();
+                $('#productCategory').val(product.category);
+                $('#productUnit').val(product.unit || 'Pcs');
+                $('#productPrice').val(product.price);
+                $('#productCost').val(product.cost || '');
+                $('#productStock').val(product.stock);
+                $('#productModal').show();
             }
             
-            // Update store info
+            // Update current date display
+            function updateCurrentDate() {
+                $('#currentDate').text(moment().format('dddd, D MMMM YYYY'));
+            }
+            
+            // Update store info in header
             function updateStoreInfo() {
-                $('#storeNameHeader').text(settings.storeName);
+                $('#storeNameHeader').text(settings.storeName || 'APLIKASI KASIR MODERN');
             }
             
             // Show toast notification
@@ -3954,7 +4658,7 @@
             
             // Format currency
             function formatCurrency(amount) {
-                return 'Rp ' + amount.toLocaleString('id-ID');
+                return 'Rp ' + amount.toFixed(0).replace(/\d(?=(\d{3})+$)/g, '$&.');
             }
             
             // Format payment method
@@ -3967,66 +4671,122 @@
                 }
             }
             
-            // Open edit product modal
-            function openEditProductModal(product) {
-                $('#productModal .modal-title').text('Edit Produk');
-                $('#productId').val(product.id);
-                $('#productName').val(product.name);
-                $('#productPrice').val(product.price);
-                $('#productCost').val(product.cost || '');
-                $('#productStock').val(product.stock);
-                
-                loadCategoriesForSelect();
-                $('#productCategory').val(product.category);
-                $('#productUnit').val(product.unit);
-                
-                $('#productModal').show();
-            }
-            
-            // Save products to localStorage
+            // Save data functions
             function saveProducts() {
                 localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
             }
             
-            // Save categories to localStorage
             function saveCategories() {
                 localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
             }
             
-            // Save transactions to localStorage
             function saveTransactions() {
                 localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions));
             }
             
-            // Save settings to localStorage
             function saveSettings() {
                 localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
             }
             
-            // Save users to localStorage
             function saveUsers() {
                 localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
             }
             
-            // Save members to localStorage
             function saveMembers() {
                 localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(members));
             }
             
-            // Save roles to localStorage
             function saveRoles() {
                 localStorage.setItem(STORAGE_KEYS.ROLES, JSON.stringify(roles));
             }
             
-            // Save discounts to localStorage
             function saveDiscounts() {
                 localStorage.setItem(STORAGE_KEYS.DISCOUNTS, JSON.stringify(discounts));
             }
             
-            // Save stock history to localStorage
             function saveStockHistory() {
                 localStorage.setItem(STORAGE_KEYS.STOCK_HISTORY, JSON.stringify(stockHistory));
             }
+            
+            function saveMemos() {
+                localStorage.setItem(STORAGE_KEYS.MEMOS, JSON.stringify(memos));
+            }
+            
+            function saveCart() {
+                localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(currentCart));
+            }
+            
+            // Plus item quantity in cart
+            $(document).on('click', '.plus-item', function(e) {
+                e.stopPropagation();
+                const productId = $(this).data('id');
+                const item = currentCart.items.find(item => item.product.id === productId);
+                
+                if (item) {
+                    // Check stock
+                    const product = products.find(p => p.id === productId);
+                    if (item.quantity + 1 > product.stock) {
+                        showToast('Stok tidak mencukupi', 'error');
+                        return;
+                    }
+                    
+                    item.quantity += 1;
+                    updateCart();
+                }
+            });
+            
+            // Minus item quantity in cart
+            $(document).on('click', '.minus-item', function(e) {
+                e.stopPropagation();
+                const productId = $(this).data('id');
+                const item = currentCart.items.find(item => item.product.id === productId);
+                
+                if (item) {
+                    if (item.quantity > 1) {
+                        item.quantity -= 1;
+                        updateCart();
+                    }
+                }
+            });
+            
+            // Delete member
+            $(document).on('click', '.delete-member', function() {
+                const memberId = $(this).data('id');
+                
+                if (confirm('Apakah Anda yakin ingin menghapus member ini?')) {
+                    members = members.filter(m => m.id !== memberId);
+                    saveMembers();
+                    loadMembers();
+                    loadMembersForSelect();
+                    showToast('Member berhasil dihapus', 'success');
+                }
+            });
+            
+            // Print receipt
+            window.printReceipt = function() {
+                window.print();
+            };
+            
+            // Download receipt as PDF
+            window.downloadReceiptPDF = function() {
+                const receipt = $('#receiptTemplate .receipt')[0];
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: [80, 200] // Small receipt size
+                });
+                
+                // Add receipt content
+                doc.html(receipt, {
+                    callback: function(doc) {
+                        doc.save(`Struk_${$('#receiptId').text()}.pdf`);
+                    },
+                    x: 5,
+                    y: 5,
+                    width: 70, // Narrow width for receipt
+                    windowWidth: receipt.scrollWidth
+                });
+            };
         });
     </script>
 </body>
