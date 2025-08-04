@@ -935,6 +935,8 @@
                 </div>
                 <h1 class="login-title">APLIKASI KASIR MODERN</h1>
                 <p>Sistem Kasir Sederhana</p>
+                <p style="color: var(--danger); font-weight: bold;">Username: admin | Password: admin123</p>
+                <p style="color: var(--danger); font-weight: bold;">Username: kasir | Password: kasir123</p>
             </div>
             <form id="loginForm">
                 <div class="form-group">
@@ -3129,7 +3131,7 @@
                     return;
                 }
                 
-                if (id) {
+                                if (id) {
                     // Editing existing role
                     const roleIndex = roles.findIndex(r => r.id === id);
                     if (roleIndex === -1) return;
@@ -3155,12 +3157,6 @@
                         }
                     };
                 } else {
-                    // Check if role code already exists
-                    if (roles.some(r => r.code === code)) {
-                        showToast('Kode role sudah digunakan', 'error');
-                        return;
-                    }
-                    
                     // Create new role
                     const newRole = {
                         id: 'R' + moment().format('YYYYMMDDHHmmss'),
@@ -3182,32 +3178,16 @@
                         }
                     };
                     
-                    roles.push(newRole);
+                    roles.unshift(newRole);
                 }
                 
                 saveRoles();
                 loadRoles();
                 
-                // Update discounts if changed
-                if (memberDiscount !== discounts.memberDiscount) {
-                    discounts.memberDiscount = memberDiscount;
-                    saveDiscounts();
-                }
-                
                 $('#roleModal').hide();
                 $('#roleForm')[0].reset();
                 
                 showToast('Role berhasil disimpan', 'success');
-            });
-            
-            // Cancel member modal
-            $('#cancelMember').click(function() {
-                $('#memberModal').hide();
-            });
-            
-            // Cancel role modal
-            $('#cancelRole').click(function() {
-                $('#roleModal').hide();
             });
             
             // Save cashier
@@ -3220,7 +3200,17 @@
                 const role = $('#cashierRole').val();
                 
                 if (!username || !name || !role) {
-                    showToast('Semua field harus diisi', 'error');
+                    showToast('Username, nama, dan role harus diisi', 'error');
+                    return;
+                }
+                
+                if (!id && (!password || !confirmPassword)) {
+                    showToast('Password harus diisi', 'error');
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    showToast('Password dan konfirmasi password tidak cocok', 'error');
                     return;
                 }
                 
@@ -3229,38 +3219,15 @@
                     const cashierIndex = users.findIndex(u => u.id === id);
                     if (cashierIndex === -1) return;
                     
-                    // Check if username already exists (excluding current user)
-                    const usernameExists = users.some(u => u.username === username && u.id !== id);
-                    if (usernameExists) {
-                        showToast('Username sudah digunakan', 'error');
-                        return;
-                    }
-                    
                     // Update cashier
-                    users[cashierIndex].username = username;
-                    users[cashierIndex].name = name;
-                    users[cashierIndex].role = role;
-                    
-                    // Update password if provided
-                    if (password) {
-                        if (password !== confirmPassword) {
-                            showToast('Password dan konfirmasi password tidak cocok', 'error');
-                            return;
-                        }
-                        users[cashierIndex].password = CryptoJS.SHA256(password).toString();
-                    }
+                    users[cashierIndex] = {
+                        ...users[cashierIndex],
+                        username: username,
+                        name: name,
+                        password: password ? CryptoJS.SHA256(password).toString() : users[cashierIndex].password,
+                        role: role
+                    };
                 } else {
-                    // Adding new cashier
-                    if (!password) {
-                        showToast('Password harus diisi', 'error');
-                        return;
-                    }
-                    
-                    if (password !== confirmPassword) {
-                        showToast('Password dan konfirmasi password tidak cocok', 'error');
-                        return;
-                    }
-                    
                     // Check if username already exists
                     if (users.some(u => u.username === username)) {
                         showToast('Username sudah digunakan', 'error');
@@ -3276,7 +3243,7 @@
                         role: role
                     };
                     
-                    users.push(newCashier);
+                    users.unshift(newCashier);
                 }
                 
                 saveUsers();
@@ -3286,114 +3253,6 @@
                 $('#cashierForm')[0].reset();
                 
                 showToast('Kasir berhasil disimpan', 'success');
-            });
-            
-            // Cancel cashier modal
-            $('#cancelCashier').click(function() {
-                $('#cashierModal').hide();
-            });
-            
-            // Cancel manage members
-            $('#cancelManageMembers').click(function() {
-                $('#manageMembersModal').hide();
-            });
-            
-            // Cancel manage roles
-            $('#cancelManageRoles').click(function() {
-                $('#manageRolesModal').hide();
-            });
-            
-            // Admin password verification
-            $('#adminPasswordForm').submit(function(e) {
-                e.preventDefault();
-                const password = $('#adminPassword').val().trim();
-                
-                if (!password) {
-                    showToast('Password admin harus diisi', 'error');
-                    return;
-                }
-                
-                // Verify admin password
-                const hashedPassword = CryptoJS.SHA256(password).toString();
-                const admin = users.find(u => u.username === 'admin');
-                
-                if (!admin || hashedPassword !== admin.password) {
-                    showToast('Password admin salah', 'error');
-                    return;
-                }
-                
-                // Password correct, proceed with action
-                $('#adminPassword').val('');
-                $('#adminPasswordModal').hide();
-                
-                switch(pendingAdminAction) {
-                    case 'addProduct':
-                        $('#productModal .modal-title').text('Tambah Produk Baru');
-                        $('#productForm')[0].reset();
-                        $('#productId').val('');
-                        loadCategoriesForSelect();
-                        $('#productModal').show();
-                        break;
-                    case 'editProduct':
-                        const productToEdit = products.find(p => p.id === currentEditingProduct);
-                        if (productToEdit) {
-                            openEditProductModal(productToEdit);
-                        }
-                        break;
-                    case 'deleteProduct':
-                        if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
-                            products = products.filter(p => p.id !== currentEditingProduct);
-                            saveProducts();
-                            loadProducts();
-                            showToast('Produk berhasil dihapus', 'success');
-                        }
-                        break;
-                    case 'manageCategories':
-                        $('#manageCategoriesModal').show();
-                        loadCategoriesForManagement();
-                        break;
-                    case 'manageCashiers':
-                        $('#manageCashiersModal').show();
-                        loadCashiers();
-                        break;
-                    case 'viewReports':
-                        $('#reportsModal').show();
-                        $('#reportPeriod').val('today');
-                        $('#customDateRange').hide();
-                        break;
-                    case 'profitReport':
-                        $('#profitReportModal').show();
-                        $('#profitReportPeriod').val('today');
-                        $('#profitCustomDateRange').hide();
-                        break;
-                    case 'manageStoreInfo':
-                        $('#manageStoreInfoModal').show();
-                        loadStoreInfo();
-                        break;
-                    case 'manageRoles':
-                        $('#manageRolesModal').show();
-                        loadRoles();
-                        break;
-                    case 'dataManagement':
-                        $('#backupDataModal').show();
-                        break;
-                    case 'manageMemos':
-                        $('#manageMemosModal').show();
-                        loadMemos();
-                        break;
-                }
-                
-                pendingAdminAction = null;
-                currentEditingProduct = null;
-                showToast('Verifikasi admin berhasil', 'success');
-            });
-            
-            // Cancel admin password verification
-            $('#cancelAdminPassword').click(function() {
-                $('#adminPassword').val('');
-                $('#adminPasswordModal').hide();
-                pendingAdminAction = null;
-                currentEditingProduct = null;
             });
             
             // Save product
@@ -3406,24 +3265,44 @@
                 const cost = parseFloat($('#productCost').val()) || 0;
                 const stock = parseInt($('#productStock').val()) || 0;
                 
-                if (!name || !category || price <= 0) {
-                    showToast('Nama, kategori, dan harga harus diisi dengan benar', 'error');
+                if (!name || !category || price <= 0 || stock < 0) {
+                    showToast('Nama, kategori, harga, dan stok harus diisi dengan benar', 'error');
                     return;
                 }
                 
                 if (id) {
-                    // Update existing product
+                    // Editing existing product
                     const productIndex = products.findIndex(p => p.id === id);
-                    if (productIndex !== -1) {
-                        products[productIndex] = {
-                            ...products[productIndex],
-                            name: name,
-                            category: category,
-                            unit: unit,
-                            price: price,
-                            cost: cost,
-                            stock: stock
-                        };
+                    if (productIndex === -1) return;
+                    
+                    // Get old stock for history
+                    const oldStock = products[productIndex].stock;
+                    
+                    // Update product
+                    products[productIndex] = {
+                        ...products[productIndex],
+                        name: name,
+                        category: category,
+                        unit: unit,
+                        price: price,
+                        cost: cost,
+                        stock: stock
+                    };
+                    
+                    // Add to stock history if stock changed
+                    if (oldStock !== stock) {
+                        stockHistory.push({
+                            productId: id,
+                            productName: name,
+                            date: new Date(),
+                            type: 'adjustment',
+                            quantity: stock - oldStock,
+                            oldStock: oldStock,
+                            newStock: stock,
+                            note: 'Penyesuaian stok manual',
+                            user: currentUser.name
+                        });
+                        saveStockHistory();
                     }
                 } else {
                     // Create new product
@@ -3438,6 +3317,20 @@
                     };
                     
                     products.unshift(newProduct);
+                    
+                    // Add to stock history
+                    stockHistory.push({
+                        productId: newProduct.id,
+                        productName: name,
+                        date: new Date(),
+                        type: 'in',
+                        quantity: stock,
+                        oldStock: 0,
+                        newStock: stock,
+                        note: 'Stok awal',
+                        user: currentUser.name
+                    });
+                    saveStockHistory();
                 }
                 
                 saveProducts();
@@ -3449,73 +3342,538 @@
                 showToast('Produk berhasil disimpan', 'success');
             });
             
-            // Cancel product modal
-            $('#cancelProduct').click(function() {
-                $('#productModal').hide();
-            });
-            
-            // Add category
+            // Save category
             $('#addCategoryBtn').click(function() {
-                const name = $('#newCategoryName').val().trim();
+                const categoryName = $('#newCategoryName').val().trim();
                 
-                if (!name) {
+                if (!categoryName) {
                     showToast('Nama kategori harus diisi', 'error');
                     return;
                 }
                 
                 // Check if category already exists
-                if (categories.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+                if (categories.some(c => c.toLowerCase() === categoryName.toLowerCase())) {
                     showToast('Kategori sudah ada', 'error');
                     return;
                 }
                 
-                // Add new category
-                const newCategory = {
-                    id: 'C' + moment().format('YYYYMMDDHHmmss'),
-                    name: name
-                };
-                
-                categories.unshift(newCategory);
+                categories.unshift(categoryName);
                 saveCategories();
                 loadCategories();
                 loadCategoriesForSelect();
                 loadCategoriesForManagement();
                 
                 $('#newCategoryName').val('');
-                
                 showToast('Kategori berhasil ditambahkan', 'success');
             });
             
-            // Remove category
-            $(document).on('click', '.remove-category', function() {
-                const categoryId = $(this).data('id');
+            // Delete category
+            $(document).on('click', '.delete-category', function() {
+                const category = $(this).data('category');
                 
-                // Check if category is used by products
-                const productsInCategory = products.filter(p => p.category === categories.find(c => c.id === categoryId).name);
+                // Check if category is used by any product
+                const productsInCategory = products.filter(p => p.category === category);
                 
                 if (productsInCategory.length > 0) {
-                    showToast('Tidak bisa menghapus kategori yang sudah digunakan oleh produk', 'error');
+                    showToast('Tidak bisa menghapus kategori yang digunakan oleh produk', 'error');
                     return;
                 }
                 
-                // Remove category
-                categories = categories.filter(c => c.id !== categoryId);
-                saveCategories();
-                loadCategories();
-                loadCategoriesForSelect();
-                loadCategoriesForManagement();
+                if (confirm(`Apakah Anda yakin ingin menghapus kategori "${category}"?`)) {
+                    categories = categories.filter(c => c !== category);
+                    saveCategories();
+                    loadCategories();
+                    loadCategoriesForSelect();
+                    loadCategoriesForManagement();
+                    showToast('Kategori berhasil dihapus', 'success');
+                }
+            });
+            
+            // Save store info
+            $('#saveStoreInfoBtn').click(function() {
+                const storeName = $('#storeName').val().trim();
+                const storeAddress = $('#storeAddress').val().trim();
+                const storePhone = $('#storePhone').val().trim();
+                const storeDescription = $('#storeDescription').val().trim();
                 
-                showToast('Kategori berhasil dihapus', 'success');
+                if (!storeName || !storeAddress || !storePhone) {
+                    showToast('Nama toko, alamat, dan nomor telepon harus diisi', 'error');
+                    return;
+                }
+                
+                settings = {
+                    storeName: storeName,
+                    storeAddress: storeAddress,
+                    storePhone: storePhone,
+                    storeDescription: storeDescription
+                };
+                
+                saveSettings();
+                updateStoreInfo();
+                
+                $('#manageStoreInfoModal').hide();
+                showToast('Info toko berhasil diperbarui', 'success');
             });
             
-            // Cancel manage categories
-            $('#cancelManageCategories').click(function() {
-                $('#manageCategoriesModal').hide();
+            // Generate report
+            $('#generateReportBtn').click(function() {
+                const period = $('#reportPeriod').val();
+                let startDate, endDate;
+                
+                if (period === 'custom') {
+                    startDate = new Date($('#reportStartDate').val());
+                    endDate = new Date($('#reportEndDate').val());
+                    
+                    if (!startDate || !endDate) {
+                        showToast('Pilih rentang tanggal terlebih dahulu', 'error');
+                        return;
+                    }
+                    
+                    // Set end date to end of day
+                    endDate.setHours(23, 59, 59, 999);
+                } else {
+                    // Set date range based on period
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    if (period === 'today') {
+                        startDate = new Date(today);
+                        endDate = new Date();
+                        endDate.setHours(23, 59, 59, 999);
+                    } else if (period === 'week') {
+                        startDate = new Date(today);
+                        startDate.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
+                        endDate = new Date();
+                        endDate.setHours(23, 59, 59, 999);
+                    } else if (period === 'month') {
+                        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                        endDate = new Date();
+                        endDate.setHours(23, 59, 59, 999);
+                    }
+                }
+                
+                // Filter transactions by date range
+                const filteredTransactions = transactions.filter(t => {
+                    const transactionDate = new Date(t.date);
+                    return transactionDate >= startDate && transactionDate <= endDate;
+                });
+                
+                // Calculate totals
+                const totalTransactions = filteredTransactions.length;
+                const totalRevenue = filteredTransactions.reduce((sum, t) => sum + t.total, 0);
+                const totalItemsSold = filteredTransactions.reduce((sum, t) => {
+                    return sum + t.items.reduce((itemSum, item) => itemSum + item.quantity, 0);
+                }, 0);
+                
+                // Group by product
+                const productSales = {};
+                filteredTransactions.forEach(t => {
+                    t.items.forEach(item => {
+                        if (!productSales[item.product.id]) {
+                            productSales[item.product.id] = {
+                                name: item.product.name,
+                                quantity: 0,
+                                revenue: 0
+                            };
+                        }
+                        productSales[item.product.id].quantity += item.quantity;
+                        productSales[item.product.id].revenue += item.quantity * item.product.price;
+                    });
+                });
+                
+                // Sort products by revenue (descending)
+                const sortedProducts = Object.values(productSales).sort((a, b) => b.revenue - a.revenue);
+                
+                // Display report
+                let reportHtml = `
+                    <div class="summary-container">
+                        <div class="summary-row">
+                            <span>Periode:</span>
+                            <span>${moment(startDate).format('LL')} - ${moment(endDate).format('LL')}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Total Transaksi:</span>
+                            <span>${totalTransactions}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Total Barang Terjual:</span>
+                            <span>${totalItemsSold}</span>
+                        </div>
+                        <div class="summary-row total-row">
+                            <span>Total Pendapatan:</span>
+                            <span>${formatCurrency(totalRevenue)}</span>
+                        </div>
+                    </div>
+                    
+                    <h4>Produk Terlaris</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Produk</th>
+                                <th>Jumlah</th>
+                                <th>Pendapatan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                sortedProducts.slice(0, 10).forEach(product => {
+                    reportHtml += `
+                        <tr>
+                            <td>${product.name}</td>
+                            <td>${product.quantity}</td>
+                            <td>${formatCurrency(product.revenue)}</td>
+                        </tr>
+                    `;
+                });
+                
+                reportHtml += `
+                        </tbody>
+                    </table>
+                    
+                    <h4>Detail Transaksi</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>No. Transaksi</th>
+                                <th>Tanggal</th>
+                                <th>Pelanggan</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                filteredTransactions.slice(0, 20).forEach(t => {
+                    reportHtml += `
+                        <tr>
+                            <td>${t.id}</td>
+                            <td>${moment(t.date).format('LLL')}</td>
+                            <td>${t.customer}</td>
+                            <td>${formatCurrency(t.total)}</td>
+                        </tr>
+                    `;
+                });
+                
+                reportHtml += `
+                        </tbody>
+                    </table>
+                `;
+                
+                $('#reportResults').html(reportHtml);
+                showToast('Laporan berhasil digenerate', 'success');
             });
             
-            // Cancel manage cashiers
-            $('#cancelManageCashiers').click(function() {
-                $('#manageCashiersModal').hide();
+            // Generate profit report
+            $('#generateProfitReportBtn').click(function() {
+                const period = $('#profitReportPeriod').val();
+                let startDate, endDate;
+                
+                if (period === 'custom') {
+                    startDate = new Date($('#profitReportStartDate').val());
+                    endDate = new Date($('#profitReportEndDate').val());
+                    
+                    if (!startDate || !endDate) {
+                        showToast('Pilih rentang tanggal terlebih dahulu', 'error');
+                        return;
+                    }
+                    
+                    // Set end date to end of day
+                    endDate.setHours(23, 59, 59, 999);
+                } else {
+                    // Set date range based on period
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    if (period === 'today') {
+                        startDate = new Date(today);
+                        endDate = new Date();
+                        endDate.setHours(23, 59, 59, 999);
+                    } else if (period === 'week') {
+                        startDate = new Date(today);
+                        startDate.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
+                        endDate = new Date();
+                        endDate.setHours(23, 59, 59, 999);
+                    } else if (period === 'month') {
+                        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                        endDate = new Date();
+                        endDate.setHours(23, 59, 59, 999);
+                    }
+                }
+                
+                // Filter transactions by date range
+                const filteredTransactions = transactions.filter(t => {
+                    const transactionDate = new Date(t.date);
+                    return transactionDate >= startDate && transactionDate <= endDate;
+                });
+                
+                // Calculate totals
+                const totalRevenue = filteredTransactions.reduce((sum, t) => sum + t.total, 0);
+                const totalCost = filteredTransactions.reduce((sum, t) => {
+                    return sum + t.items.reduce((itemSum, item) => {
+                        const product = products.find(p => p.id === item.product.id);
+                        return itemSum + (item.quantity * (product ? product.cost : 0));
+                    }, 0);
+                }, 0);
+                const totalProfit = totalRevenue - totalCost;
+                const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+                
+                // Group by product
+                const productProfits = {};
+                filteredTransactions.forEach(t => {
+                    t.items.forEach(item => {
+                        const product = products.find(p => p.id === item.product.id);
+                        const cost = product ? product.cost : 0;
+                        
+                        if (!productProfits[item.product.id]) {
+                            productProfits[item.product.id] = {
+                                name: item.product.name,
+                                quantity: 0,
+                                revenue: 0,
+                                cost: 0,
+                                profit: 0
+                            };
+                        }
+                        
+                        productProfits[item.product.id].quantity += item.quantity;
+                        productProfits[item.product.id].revenue += item.quantity * item.product.price;
+                        productProfits[item.product.id].cost += item.quantity * cost;
+                        productProfits[item.product.id].profit += item.quantity * (item.product.price - cost);
+                    });
+                });
+                
+                // Sort products by profit (descending)
+                const sortedProducts = Object.values(productProfits).sort((a, b) => b.profit - a.profit);
+                
+                // Display report
+                let reportHtml = `
+                    <div class="summary-container">
+                        <div class="summary-row">
+                            <span>Periode:</span>
+                            <span>${moment(startDate).format('LL')} - ${moment(endDate).format('LL')}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Total Pendapatan:</span>
+                            <span>${formatCurrency(totalRevenue)}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Total Biaya Pokok:</span>
+                            <span>${formatCurrency(totalCost)}</span>
+                        </div>
+                        <div class="summary-row total-row">
+                            <span>Total Laba:</span>
+                            <span>${formatCurrency(totalProfit)}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Margin Laba:</span>
+                            <span>${profitMargin.toFixed(2)}%</span>
+                        </div>
+                    </div>
+                    
+                    <h4>Produk Paling Menguntungkan</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Produk</th>
+                                <th>Jumlah</th>
+                                <th>Pendapatan</th>
+                                <th>Biaya</th>
+                                <th>Laba</th>
+                                <th>Margin</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                sortedProducts.slice(0, 10).forEach(product => {
+                    const margin = product.revenue > 0 ? (product.profit / product.revenue) * 100 : 0;
+                    
+                    reportHtml += `
+                        <tr>
+                            <td>${product.name}</td>
+                            <td>${product.quantity}</td>
+                            <td>${formatCurrency(product.revenue)}</td>
+                            <td>${formatCurrency(product.cost)}</td>
+                            <td>${formatCurrency(product.profit)}</td>
+                            <td>${margin.toFixed(2)}%</td>
+                        </tr>
+                    `;
+                });
+                
+                reportHtml += `
+                        </tbody>
+                    </table>
+                `;
+                
+                $('#profitReportResults').html(reportHtml);
+                showToast('Laporan laba rugi berhasil digenerate', 'success');
+            });
+            
+            // Print report
+            $('#printReportBtn').click(function() {
+                const doc = new jsPDF();
+                
+                // Add title
+                doc.setFontSize(16);
+                doc.text('Laporan Penjualan', 105, 15, { align: 'center' });
+                
+                // Add date range
+                doc.setFontSize(12);
+                const period = $('#reportPeriod').val();
+                let dateRange = '';
+                
+                if (period === 'today') {
+                    dateRange = moment().format('LL');
+                } else if (period === 'week') {
+                    const start = moment().startOf('week');
+                    const end = moment().endOf('week');
+                    dateRange = `${start.format('LL')} - ${end.format('LL')}`;
+                } else if (period === 'month') {
+                    dateRange = moment().format('MMMM YYYY');
+                } else if (period === 'custom') {
+                    const start = moment($('#reportStartDate').val());
+                    const end = moment($('#reportEndDate').val());
+                    dateRange = `${start.format('LL')} - ${end.format('LL')}`;
+                }
+                
+                doc.text(`Periode: ${dateRange}`, 105, 25, { align: 'center' });
+                
+                // Add summary
+                const summary = $('#reportResults .summary-container').clone();
+                summary.find('.total-row').remove();
+                
+                doc.autoTable({
+                    startY: 35,
+                    head: [['Ringkasan', '']],
+                    body: summary.find('.summary-row').map(function() {
+                        return [
+                            $(this).find('span:first').text().replace(':', ''),
+                            $(this).find('span:last').text()
+                        ];
+                    }).get(),
+                    theme: 'grid',
+                    headStyles: { fillColor: [67, 97, 238] },
+                    styles: { cellPadding: 5 }
+                });
+                
+                // Add top products
+                const topProducts = $('#reportResults table:first').clone();
+                
+                doc.autoTable({
+                    startY: doc.lastAutoTable.finalY + 10,
+                    head: [['Produk Terlaris', 'Jumlah', 'Pendapatan']],
+                    body: topProducts.find('tbody tr').map(function() {
+                        return [
+                            $(this).find('td:eq(0)').text(),
+                            $(this).find('td:eq(1)').text(),
+                            $(this).find('td:eq(2)').text()
+                        ];
+                    }).get(),
+                    theme: 'grid',
+                    headStyles: { fillColor: [67, 97, 238] },
+                    styles: { cellPadding: 5 }
+                });
+                
+                // Add transactions
+                const transactionsTable = $('#reportResults table:last').clone();
+                
+                doc.autoTable({
+                    startY: doc.lastAutoTable.finalY + 10,
+                    head: [['No. Transaksi', 'Tanggal', 'Pelanggan', 'Total']],
+                    body: transactionsTable.find('tbody tr').map(function() {
+                        return [
+                            $(this).find('td:eq(0)').text(),
+                            $(this).find('td:eq(1)').text(),
+                            $(this).find('td:eq(2)').text(),
+                            $(this).find('td:eq(3)').text()
+                        ];
+                    }).get(),
+                    theme: 'grid',
+                    headStyles: { fillColor: [67, 97, 238] },
+                    styles: { cellPadding: 5 }
+                });
+                
+                // Add footer
+                doc.setFontSize(10);
+                doc.text(`Dibuat oleh ${currentUser.name} pada ${moment().format('LLL')}`, 105, doc.lastAutoTable.finalY + 10, { align: 'center' });
+                
+                // Save PDF
+                doc.save(`Laporan_Penjualan_${moment().format('YYYYMMDD')}.pdf`);
+            });
+            
+            // Print profit report
+            $('#printProfitReportBtn').click(function() {
+                const doc = new jsPDF();
+                
+                // Add title
+                doc.setFontSize(16);
+                doc.text('Laporan Laba Rugi', 105, 15, { align: 'center' });
+                
+                // Add date range
+                doc.setFontSize(12);
+                const period = $('#profitReportPeriod').val();
+                let dateRange = '';
+                
+                if (period === 'today') {
+                    dateRange = moment().format('LL');
+                } else if (period === 'week') {
+                    const start = moment().startOf('week');
+                    const end = moment().endOf('week');
+                    dateRange = `${start.format('LL')} - ${end.format('LL')}`;
+                } else if (period === 'month') {
+                    dateRange = moment().format('MMMM YYYY');
+                } else if (period === 'custom') {
+                    const start = moment($('#profitReportStartDate').val());
+                    const end = moment($('#profitReportEndDate').val());
+                    dateRange = `${start.format('LL')} - ${end.format('LL')}`;
+                }
+                
+                doc.text(`Periode: ${dateRange}`, 105, 25, { align: 'center' });
+                
+                // Add summary
+                const summary = $('#profitReportResults .summary-container').clone();
+                
+                doc.autoTable({
+                    startY: 35,
+                    head: [['Ringkasan', '']],
+                    body: summary.find('.summary-row').map(function() {
+                        return [
+                            $(this).find('span:first').text().replace(':', ''),
+                            $(this).find('span:last').text()
+                        ];
+                    }).get(),
+                    theme: 'grid',
+                    headStyles: { fillColor: [67, 97, 238] },
+                    styles: { cellPadding: 5 }
+                });
+                
+                // Add top products
+                const topProducts = $('#profitReportResults table').clone();
+                
+                doc.autoTable({
+                    startY: doc.lastAutoTable.finalY + 10,
+                    head: [['Produk', 'Jumlah', 'Pendapatan', 'Biaya', 'Laba', 'Margin']],
+                    body: topProducts.find('tbody tr').map(function() {
+                        return [
+                            $(this).find('td:eq(0)').text(),
+                            $(this).find('td:eq(1)').text(),
+                            $(this).find('td:eq(2)').text(),
+                            $(this).find('td:eq(3)').text(),
+                            $(this).find('td:eq(4)').text(),
+                            $(this).find('td:eq(5)').text()
+                        ];
+                    }).get(),
+                    theme: 'grid',
+                    headStyles: { fillColor: [67, 97, 238] },
+                    styles: { cellPadding: 5 }
+                });
+                
+                // Add footer
+                doc.setFontSize(10);
+                doc.text(`Dibuat oleh ${currentUser.name} pada ${moment().format('LLL')}`, 105, doc.lastAutoTable.finalY + 10, { align: 'center' });
+                
+                // Save PDF
+                doc.save(`Laporan_Laba_Rugi_${moment().format('YYYYMMDD')}.pdf`);
             });
             
             // Report period change
@@ -3536,686 +3894,40 @@
                 }
             });
             
-            // Generate report
-            $('#generateReportBtn').click(function() {
-                const period = $('#reportPeriod').val();
-                let startDate, endDate;
-                
-                if (period === 'today') {
-                    startDate = moment().startOf('day').toDate();
-                    endDate = moment().endOf('day').toDate();
-                } else if (period === 'week') {
-                    startDate = moment().startOf('week').toDate();
-                    endDate = moment().endOf('week').toDate();
-                } else if (period === 'month') {
-                    startDate = moment().startOf('month').toDate();
-                    endDate = moment().endOf('month').toDate();
-                } else if (period === 'custom') {
-                    startDate = new Date($('#reportStartDate').val());
-                    endDate = new Date($('#reportEndDate').val());
-                    
-                    if (!startDate || !endDate) {
-                        showToast('Tanggal harus diisi', 'error');
-                        return;
-                    }
-                    
-                    if (startDate > endDate) {
-                        showToast('Tanggal mulai tidak boleh lebih besar dari tanggal akhir', 'error');
-                        return;
-                    }
-                }
-                
-                // Filter transactions by date range
-                const filteredTransactions = transactions.filter(t => {
-                    const transactionDate = new Date(t.date);
-                    return transactionDate >= startDate && transactionDate <= endDate;
-                });
-                
-                // Calculate report data
-                const totalTransactions = filteredTransactions.length;
-                const totalRevenue = filteredTransactions.reduce((sum, t) => sum + t.total, 0);
-                const totalItemsSold = filteredTransactions.reduce((sum, t) => {
-                    return sum + t.items.reduce((itemSum, i) => itemSum + i.quantity, 0);
-                }, 0);
-                
-                // Group by payment method
-                const paymentMethods = {};
-                filteredTransactions.forEach(t => {
-                    const method = t.paymentMethod;
-                    if (!paymentMethods[method]) {
-                        paymentMethods[method] = 0;
-                    }
-                    paymentMethods[method] += t.total;
-                });
-                
-                // Group by cashier
-                const cashierSales = {};
-                filteredTransactions.forEach(t => {
-                    const cashier = t.cashier.name;
-                    if (!cashierSales[cashier]) {
-                        cashierSales[cashier] = 0;
-                    }
-                    cashierSales[cashier] += t.total;
-                });
-                
-                // Generate report HTML
-                let reportHTML = `
-                    <h4>Laporan Penjualan</h4>
-                    <p>Periode: ${moment(startDate).format('LL')} - ${moment(endDate).format('LL')}</p>
-                    
-                    <div class="summary-container">
-                        <div class="summary-row">
-                            <span>Total Transaksi:</span>
-                            <span>${totalTransactions}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Total Pendapatan:</span>
-                            <span>${formatCurrency(totalRevenue)}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Total Item Terjual:</span>
-                            <span>${totalItemsSold}</span>
-                        </div>
-                    </div>
-                    
-                    <h5 class="mt-3">Metode Pembayaran</h5>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Metode</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                for (const method in paymentMethods) {
-                    reportHTML += `
-                        <tr>
-                            <td>${formatPaymentMethod(method)}</td>
-                            <td>${formatCurrency(paymentMethods[method])}</td>
-                        </tr>
-                    `;
-                }
-                
-                reportHTML += `
-                        </tbody>
-                    </table>
-                    
-                    <h5 class="mt-3">Penjualan per Kasir</h5>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Kasir</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                for (const cashier in cashierSales) {
-                    reportHTML += `
-                        <tr>
-                            <td>${cashier}</td>
-                            <td>${formatCurrency(cashierSales[cashier])}</td>
-                        </tr>
-                    `;
-                }
-                
-                reportHTML += `
-                        </tbody>
-                    </table>
-                    
-                    <h5 class="mt-3">10 Transaksi Terakhir</h5>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>No. Transaksi</th>
-                                <th>Tanggal</th>
-                                <th>Pelanggan</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                const recentTransactions = filteredTransactions.slice(0, 10);
-                recentTransactions.forEach(t => {
-                    reportHTML += `
-                        <tr>
-                            <td>${t.id}</td>
-                            <td>${moment(t.date).format('LLL')}</td>
-                            <td>${t.customer || 'Pelanggan Biasa'}</td>
-                            <td>${formatCurrency(t.total)}</td>
-                        </tr>
-                    `;
-                });
-                
-                reportHTML += `
-                        </tbody>
-                    </table>
-                `;
-                
-                $('#reportResults').html(reportHTML);
-            });
-            
-            // Print report
-            $('#printReportBtn').click(function() {
-                const period = $('#reportPeriod').val();
-                let startDate, endDate;
-                
-                if (period === 'today') {
-                    startDate = moment().startOf('day').toDate();
-                    endDate = moment().endOf('day').toDate();
-                } else if (period === 'week') {
-                    startDate = moment().startOf('week').toDate();
-                    endDate = moment().endOf('week').toDate();
-                } else if (period === 'month') {
-                    startDate = moment().startOf('month').toDate();
-                    endDate = moment().endOf('month').toDate();
-                } else if (period === 'custom') {
-                    startDate = new Date($('#reportStartDate').val());
-                    endDate = new Date($('#reportEndDate').val());
-                }
-                
-                // Filter transactions by date range
-                const filteredTransactions = transactions.filter(t => {
-                    const transactionDate = new Date(t.date);
-                    return transactionDate >= startDate && transactionDate <= endDate;
-                });
-                
-                // Calculate report data
-                const totalTransactions = filteredTransactions.length;
-                const totalRevenue = filteredTransactions.reduce((sum, t) => sum + t.total, 0);
-                const totalItemsSold = filteredTransactions.reduce((sum, t) => {
-                    return sum + t.items.reduce((itemSum, i) => itemSum + i.quantity, 0);
-                }, 0);
-                
-                // Group by payment method
-                const paymentMethods = {};
-                filteredTransactions.forEach(t => {
-                    const method = t.paymentMethod;
-                    if (!paymentMethods[method]) {
-                        paymentMethods[method] = 0;
-                    }
-                    paymentMethods[method] += t.total;
-                });
-                
-                // Group by cashier
-                const cashierSales = {};
-                filteredTransactions.forEach(t => {
-                    const cashier = t.cashier.name;
-                    if (!cashierSales[cashier]) {
-                        cashierSales[cashier] = 0;
-                    }
-                    cashierSales[cashier] += t.total;
-                });
-                
-                // Create PDF
-                const doc = new jsPDF();
-                
-                // Title
-                doc.setFontSize(18);
-                doc.text('LAPORAN PENJUALAN', 105, 15, { align: 'center' });
-                
-                // Store info
-                doc.setFontSize(10);
-                doc.text(settings.storeName, 105, 25, { align: 'center' });
-                doc.text(settings.storeAddress, 105, 30, { align: 'center' });
-                doc.text(`Telp: ${settings.storePhone}`, 105, 35, { align: 'center' });
-                
-                // Period
-                doc.setFontSize(12);
-                doc.text(`Periode: ${moment(startDate).format('LL')} - ${moment(endDate).format('LL')}`, 14, 45);
-                
-                // Summary
-                doc.setFontSize(12);
-                doc.text('Ringkasan Penjualan', 14, 55);
-                
-                doc.setFontSize(10);
-                doc.text(`Total Transaksi: ${totalTransactions}`, 14, 65);
-                doc.text(`Total Pendapatan: ${formatCurrency(totalRevenue)}`, 14, 70);
-                doc.text(`Total Item Terjual: ${totalItemsSold}`, 14, 75);
-                
-                // Payment methods table
-                doc.setFontSize(12);
-                doc.text('Metode Pembayaran', 14, 85);
-                
-                const paymentMethodsData = [];
-                for (const method in paymentMethods) {
-                    paymentMethodsData.push([
-                        formatPaymentMethod(method),
-                        formatCurrency(paymentMethods[method])
-                    ]);
-                }
-                
-                doc.autoTable({
-                    startY: 90,
-                    head: [['Metode', 'Total']],
-                    body: paymentMethodsData,
-                    theme: 'grid',
-                    headStyles: { fillColor: [67, 97, 238] }
-                });
-                
-                // Cashier sales table
-                doc.setFontSize(12);
-                doc.text('Penjualan per Kasir', 14, doc.autoTable.previous.finalY + 15);
-                
-                const cashierSalesData = [];
-                for (const cashier in cashierSales) {
-                    cashierSalesData.push([
-                        cashier,
-                        formatCurrency(cashierSales[cashier])
-                    ]);
-                }
-                
-                doc.autoTable({
-                    startY: doc.autoTable.previous.finalY + 20,
-                    head: [['Kasir', 'Total']],
-                    body: cashierSalesData,
-                    theme: 'grid',
-                    headStyles: { fillColor: [67, 97, 238] }
-                });
-                
-                // Recent transactions table
-                doc.setFontSize(12);
-                doc.text('10 Transaksi Terakhir', 14, doc.autoTable.previous.finalY + 15);
-                
-                const recentTransactions = filteredTransactions.slice(0, 10);
-                const transactionsData = recentTransactions.map(t => [
-                    t.id,
-                    moment(t.date).format('LLL'),
-                    t.customer || 'Pelanggan Biasa',
-                    formatCurrency(t.total)
-                ]);
-                
-                doc.autoTable({
-                    startY: doc.autoTable.previous.finalY + 20,
-                    head: [['No. Transaksi', 'Tanggal', 'Pelanggan', 'Total']],
-                    body: transactionsData,
-                    theme: 'grid',
-                    headStyles: { fillColor: [67, 97, 238] },
-                    columnStyles: {
-                        0: { cellWidth: 30 },
-                        1: { cellWidth: 40 },
-                        2: { cellWidth: 50 },
-                        3: { cellWidth: 30 }
-                    }
-                });
-                
-                // Footer
-                doc.setFontSize(10);
-                doc.text(`Dicetak pada: ${moment().format('LLLL')}`, 14, doc.autoTable.previous.finalY + 15);
-                doc.text(`Oleh: ${currentUser.name}`, 14, doc.autoTable.previous.finalY + 20);
-                doc.text(`© ${new Date().getFullYear()} Lentera Karya Situbondo`, 105, doc.autoTable.previous.finalY + 25, { align: 'center' });
-                
-                // Save PDF
-                doc.save(`Laporan_Penjualan_${moment().format('YYYYMMDD_HHmmss')}.pdf`);
-            });
-            
-            // Generate profit report
-            $('#generateProfitReportBtn').click(function() {
-                // Check if any product has cost data
-                const hasCostData = products.some(p => p.cost > 0);
-                
-                if (!hasCostData) {
-                    showToast('Tidak ada data harga pokok produk. Harap isi harga pokok terlebih dahulu.', 'warning');
-                    return;
-                }
-                
-                const period = $('#profitReportPeriod').val();
-                let startDate, endDate;
-                
-                if (period === 'today') {
-                    startDate = moment().startOf('day').toDate();
-                    endDate = moment().endOf('day').toDate();
-                } else if (period === 'week') {
-                    startDate = moment().startOf('week').toDate();
-                    endDate = moment().endOf('week').toDate();
-                } else if (period === 'month') {
-                    startDate = moment().startOf('month').toDate();
-                    endDate = moment().endOf('month').toDate();
-                } else if (period === 'custom') {
-                    startDate = new Date($('#profitReportStartDate').val());
-                    endDate = new Date($('#profitReportEndDate').val());
-                    
-                    if (!startDate || !endDate) {
-                        showToast('Tanggal harus diisi', 'error');
-                        return;
-                    }
-                    
-                    if (startDate > endDate) {
-                        showToast('Tanggal mulai tidak boleh lebih besar dari tanggal akhir', 'error');
-                        return;
-                    }
-                }
-                
-                // Filter transactions by date range
-                const filteredTransactions = transactions.filter(t => {
-                    const transactionDate = new Date(t.date);
-                    return transactionDate >= startDate && transactionDate <= endDate;
-                });
-                
-                // Calculate profit data
-                let totalRevenue = 0;
-                let totalCost = 0;
-                let totalProfit = 0;
-                
-                filteredTransactions.forEach(transaction => {
-                    totalRevenue += transaction.total;
-                    
-                    // Calculate cost for each item in transaction
-                    transaction.items.forEach(item => {
-                        const product = products.find(p => p.id === item.product.id);
-                        if (product && product.cost > 0) {
-                            totalCost += product.cost * item.quantity;
-                        }
-                    });
-                });
-                
-                totalProfit = totalRevenue - totalCost;
-                
-                // Group profit by product
-                const productProfits = {};
-                products.forEach(product => {
-                    if (product.cost > 0) {
-                        let quantitySold = 0;
-                        let revenue = 0;
-                        let cost = 0;
-                        
-                        filteredTransactions.forEach(transaction => {
-                            transaction.items.forEach(item => {
-                                if (item.product.id === product.id) {
-                                    quantitySold += item.quantity;
-                                    revenue += item.product.price * item.quantity;
-                                    cost += product.cost * item.quantity;
-                                }
-                            });
-                        });
-                        
-                        if (quantitySold > 0) {
-                            productProfits[product.id] = {
-                                name: product.name,
-                                quantity: quantitySold,
-                                revenue: revenue,
-                                cost: cost,
-                                profit: revenue - cost
-                            };
-                        }
-                    }
-                });
-                
-                // Generate profit report HTML
-                let reportHTML = `
-                    <h4>Laporan Laba Rugi</h4>
-                    <p>Periode: ${moment(startDate).format('LL')} - ${moment(endDate).format('LL')}</p>
-                    
-                    <div class="summary-container">
-                        <div class="summary-row">
-                            <span>Total Pendapatan:</span>
-                            <span>${formatCurrency(totalRevenue)}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Total Biaya Pokok:</span>
-                            <span>${formatCurrency(totalCost)}</span>
-                        </div>
-                        <div class="summary-row total-row">
-                            <span>Total Laba:</span>
-                            <span style="color: ${totalProfit >= 0 ? 'var(--success)' : 'var(--danger)'}">${formatCurrency(totalProfit)}</span>
-                        </div>
-                    </div>
-                    
-                    <h5 class="mt-3">Laba per Produk</h5>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Produk</th>
-                                <th>Terjual</th>
-                                <th>Pendapatan</th>
-                                <th>Biaya</th>
-                                <th>Laba</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                for (const productId in productProfits) {
-                    const product = productProfits[productId];
-                    reportHTML += `
-                        <tr>
-                            <td>${product.name}</td>
-                            <td>${product.quantity}</td>
-                            <td>${formatCurrency(product.revenue)}</td>
-                            <td>${formatCurrency(product.cost)}</td>
-                            <td style="color: ${product.profit >= 0 ? 'var(--success)' : 'var(--danger)'}">${formatCurrency(product.profit)}</td>
-                        </tr>
-                    `;
-                }
-                
-                reportHTML += `
-                        </tbody>
-                    </table>
-                `;
-                
-                $('#profitReportResults').html(reportHTML);
-            });
-            
-            // Print profit report
-            $('#printProfitReportBtn').click(function() {
-                const period = $('#profitReportPeriod').val();
-                let startDate, endDate;
-                
-                if (period === 'today') {
-                    startDate = moment().startOf('day').toDate();
-                    endDate = moment().endOf('day').toDate();
-                } else if (period === 'week') {
-                    startDate = moment().startOf('week').toDate();
-                    endDate = moment().endOf('week').toDate();
-                } else if (period === 'month') {
-                    startDate = moment().startOf('month').toDate();
-                    endDate = moment().endOf('month').toDate();
-                } else if (period === 'custom') {
-                    startDate = new Date($('#profitReportStartDate').val());
-                    endDate = new Date($('#profitReportEndDate').val());
-                }
-                
-                // Filter transactions by date range
-                const filteredTransactions = transactions.filter(t => {
-                    const transactionDate = new Date(t.date);
-                    return transactionDate >= startDate && transactionDate <= endDate;
-                });
-                
-                // Calculate profit data
-                let totalRevenue = 0;
-                let totalCost = 0;
-                let totalProfit = 0;
-                
-                filteredTransactions.forEach(transaction => {
-                    totalRevenue += transaction.total;
-                    
-                    // Calculate cost for each item in transaction
-                    transaction.items.forEach(item => {
-                        const product = products.find(p => p.id === item.product.id);
-                        if (product && product.cost > 0) {
-                            totalCost += product.cost * item.quantity;
-                        }
-                    });
-                });
-                
-                totalProfit = totalRevenue - totalCost;
-                
-                // Group profit by product
-                const productProfits = {};
-                products.forEach(product => {
-                    if (product.cost > 0) {
-                        let quantitySold = 0;
-                        let revenue = 0;
-                        let cost = 0;
-                        
-                        filteredTransactions.forEach(transaction => {
-                            transaction.items.forEach(item => {
-                                if (item.product.id === product.id) {
-                                    quantitySold += item.quantity;
-                                    revenue += item.product.price * item.quantity;
-                                    cost += product.cost * item.quantity;
-                                }
-                            });
-                        });
-                        
-                        if (quantitySold > 0) {
-                            productProfits[product.id] = {
-                                name: product.name,
-                                quantity: quantitySold,
-                                revenue: revenue,
-                                cost: cost,
-                                profit: revenue - cost
-                            };
-                        }
-                    }
-                });
-                
-                // Create PDF
-                const doc = new jsPDF();
-                
-                // Title
-                doc.setFontSize(18);
-                doc.text('LAPORAN LABA RUGI', 105, 15, { align: 'center' });
-                
-                // Store info
-                doc.setFontSize(10);
-                doc.text(settings.storeName, 105, 25, { align: 'center' });
-                doc.text(settings.storeAddress, 105, 30, { align: 'center' });
-                doc.text(`Telp: ${settings.storePhone}`, 105, 35, { align: 'center' });
-                
-                // Period
-                doc.setFontSize(12);
-                doc.text(`Periode: ${moment(startDate).format('LL')} - ${moment(endDate).format('LL')}`, 14, 45);
-                
-                // Summary
-                doc.setFontSize(12);
-                doc.text('Ringkasan Laba Rugi', 14, 55);
-                
-                doc.setFontSize(10);
-                doc.text(`Total Pendapatan: ${formatCurrency(totalRevenue)}`, 14, 65);
-                doc.text(`Total Biaya Pokok: ${formatCurrency(totalCost)}`, 14, 70);
-                doc.text(`Total Laba: ${formatCurrency(totalProfit)}`, 14, 75);
-                
-                // Product profits table
-                doc.setFontSize(12);
-                doc.text('Laba per Produk', 14, 85);
-                
-                const productProfitsData = [];
-                for (const productId in productProfits) {
-                    const product = productProfits[productId];
-                    productProfitsData.push([
-                        product.name,
-                        product.quantity,
-                        formatCurrency(product.revenue),
-                        formatCurrency(product.cost),
-                        formatCurrency(product.profit)
-                    ]);
-                }
-                
-                doc.autoTable({
-                    startY: 90,
-                    head: [['Produk', 'Terjual', 'Pendapatan', 'Biaya', 'Laba']],
-                    body: productProfitsData,
-                    theme: 'grid',
-                    headStyles: { fillColor: [67, 97, 238] },
-                    columnStyles: {
-                        0: { cellWidth: 60 },
-                        1: { cellWidth: 20 },
-                        2: { cellWidth: 30 },
-                        3: { cellWidth: 30 },
-                        4: { cellWidth: 30 }
-                    },
-                    bodyStyles: { textColor: [0, 0, 0] },
-                    didDrawCell: (data) => {
-                        if (data.column.index === 4 && data.cell.raw) {
-                            const profit = parseFloat(data.cell.raw.replace(/[^\d.-]/g, ''));
-                            if (profit < 0) {
-                                doc.setTextColor(247, 37, 133); // Danger color
-                                doc.text(data.cell.raw, data.cell.x + data.cell.width - 2, data.cell.y + 8, { align: 'right' });
-                                doc.setTextColor(0, 0, 0); // Reset color
-                            } else if (profit > 0) {
-                                doc.setTextColor(76, 201, 240); // Success color
-                                doc.text(data.cell.raw, data.cell.x + data.cell.width - 2, data.cell.y + 8, { align: 'right' });
-                                doc.setTextColor(0, 0, 0); // Reset color
-                            }
-                        }
-                    }
-                });
-                
-                // Footer
-                doc.setFontSize(10);
-                doc.text(`Dicetak pada: ${moment().format('LLLL')}`, 14, doc.autoTable.previous.finalY + 15);
-                doc.text(`Oleh: ${currentUser.name}`, 14, doc.autoTable.previous.finalY + 20);
-                doc.text(`© ${new Date().getFullYear()} Lentera Karya Situbondo`, 105, doc.autoTable.previous.finalY + 25, { align: 'center' });
-                
-                // Save PDF
-                doc.save(`Laporan_Laba_Rugi_${moment().format('YYYYMMDD_HHmmss')}.pdf`);
-            });
-            
-            // Cancel reports
-            $('#cancelReports').click(function() {
-                $('#reportsModal').hide();
-            });
-            
-            // Cancel profit report
-            $('#cancelProfitReport').click(function() {
-                $('#profitReportModal').hide();
-            });
-            
-            // Load store info
-            function loadStoreInfo() {
-                $('#storeName').val(settings.storeName || '');
-                $('#storeAddress').val(settings.storeAddress || '');
-                $('#storePhone').val(settings.storePhone || '');
-                $('#storeDescription').val(settings.storeDescription || '');
-            }
-            
-            // Save store info
-            $('#saveStoreInfoBtn').click(function() {
-                settings.storeName = $('#storeName').val().trim();
-                settings.storeAddress = $('#storeAddress').val().trim();
-                settings.storePhone = $('#storePhone').val().trim();
-                settings.storeDescription = $('#storeDescription').val().trim();
-                
-                if (!settings.storeName || !settings.storeAddress || !settings.storePhone) {
-                    showToast('Nama toko, alamat, dan telepon harus diisi', 'error');
-                    return;
-                }
-                
-                saveSettings();
-                updateStoreInfo();
-                $('#manageStoreInfoModal').hide();
-                
-                showToast('Info toko berhasil diperbarui', 'success');
-            });
-            
-                        // Cancel store info
-            $('#cancelStoreInfo').click(function() {
-                $('#manageStoreInfoModal').hide();
-            });
-
-            // Modal close buttons
-            $('.modal-close').click(function() {
+            // Cancel modals
+            $('.modal-close, .btn-warning[id^="cancel"]').click(function() {
                 $(this).closest('.modal').hide();
             });
-
-            // Close modal when clicking outside
+            
+            // Close modals when clicking outside
             $('.modal').click(function(e) {
                 if (e.target === this) {
                     $(this).hide();
                 }
             });
-
-            // Prevent modal content from closing modal when clicked
+            
+            // Prevent modal close when clicking inside
             $('.modal-content').click(function(e) {
                 e.stopPropagation();
             });
-
-            // Load products with optional search and category filter
+            
+            // Helper functions
+            function formatCurrency(amount) {
+                return 'Rp ' + amount.toFixed(0).replace(/\d(?=(\d{3})+$)/g, '$&.');
+            }
+            
+            function showToast(message, type) {
+                const toast = $('#toast');
+                toast.removeClass('success error warning');
+                toast.addClass(type);
+                $('#toast-message').text(message);
+                toast.addClass('show');
+                
+                setTimeout(() => {
+                    toast.removeClass('show');
+                }, 3000);
+            }
+            
             function loadProducts(searchTerm = '', category = 'all') {
                 let filteredProducts = [...products];
                 
@@ -4224,7 +3936,8 @@
                     const searchLower = searchTerm.toLowerCase();
                     filteredProducts = filteredProducts.filter(p => 
                         p.name.toLowerCase().includes(searchLower) || 
-                        (p.category && p.category.toLowerCase().includes(searchLower))
+                        p.category.toLowerCase().includes(searchLower)
+                    );
                 }
                 
                 // Apply category filter
@@ -4235,77 +3948,73 @@
                 // Update product count
                 $('#productCount').text(`(${filteredProducts.length} produk)`);
                 
-                // Clear product grid
-                $('#productGrid').empty();
+                // Display products
+                const productGrid = $('#productGrid');
+                productGrid.empty();
                 
                 if (filteredProducts.length === 0) {
-                    $('#productGrid').html(`
-                        <div class="empty-state" style="grid-column: 1 / -1">
+                    productGrid.html(`
+                        <div class="empty-state" style="grid-column: 1 / -1;">
                             <i class="fas fa-box-open"></i>
-                            <p>Tidak ada produk ditemukan</p>
+                            <p>Tidak ada produk yang ditemukan</p>
                         </div>
                     `);
                     return;
                 }
                 
-                // Add products to grid
                 filteredProducts.forEach(product => {
-                    const productCard = $(`
+                    const lowStock = product.stock <= 5;
+                    
+                    productGrid.append(`
                         <div class="product-card" data-id="${product.id}">
                             <div class="product-name">${product.name}</div>
                             <div class="product-price">${formatCurrency(product.price)}</div>
                             <div class="product-cost">HPP: ${formatCurrency(product.cost)}</div>
-                            <div class="product-stock ${product.stock <= 5 ? 'low' : ''}">
-                                Stok: ${product.stock} ${product.unit || 'pcs'}
+                            <div class="product-stock ${lowStock ? 'low' : ''}">
+                                Stok: ${product.stock} ${product.unit}
                             </div>
-                            ${hasPermission(currentUser.role, 'manageProducts') ? `
-                                <div class="product-actions">
-                                    <button class="action-btn edit-btn edit-product" data-id="${product.id}">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="action-btn delete-btn delete-product" data-id="${product.id}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            ` : ''}
+                            <div class="product-actions">
+                                <button class="action-btn edit-btn edit-product" data-id="${product.id}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn delete-product" data-id="${product.id}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     `);
-                    
-                    $('#productGrid').append(productCard);
                 });
             }
             
-            // Load categories for product select
-            function loadCategoriesForSelect() {
-                $('#productCategory').empty();
-                $('#productCategory').append('<option value="" disabled selected>Pilih kategori</option>');
-                
-                categories.forEach(category => {
-                    $('#productCategory').append(`<option value="${category.name}">${category.name}</option>`);
-                });
-                
-                // Add option to create new category if no categories exist
-                if (categories.length === 0) {
-                    $('#productCategory').append('<option value="" disabled>Belum ada kategori</option>');
-                }
-            }
-            
-            // Load categories for filter chips
             function loadCategories() {
-                $('.filter-row').empty();
-                $('.filter-row').append('<div class="filter-chip active" data-category="all">Semua</div>');
+                const filterRow = $('.filter-row');
+                filterRow.find('.filter-chip:not([data-category="all"])').remove();
                 
                 categories.forEach(category => {
-                    $('.filter-row').append(`<div class="filter-chip" data-category="${category.name}">${category.name}</div>`);
+                    filterRow.append(`
+                        <div class="filter-chip" data-category="${category}">${category}</div>
+                    `);
                 });
             }
             
-            // Load categories for management
+            function loadCategoriesForSelect() {
+                const select = $('#productCategory');
+                select.empty();
+                
+                categories.forEach(category => {
+                    select.append(`<option value="${category}">${category}</option>`);
+                });
+                
+                // Add new category option
+                select.append('<option value="new">+ Tambah Kategori Baru</option>');
+            }
+            
             function loadCategoriesForManagement() {
-                $('#categoriesList').empty();
+                const categoriesList = $('#categoriesList');
+                categoriesList.empty();
                 
                 if (categories.length === 0) {
-                    $('#categoriesList').html(`
+                    categoriesList.html(`
                         <div class="empty-state">
                             <i class="fas fa-tags"></i>
                             <p>Tidak ada kategori</p>
@@ -4315,39 +4024,39 @@
                 }
                 
                 categories.forEach(category => {
-                    $('#categoriesList').append(`
-                        <div class="member-card">
-                            <div class="d-flex justify-between align-center">
-                                <div class="member-name">${category.name}</div>
-                                <button class="btn btn-sm btn-danger remove-category" data-id="${category.id}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
+                    categoriesList.append(`
+                        <div class="d-flex justify-between align-center mb-2">
+                            <span>${category}</span>
+                            <button class="btn btn-sm btn-danger delete-category" data-category="${category}">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     `);
                 });
             }
             
-            // Load cashiers for management
             function loadCashiers() {
-                $('#cashiersList').empty();
+                const cashiersList = $('#cashiersList');
+                cashiersList.empty();
                 
                 if (users.length === 0) {
-                    $('#cashiersList').html(`
-                        <div class="empty-state">
-                            <i class="fas fa-user"></i>
-                            <p>Tidak ada kasir</p>
-                        </div>
+                    cashiersList.html(`
+                        <tr>
+                            <td colspan="4" class="text-center">
+                                <div class="empty-state">
+                                    <i class="fas fa-user"></i>
+                                    <p>Tidak ada kasir</p>
+                                </div>
+                            </td>
+                        </tr>
                     `);
                     return;
                 }
                 
                 users.forEach(user => {
-                    // Skip current user (can't edit/delete yourself)
-                    if (user.id === currentUser.id) return;
-                    
                     const role = roles.find(r => r.code === user.role);
-                    $('#cashiersList').append(`
+                    
+                    cashiersList.append(`
                         <tr>
                             <td>${user.username}</td>
                             <td>${user.name}</td>
@@ -4365,12 +4074,12 @@
                 });
             }
             
-            // Load members for management
             function loadMembers() {
-                $('#membersList').empty();
+                const membersList = $('#membersList');
+                membersList.empty();
                 
                 if (members.length === 0) {
-                    $('#membersList').html(`
+                    membersList.html(`
                         <div class="empty-state">
                             <i class="fas fa-users"></i>
                             <p>Tidak ada member</p>
@@ -4380,13 +4089,16 @@
                 }
                 
                 members.forEach(member => {
-                    $('#membersList').append(`
+                    membersList.append(`
                         <div class="member-card">
                             <div class="d-flex justify-between align-center">
                                 <div>
                                     <div class="member-id">ID: ${member.id}</div>
                                     <div class="member-name">${member.name}</div>
-                                    <div class="member-contact">${member.phone}</div>
+                                    <div class="member-contact">
+                                        <i class="fas fa-phone"></i> ${member.phone}
+                                        ${member.email ? `<br><i class="fas fa-envelope"></i> ${member.email}` : ''}
+                                    </div>
                                 </div>
                                 <div>
                                     <button class="btn btn-sm btn-info edit-member" data-id="${member.id}">
@@ -4402,26 +4114,22 @@
                 });
             }
             
-            // Load members for select dropdown
             function loadMembersForSelect() {
-                $('#memberSelect').empty();
-                $('#memberSelect').append('<option value="" disabled selected>Pilih member</option>');
+                const select = $('#memberSelect');
+                select.empty();
+                select.append('<option value="">Pilih member</option>');
                 
                 members.forEach(member => {
-                    $('#memberSelect').append(`<option value="${member.id}">${member.name} - ${member.phone}</option>`);
+                    select.append(`<option value="${member.id}">${member.name} (${member.phone})</option>`);
                 });
-                
-                if (members.length === 0) {
-                    $('#memberSelect').append('<option value="" disabled>Tidak ada member</option>');
-                }
             }
             
-            // Load roles for management
             function loadRoles() {
-                $('#rolesList').empty();
+                const rolesList = $('#rolesList');
+                rolesList.empty();
                 
                 if (roles.length === 0) {
-                    $('#rolesList').html(`
+                    rolesList.html(`
                         <div class="empty-state">
                             <i class="fas fa-user-tag"></i>
                             <p>Tidak ada role</p>
@@ -4431,15 +4139,15 @@
                 }
                 
                 roles.forEach(role => {
-                    // Skip admin role (can't edit/delete admin)
-                    if (role.code === 'admin') return;
-                    
-                    $('#rolesList').append(`
+                    rolesList.append(`
                         <div class="member-card">
                             <div class="d-flex justify-between align-center">
                                 <div>
+                                    <div class="member-id">Kode: ${role.code}</div>
                                     <div class="member-name">${role.name}</div>
-                                    <div class="member-contact">Kode: ${role.code} | Diskon Member: ${role.memberDiscount}%</div>
+                                    <div class="member-contact">
+                                        Diskon Member: ${role.memberDiscount}%
+                                    </div>
                                 </div>
                                 <div>
                                     <button class="btn btn-sm btn-info edit-role" data-id="${role.id}">
@@ -4455,50 +4163,70 @@
                 });
             }
             
-            // Load roles for select dropdown
             function loadRolesForSelect() {
-                $('#cashierRole').empty();
+                const select = $('#cashierRole');
+                select.empty();
                 
                 roles.forEach(role => {
-                    // Skip admin role (can't assign admin role to new users)
-                    if (role.code === 'admin') return;
-                    
-                    $('#cashierRole').append(`<option value="${role.code}">${role.name}</option>`);
+                    select.append(`<option value="${role.code}">${role.name}</option>`);
                 });
             }
             
-            // Update cart display
+            function loadStoreInfo() {
+                $('#storeName').val(settings.storeName);
+                $('#storeAddress').val(settings.storeAddress);
+                $('#storePhone').val(settings.storePhone);
+                $('#storeDescription').val(settings.storeDescription || '');
+            }
+            
+            function updateStoreInfo() {
+                $('#storeNameHeader').text(settings.storeName);
+                $('#receiptStoreName').text(settings.storeName);
+                $('#receiptStoreAddress').text(settings.storeAddress);
+                $('#receiptStorePhone').text(`Telp: ${settings.storePhone}`);
+                $('#receiptCopyright').text(settings.storeName);
+            }
+            
             function updateCart() {
                 // Calculate subtotal
                 currentCart.subtotal = currentCart.items.reduce((sum, item) => {
                     return sum + (item.product.price * item.quantity);
                 }, 0);
                 
+                // Apply discount if member is selected
+                if (currentCart.memberId && discounts.memberDiscount > 0) {
+                    currentCart.discount = currentCart.subtotal * (discounts.memberDiscount / 100);
+                    $('#cartDiscountInput').val(discounts.memberDiscount);
+                }
+                
                 // Calculate total
                 currentCart.total = currentCart.subtotal - currentCart.discount + currentCart.additionalCost;
                 
-                // Update cart display
-                $('#cartItems').empty();
+                // Update UI
+                $('#cartCount').text(`(${currentCart.items.length} item)`);
+                
+                const cartItems = $('#cartItems');
+                cartItems.empty();
                 
                 if (currentCart.items.length === 0) {
-                    $('#cartItems').html(`
+                    cartItems.html(`
                         <div class="empty-state">
                             <i class="fas fa-shopping-cart"></i>
-                            <p>Keranjang kosong</p>
+                            <p>Keranjang belanja kosong</p>
                         </div>
                     `);
                 } else {
                     currentCart.items.forEach(item => {
-                        $('#cartItems').append(`
+                        cartItems.append(`
                             <div class="cart-item">
                                 <div class="cart-item-info">
                                     <div class="cart-item-name">${item.product.name}</div>
-                                    <div class="cart-item-price">${formatCurrency(item.product.price)} x ${item.quantity}</div>
+                                    <div class="cart-item-price">${formatCurrency(item.product.price)} x ${item.quantity} ${item.product.unit}</div>
                                 </div>
                                 <div class="cart-item-qty">
-                                    <button class="qty-btn minus-item" data-id="${item.product.id}">-</button>
+                                    <button class="qty-btn minus" data-id="${item.product.id}">-</button>
                                     <input type="number" class="qty-input item-qty" data-id="${item.product.id}" value="${item.quantity}" min="1">
-                                    <button class="qty-btn plus-item" data-id="${item.product.id}">+</button>
+                                    <button class="qty-btn plus" data-id="${item.product.id}">+</button>
                                     <button class="remove-btn remove-item" data-id="${item.product.id}">
                                         <i class="fas fa-trash"></i>
                                     </button>
@@ -4514,15 +4242,10 @@
                 $('#cartAdditionalCost').text(formatCurrency(currentCart.additionalCost));
                 $('#cartTotal').text(formatCurrency(currentCart.total));
                 
-                // Update cart count
-                const totalItems = currentCart.items.reduce((sum, item) => sum + item.quantity, 0);
-                $('#cartCount').text(`(${totalItems} item)`);
-                
                 // Save cart to localStorage
-                saveCart();
+                localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(currentCart));
             }
             
-            // Update payment summary in checkout modal
             function updatePaymentSummary() {
                 $('#paymentSubtotal').text(formatCurrency(currentCart.subtotal));
                 $('#paymentDiscount').text(formatCurrency(currentCart.discount));
@@ -4530,7 +4253,63 @@
                 $('#paymentTotal').text(formatCurrency(currentCart.total));
             }
             
-            // Reset cart
+            function updateCurrentDate() {
+                const now = new Date();
+                $('#currentDate').text(moment(now).format('dddd, D MMMM YYYY'));
+            }
+            
+            function generateReceipt(transaction) {
+                // Update receipt template
+                $('#receiptDate').text(moment(transaction.date).format('DD/MM/YYYY HH:mm'));
+                $('#receiptId').text(transaction.id);
+                $('#receiptCashier').text(transaction.cashier.name);
+                $('#receiptCustomer').text(transaction.customer);
+                
+                // Member info
+                if (transaction.member) {
+                    const member = members.find(m => m.id === transaction.member);
+                    $('#receiptMember').text(member ? `${member.name} (${member.phone})` : '-');
+                } else {
+                    $('#receiptMember').text('-');
+                }
+                
+                // Items
+                const receiptItems = $('#receiptItems');
+                receiptItems.empty();
+                
+                transaction.items.forEach(item => {
+                    receiptItems.append(`
+                        <div class="receipt-item">
+                            <span>${item.product.name} (${item.quantity} ${item.product.unit})</span>
+                            <span>${formatCurrency(item.product.price * item.quantity)}</span>
+                        </div>
+                    `);
+                });
+                
+                // Summary
+                $('#receiptSubtotal').text(formatCurrency(transaction.subtotal));
+                $('#receiptDiscount').text(formatCurrency(transaction.discount));
+                $('#receiptAdditionalCost').text(formatCurrency(transaction.additionalCost));
+                $('#receiptTotal').text(formatCurrency(transaction.total));
+                
+                // Payment method
+                let paymentMethodText = '';
+                if (transaction.paymentMethod === 'cash') {
+                    paymentMethodText = 'Tunai';
+                } else if (transaction.paymentMethod === 'transfer') {
+                    paymentMethodText = 'Transfer Bank';
+                } else if (transaction.paymentMethod === 'ewallet') {
+                    paymentMethodText = 'E-Wallet';
+                }
+                
+                $('#receiptPaymentMethod').text(paymentMethodText + ':');
+                $('#receiptPaymentAmount').text(formatCurrency(transaction.paymentAmount));
+                $('#receiptChange').text(formatCurrency(transaction.change));
+                
+                // Show receipt template
+                $('#receiptTemplate').show();
+            }
+            
             function resetCart() {
                 currentCart = {
                     items: [],
@@ -4542,136 +4321,28 @@
                     memberId: null
                 };
                 
-                // Reset UI
+                updateCart();
                 $('#customerType').val('regular');
                 $('#memberSelectContainer').hide();
                 $('#cartDiscountInput').val(0);
                 $('#additionalCostInput').val(0);
                 $('#additionalCostNote').val('');
-                
-                updateCart();
             }
             
-            // Generate receipt HTML
-            function generateReceipt(transaction) {
-                // Update receipt header
-                $('#receiptStoreName').text(settings.storeName || 'APLIKASI KASIR MODERN');
-                $('#receiptStoreAddress').text(settings.storeAddress || 'Jl. Contoh No. 123, Kota');
-                $('#receiptStorePhone').text(`Telp: ${settings.storePhone || '081234567890'}`);
-                $('#receiptDate').text(moment(transaction.date).format('DD/MM/YYYY HH:mm'));
-                $('#receiptId').text(transaction.id);
-                $('#receiptCashier').text(transaction.cashier.name);
-                $('#receiptCustomer').text(transaction.customer);
-                
-                // Update member info
-                if (transaction.member) {
-                    const member = members.find(m => m.id === transaction.member);
-                    $('#receiptMember').text(member ? `${member.name} (${member.phone})` : '-');
-                } else {
-                    $('#receiptMember').text('-');
-                }
-                
-                // Update items
-                $('#receiptItems').empty();
-                transaction.items.forEach(item => {
-                    $('#receiptItems').append(`
-                        <div class="receipt-item">
-                            <span>${item.product.name} (${item.quantity} x ${formatCurrency(item.product.price)})</span>
-                            <span>${formatCurrency(item.product.price * item.quantity)}</span>
-                        </div>
-                    `);
-                });
-                
-                // Update summary
-                $('#receiptSubtotal').text(formatCurrency(transaction.subtotal));
-                $('#receiptDiscount').text(formatCurrency(transaction.discount));
-                $('#receiptAdditionalCost').text(formatCurrency(transaction.additionalCost));
-                $('#receiptTotal').text(formatCurrency(transaction.total));
-                
-                // Update payment info
-                const paymentMethod = formatPaymentMethod(transaction.paymentMethod);
-                $('#receiptPaymentMethod').text(`${paymentMethod}:`);
-                $('#receiptPaymentAmount').text(formatCurrency(transaction.paymentAmount));
-                $('#receiptChange').text(formatCurrency(transaction.change));
-                
-                // Update copyright year
-                $('#receiptYear').text(new Date().getFullYear());
-                $('#receiptCopyright').text(settings.storeName ? settings.storeName.split(' - ')[0] : 'Lentera Karya Situbondo');
-                
-                // Show receipt template
-                $('#receiptTemplate').show();
-            }
-            
-            // Open edit product modal
             function openEditProductModal(product) {
                 $('#productModal .modal-title').text('Edit Produk');
                 $('#productId').val(product.id);
                 $('#productName').val(product.name);
                 loadCategoriesForSelect();
                 $('#productCategory').val(product.category);
-                $('#productUnit').val(product.unit || 'Pcs');
+                $('#productUnit').val(product.unit);
                 $('#productPrice').val(product.price);
-                $('#productCost').val(product.cost || '');
+                $('#productCost').val(product.cost);
                 $('#productStock').val(product.stock);
                 $('#productModal').show();
             }
             
-            // Update current date display
-            function updateCurrentDate() {
-                $('#currentDate').text(moment().format('dddd, D MMMM YYYY'));
-            }
-            
-            // Update store info in header
-            function updateStoreInfo() {
-                $('#storeNameHeader').text(settings.storeName || 'APLIKASI KASIR MODERN');
-            }
-            
-            // Show toast notification
-            function showToast(message, type = 'info') {
-                const toast = $('#toast');
-                const toastMessage = $('#toast-message');
-                const toastIcon = toast.find('i');
-                
-                // Set message and style
-                toastMessage.text(message);
-                toast.removeClass('success error warning').addClass(type);
-                
-                // Set icon based on type
-                if (type === 'success') {
-                    toastIcon.removeClass().addClass('fas fa-check-circle');
-                } else if (type === 'error') {
-                    toastIcon.removeClass().addClass('fas fa-exclamation-circle');
-                } else if (type === 'warning') {
-                    toastIcon.removeClass().addClass('fas fa-exclamation-triangle');
-                } else {
-                    toastIcon.removeClass().addClass('fas fa-info-circle');
-                }
-                
-                // Show toast
-                toast.addClass('show');
-                
-                // Hide after 3 seconds
-                setTimeout(() => {
-                    toast.removeClass('show');
-                }, 3000);
-            }
-            
-            // Format currency
-            function formatCurrency(amount) {
-                return 'Rp ' + amount.toFixed(0).replace(/\d(?=(\d{3})+$)/g, '$&.');
-            }
-            
-            // Format payment method
-            function formatPaymentMethod(method) {
-                switch(method) {
-                    case 'cash': return 'Tunai';
-                    case 'transfer': return 'Transfer Bank';
-                    case 'ewallet': return 'E-Wallet';
-                    default: return method;
-                }
-            }
-            
-            // Save data functions
+            // Data saving functions
             function saveProducts() {
                 localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
             }
@@ -4712,19 +4383,120 @@
                 localStorage.setItem(STORAGE_KEYS.MEMOS, JSON.stringify(memos));
             }
             
-            function saveCart() {
-                localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(currentCart));
-            }
+            // Global functions for receipt printing
+            window.printReceipt = function() {
+                const receiptElement = document.getElementById('receiptTemplate');
+                const printWindow = window.open('', '', 'width=400,height=600');
+                printWindow.document.write('<html><head><title>Struk Pembayaran</title>');
+                printWindow.document.write('<style>');
+                printWindow.document.write(`
+                    body { font-family: Arial, sans-serif; margin: 0; padding: 10px; }
+                    .receipt { max-width: 300px; margin: 0 auto; }
+                    .receipt-header { text-align: center; margin-bottom: 10px; }
+                    .receipt-header h3 { margin: 0; font-size: 16px; font-weight: bold; }
+                    .receipt-header p { margin: 5px 0; font-size: 12px; }
+                    .receipt-body { font-size: 14px; }
+                    .receipt-body hr { border: none; border-top: 1px dashed #ddd; margin: 10px 0; }
+                    .receipt-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+                    .receipt-item.total-row { font-weight: bold; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd; }
+                    .receipt-footer { text-align: center; margin-top: 15px; font-size: 12px; }
+                    .no-print { display: none !important; }
+                `);
+                printWindow.document.write('</style>');
+                printWindow.document.write('</head><body>');
+                printWindow.document.write(receiptElement.innerHTML);
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                
+                setTimeout(() => {
+                    printWindow.print();
+                    printWindow.close();
+                }, 500);
+            };
             
-            // Plus item quantity in cart
-            $(document).on('click', '.plus-item', function(e) {
-                e.stopPropagation();
+            window.downloadReceiptPDF = function() {
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: [80, 200] // Small receipt size
+                });
+                
+                // Add store info
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+                doc.text(settings.storeName, 40, 10, { align: 'center' });
+                doc.setFontSize(8);
+                doc.text(settings.storeAddress, 40, 15, { align: 'center' });
+                doc.text(`Telp: ${settings.storePhone}`, 40, 18, { align: 'center' });
+                
+                // Add transaction info
+                doc.setFontSize(10);
+                doc.text(`Tanggal: ${moment().format('DD/MM/YYYY HH:mm')}`, 5, 25);
+                doc.text(`No. Transaksi: ${'TRX' + moment().format('YYYYMMDDHHmmss')}`, 5, 30);
+                doc.text(`Kasir: ${currentUser.name}`, 5, 35);
+                doc.text(`Pelanggan: ${$('#customerName').val() || 'Pelanggan Biasa'}`, 5, 40);
+                
+                // Add items
+                let yPos = 50;
+                currentCart.items.forEach(item => {
+                    doc.text(`${item.product.name} (${item.quantity} ${item.product.unit})`, 5, yPos);
+                    doc.text(formatCurrency(item.product.price * item.quantity), 70, yPos, { align: 'right' });
+                    yPos += 5;
+                });
+                
+                // Add summary
+                yPos += 5;
+                doc.line(5, yPos, 75, yPos);
+                yPos += 5;
+                
+                doc.text('Subtotal:', 5, yPos);
+                doc.text(formatCurrency(currentCart.subtotal), 70, yPos, { align: 'right' });
+                yPos += 5;
+                
+                doc.text('Diskon:', 5, yPos);
+                doc.text(formatCurrency(currentCart.discount), 70, yPos, { align: 'right' });
+                yPos += 5;
+                
+                doc.text('Biaya Tambahan:', 5, yPos);
+                doc.text(formatCurrency(currentCart.additionalCost), 70, yPos, { align: 'right' });
+                yPos += 5;
+                
+                doc.text('TOTAL:', 5, yPos);
+                doc.text(formatCurrency(currentCart.total), 70, yPos, { align: 'right' });
+                yPos += 5;
+                
+                // Add payment info
+                yPos += 5;
+                doc.line(5, yPos, 75, yPos);
+                yPos += 5;
+                
+                doc.text('Pembayaran:', 5, yPos);
+                doc.text(formatCurrency(parseFloat($('#paymentAmount').val()) || currentCart.total), 70, yPos, { align: 'right' });
+                yPos += 5;
+                
+                doc.text('Kembali:', 5, yPos);
+                doc.text(formatCurrency((parseFloat($('#paymentAmount').val()) || currentCart.total) - currentCart.total), 70, yPos, { align: 'right' });
+                yPos += 5;
+                
+                // Add footer
+                yPos += 5;
+                doc.setFontSize(8);
+                doc.text('Terima kasih telah berbelanja', 40, yPos, { align: 'center' });
+                yPos += 5;
+                doc.text(`© ${new Date().getFullYear()} ${settings.storeName}`, 40, yPos, { align: 'center' });
+                
+                // Save PDF
+                doc.save(`Struk_${moment().format('YYYYMMDDHHmmss')}.pdf`);
+            };
+            
+            // Plus/minus quantity buttons
+            $(document).on('click', '.qty-btn.plus', function() {
                 const productId = $(this).data('id');
                 const item = currentCart.items.find(item => item.product.id === productId);
+                const product = products.find(p => p.id === productId);
                 
-                if (item) {
+                if (item && product) {
                     // Check stock
-                    const product = products.find(p => p.id === productId);
                     if (item.quantity + 1 > product.stock) {
                         showToast('Stok tidak mencukupi', 'error');
                         return;
@@ -4735,9 +4507,7 @@
                 }
             });
             
-            // Minus item quantity in cart
-            $(document).on('click', '.minus-item', function(e) {
-                e.stopPropagation();
+            $(document).on('click', '.qty-btn.minus', function() {
                 const productId = $(this).data('id');
                 const item = currentCart.items.find(item => item.product.id === productId);
                 
@@ -4749,7 +4519,7 @@
                 }
             });
             
-            // Delete member
+            // Delete member button
             $(document).on('click', '.delete-member', function() {
                 const memberId = $(this).data('id');
                 
@@ -4762,31 +4532,221 @@
                 }
             });
             
-            // Print receipt
-            window.printReceipt = function() {
-                window.print();
-            };
+            // Product category select change
+            $('#productCategory').change(function() {
+                if ($(this).val() === 'new') {
+                    const newCategory = prompt('Masukkan nama kategori baru:');
+                    if (newCategory && newCategory.trim()) {
+                        // Check if category already exists
+                        if (categories.some(c => c.toLowerCase() === newCategory.trim().toLowerCase())) {
+                            showToast('Kategori sudah ada', 'error');
+                            $(this).val('');
+                            return;
+                        }
+                        
+                        categories.unshift(newCategory.trim());
+                        saveCategories();
+                        loadCategories();
+                        loadCategoriesForSelect();
+                        $(this).val(newCategory.trim());
+                        showToast('Kategori berhasil ditambahkan', 'success');
+                    } else {
+                        $(this).val('');
+                    }
+                }
+            });
             
-            // Download receipt as PDF
-            window.downloadReceiptPDF = function() {
-                const receipt = $('#receiptTemplate .receipt')[0];
-                const doc = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: [80, 200] // Small receipt size
-                });
+            // Cashier role select change
+            $('#cashierRole').change(function() {
+                // You can add additional logic here if needed
+            });
+            
+            // Initialize product modal category select
+            $('#productModal').on('show.bs.modal', function() {
+                loadCategoriesForSelect();
+            });
+            
+            // Initialize cashier modal role select
+            $('#cashierModal').on('show.bs.modal', function() {
+                loadRolesForSelect();
+            });
+            
+            // Admin password verification
+            $('#adminPasswordForm').submit(function(e) {
+                e.preventDefault();
+                const password = $('#adminPassword').val().trim();
                 
-                // Add receipt content
-                doc.html(receipt, {
-                    callback: function(doc) {
-                        doc.save(`Struk_${$('#receiptId').text()}.pdf`);
-                    },
-                    x: 5,
-                    y: 5,
-                    width: 70, // Narrow width for receipt
-                    windowWidth: receipt.scrollWidth
-                });
-            };
+                if (!password) {
+                    showToast('Password admin harus diisi', 'error');
+                    return;
+                }
+                
+                // Find admin user
+                const adminUser = users.find(u => u.role === 'admin');
+                
+                if (!adminUser) {
+                    showToast('Admin tidak ditemukan', 'error');
+                    return;
+                }
+                
+                // Verify password
+                const hashedPassword = CryptoJS.SHA256(password).toString();
+                
+                if (hashedPassword !== adminUser.password) {
+                    showToast('Password admin salah', 'error');
+                    return;
+                }
+                
+                // Password correct, execute pending action
+                $('#adminPasswordModal').hide();
+                $('#adminPassword').val('');
+                
+                if (pendingAdminAction) {
+                    pendingAdminAction();
+                    pendingAdminAction = null;
+                }
+            });
+            
+            // Cancel admin password verification
+            $('#cancelAdminPassword').click(function() {
+                $('#adminPasswordModal').hide();
+                $('#adminPassword').val('');
+                pendingAdminAction = null;
+            });
+            
+            // Report date change
+            $('#reportStartDate, #reportEndDate').change(function() {
+                // You can add validation if needed
+            });
+            
+            // Profit report date change
+            $('#profitReportStartDate, #profitReportEndDate').change(function() {
+                // You can add validation if needed
+            });
+            
+            // Member discount change
+            $('#memberDiscount').change(function() {
+                const discount = parseInt($(this).val()) || 0;
+                
+                if (discount < 0 || discount > 100) {
+                    showToast('Diskon harus antara 0-100%', 'error');
+                    $(this).val(0);
+                }
+            });
+            
+            // Cart discount change
+            $('#cartDiscountInput').change(function() {
+                const discount = parseInt($(this).val()) || 0;
+                
+                if (discount < 0 || discount > 100) {
+                    showToast('Diskon harus antara 0-100%', 'error');
+                    $(this).val(0);
+                }
+            });
+            
+            // Additional cost change
+            $('#additionalCostInput').change(function() {
+                const cost = parseFloat($(this).val()) || 0;
+                
+                if (cost < 0) {
+                    showToast('Biaya tambahan tidak boleh negatif', 'error');
+                    $(this).val(0);
+                }
+            });
+            
+            // Payment amount change
+            $('#paymentAmount').change(function() {
+                const amount = parseFloat($(this).val()) || 0;
+                
+                if (amount < 0) {
+                    showToast('Jumlah pembayaran tidak boleh negatif', 'error');
+                    $(this).val('');
+                }
+            });
+            
+            // Product stock change
+            $('#productStock').change(function() {
+                const stock = parseInt($(this).val()) || 0;
+                
+                if (stock < 0) {
+                    showToast('Stok tidak boleh negatif', 'error');
+                    $(this).val(0);
+                }
+            });
+            
+            // Product price change
+            $('#productPrice').change(function() {
+                const price = parseFloat($(this).val()) || 0;
+                
+                if (price <= 0) {
+                    showToast('Harga harus lebih dari 0', 'error');
+                    $(this).val('');
+                }
+            });
+            
+            // Product cost change
+            $('#productCost').change(function() {
+                const cost = parseFloat($(this).val()) || 0;
+                
+                if (cost < 0) {
+                    showToast('Harga pokok tidak boleh negatif', 'error');
+                    $(this).val('');
+                }
+            });
+            
+            // Cashier username change
+            $('#cashierUsername').on('input', function() {
+                const username = $(this).val().trim();
+                
+                // Validate username format
+                if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                    $(this).addClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+            
+            // Role code change
+            $('#roleCode').on('input', function() {
+                const code = $(this).val().trim();
+                
+                // Validate role code format
+                if (!/^[a-z0-9_]+$/.test(code)) {
+                    $(this).addClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+            
+            // Report period change
+            $('#reportPeriod').change(function() {
+                if ($(this).val() === 'custom') {
+                    $('#customDateRange').show();
+                } else {
+                    $('#customDateRange').hide();
+                }
+            });
+            
+            // Profit report period change
+            $('#profitReportPeriod').change(function() {
+                if ($(this).val() === 'custom') {
+                    $('#profitCustomDateRange').show();
+                } else {
+                    $('#profitCustomDateRange').hide();
+                }
+            });
+            
+            // Close modals when clicking outside
+            $('.modal').click(function(e) {
+                if (e.target === this) {
+                    $(this).hide();
+                }
+            });
+            
+            // Prevent modal close when clicking inside
+            $('.modal-content').click(function(e) {
+                e.stopPropagation();
+            });
         });
     </script>
 </body>
