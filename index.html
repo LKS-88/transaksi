@@ -60,11 +60,23 @@
             margin-bottom: 16px;
             box-shadow: var(--shadow);
             display: flex;
-            justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 100;
+        }
+
+        .header-logo {
+            height: 40px;
+            width: auto;
+            margin-right: 15px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-grow: 1;
         }
 
         .app-title {
@@ -85,13 +97,6 @@
             font-size: 0.7rem;
             opacity: 0.8;
             margin-top: 4px;
-        }
-
-        /* Main Content Layout */
-        .app-content {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
         }
 
         @media (min-width: 768px) {
@@ -914,11 +919,20 @@
             font-weight: bold;
             margin-bottom: 10px;
         }
+
+         @media (max-width: 768px) {
+            .header-logo {
+                height: 30px;
+            }
+            .app-title {
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
 <body>
     <!-- Toast Notification -->
-    <div id="toast" class="toast">
+     <div id="toast" class="toast">
         <i class="fas fa-info-circle"></i>
         <span id="toast-message">Notification message</span>
     </div>
@@ -927,14 +941,8 @@
     <div id="memoContainer" class="memo-container"></div>
 
     <!-- Login Modal -->
-    <div id="loginModal" class="modal" style="display: block;">
-        <div class="login-container">
-            <div class="login-header">
-                <div class="login-logo">
-                    <i class="fas fa-cash-register"></i>
-                </div>
-                <h1 class="login-title">SISTEM KASIR DIGITAL</h1>
-                <p>Solusi Pembayaran Cerdas</p> 
+                 <h1 class="login-title">APLIKASI KASIR MODERN</h1>
+                <p>Sistem Kasir Sederhana</p>
             </div>
             <form id="loginForm">
                 <div class="form-group">
@@ -951,7 +959,7 @@
             </form>
         </div>
     </div>
-
+    
     <!-- Admin Password Verification Modal -->
     <div id="adminPasswordModal" class="modal">
         <div class="admin-password-modal">
@@ -1830,6 +1838,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/id.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script>
         
@@ -1873,6 +1882,7 @@
                 }
             }
         });
+
         // Initialize jsPDF
         const { jsPDF } = window.jspdf;
 
