@@ -933,10 +933,8 @@
                 <div class="login-logo">
                     <i class="fas fa-cash-register"></i>
                 </div>
-                <h1 class="login-title">APLIKASI KASIR MODERN</h1>
-                <p>Sistem Kasir Sederhana</p>
-                <p style="color: var(--danger); font-weight: bold;">Username: admin | Password: admin123</p>
-                <p style="color: var(--danger); font-weight: bold;">Username: kasir | Password: kasir123</p>
+                <h1 class="login-title">SISTEM KASIR DIGITAL</h1>
+                <p>Solusi Pembayaran Cerdas</p> 
             </div>
             <form id="loginForm">
                 <div class="form-group">
@@ -1834,9 +1832,47 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script>
+        
         // Set locale to Indonesian
-        moment.locale('id');
-
+        moment.locale('id', {
+            months: 'Januari_Februari_Maret_April_Mei_Juni_Juli_Agustus_September_Oktober_November_Desember'.split('_'),
+            monthsShort: 'Jan_Feb_Mar_Apr_Mei_Jun_Jul_Ags_Sep_Okt_Nov_Des'.split('_'),
+            weekdays: 'Minggu_Senin_Selasa_Rabu_Kamis_Jumat_Sabtu'.split('_'),
+            weekdaysShort: 'Min_Sen_Sel_Rab_Kam_Jum_Sab'.split('_'),
+            weekdaysMin: 'Mg_Sn_Sl_Rb_Km_Jm_Sb'.split('_'),
+            longDateFormat: {
+                LT: 'HH.mm',
+                LTS: 'HH.mm.ss',
+                L: 'DD/MM/YYYY',
+                LL: 'D MMMM YYYY',
+                LLL: 'D MMMM YYYY [pukul] HH.mm',
+                LLLL: 'dddd, D MMMM YYYY [pukul] HH.mm'
+            },
+            meridiemParse: /pagi|siang|sore|malam/,
+            meridiemHour: function (hour, meridiem) {
+                if (hour === 12) {
+                    hour = 0;
+                }
+                if (meridiem === 'pagi') {
+                    return hour;
+                } else if (meridiem === 'siang') {
+                    return hour >= 11 ? hour : hour + 12;
+                } else if (meridiem === 'sore' || meridiem === 'malam') {
+                    return hour + 12;
+                }
+            },
+            meridiem: function (hours, minutes, isLower) {
+                if (hours < 11) {
+                    return 'pagi';
+                } else if (hours < 15) {
+                    return 'siang';
+                } else if (hours < 19) {
+                    return 'sore';
+                } else {
+                    return 'malam';
+                }
+            }
+        });
         // Initialize jsPDF
         const { jsPDF } = window.jspdf;
 
