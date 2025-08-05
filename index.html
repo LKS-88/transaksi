@@ -914,6 +914,51 @@
             font-weight: bold;
             margin-bottom: 10px;
         }
+
+        /* Trial Limit Warning */
+        .trial-limit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .trial-limit-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .trial-limit-content h3 {
+            color: var(--danger);
+            margin-bottom: 20px;
+        }
+
+        .trial-limit-content p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .trial-limit-content .btn {
+            margin-top: 20px;
+        }
+
+        /* Disabled Button */
+        .btn-disabled {
+            opacity: 0.5;
+            cursor: not-allowed !important;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -925,6 +970,23 @@
 
     <!-- Memo/Warning Container -->
     <div id="memoContainer" class="memo-container"></div>
+
+    <!-- Trial Limit Warning Modal -->
+    <div id="trialLimitModal" class="trial-limit-modal" style="display: none;">
+        <div class="trial-limit-content">
+            <h3><i class="fas fa-exclamation-triangle"></i> Batas Versi Uji Coba</h3>
+            <p id="trialLimitMessage">Anda telah mencapai batas penggunaan fitur dalam versi uji coba.</p>
+            <p>Untuk mendapatkan akses penuh ke semua fitur aplikasi, silakan hubungi tim penjualan kami untuk melakukan pembelian versi lengkap.</p>
+            <p>Dengan membeli versi lengkap, Anda akan mendapatkan:</p>
+            <ul style="text-align: left; margin: 15px 0;">
+                <li>Akses penuh tanpa batasan</li>
+                <li>Dukungan teknis prioritas</li>
+                <li>Pembaruan fitur gratis</li>
+                <li>Bonus cashback dan kode referral</li>
+            </ul>
+            <button class="btn btn-primary" id="closeTrialLimitModal">Tutup Peringatan</button>
+        </div>
+    </div>
 
     <!-- Login Modal -->
     <div id="loginModal" class="modal" style="display: block;">
@@ -1889,14 +1951,15 @@
             MEMBERS: 'kasir_members',
             ROLES: 'kasir_roles',
             DISCOUNTS: 'kasir_discounts',
-            MEMOS: 'kasir_memos'
+            MEMOS: 'kasir_memos',
+            TRIAL_LIMITS: 'kasir_trial_limits'
         };
         
-        // Default admin user (username: admin, password: Admin.13579)
+        // Default admin user (username: admin, password: 12345)
         const DEFAULT_ADMIN = {
             id: 'U001',
             username: 'admin',
-            password: CryptoJS.SHA256('Admin.13579').toString(),
+            password: CryptoJS.SHA256('12345').toString(),
             name: 'Administrator',
             role: 'admin'
         };
@@ -2013,6 +2076,15 @@
             if (!localStorage.getItem(STORAGE_KEYS.MEMOS)) {
                 localStorage.setItem(STORAGE_KEYS.MEMOS, JSON.stringify([]));
             }
+            
+            // Initialize trial limits if not exists
+            if (!localStorage.getItem(STORAGE_KEYS.TRIAL_LIMITS)) {
+                localStorage.setItem(STORAGE_KEYS.TRIAL_LIMITS, JSON.stringify({
+                    transactions: 0,
+                    categories: 0,
+                    products: 0
+                }));
+            }
         }
         
         // Load data
@@ -2027,6 +2099,11 @@
         let currentUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER)) || null;
         let stockHistory = JSON.parse(localStorage.getItem(STORAGE_KEYS.STOCK_HISTORY)) || [];
         let memos = JSON.parse(localStorage.getItem(STORAGE_KEYS.MEMOS)) || [];
+        let trialLimits = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRIAL_LIMITS)) || {
+            transactions: 0,
+            categories: 0,
+            products: 0
+        };
         let currentCart = JSON.parse(localStorage.getItem(STORAGE_KEYS.CART)) || {
             items: [],
             subtotal: 0,
@@ -2069,6 +2146,9 @@
                 updateStoreInfo();
                 loadMembersForSelect();
                 loadActiveMemos();
+                
+                // Check trial limits and disable features if exceeded
+                checkTrialLimits();
                 
                 // Show admin panel if user has admin permissions
                 if (currentUser.role === 'admin' || hasPermission(currentUser.role, 'manageProducts')) {
@@ -2166,6 +2246,9 @@
                 $('#loginModal').hide();
                 $('#mainApp').fadeIn();
                 
+                // Check trial limits and disable features if exceeded
+                checkTrialLimits();
+                
                 // Show admin panel if user has admin permissions
                 if (currentUser.role === 'admin' || hasPermission(currentUser.role, 'manageProducts')) {
                     $('#adminPanel').show();
@@ -2201,6 +2284,35 @@
                 loadActiveMemos();
                 
                 showToast('Login berhasil', 'success');
+            });
+            
+            // Function to check trial limits and disable features
+            function checkTrialLimits() {
+                // Check transaction limit
+                if (trialLimits.transactions >= 5) {
+                    $('#checkoutBtn, #completePaymentBtn').addClass('btn-disabled');
+                }
+                
+                // Check categories limit
+                if (trialLimits.categories >= 5) {
+                    $('#addCategoryBtn').addClass('btn-disabled');
+                }
+                
+                // Check products limit
+                if (trialLimits.products >= 5) {
+                    $('#addProductBtn').addClass('btn-disabled');
+                }
+            }
+            
+            // Function to show trial limit warning
+            function showTrialLimitWarning(message) {
+                $('#trialLimitMessage').html(message);
+                $('#trialLimitModal').fadeIn();
+            }
+            
+            // Close trial limit warning
+            $('#closeTrialLimitModal').click(function() {
+                $('#trialLimitModal').fadeOut();
             });
             
             // Update role badge display
@@ -2370,6 +2482,12 @@
                     return;
                 }
                 
+                // Check transaction trial limit
+                if (trialLimits.transactions >= 5) {
+                    showTrialLimitWarning('Anda telah mencapai batas transaksi dalam versi uji coba. Anda hanya diperbolehkan melakukan 5 transaksi untuk uji coba sistem.<br><br>Untuk menikmati fitur lengkap tanpa batasan, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
+                    return;
+                }
+                
                 $('#checkoutModal').show();
                 $('#customerName').val('');
                 $('#paymentAmount').val('');
@@ -2454,6 +2572,16 @@
                 transactions.unshift(transaction);
                 saveTransactions();
                 
+                // Update transaction trial limit
+                trialLimits.transactions++;
+                localStorage.setItem(STORAGE_KEYS.TRIAL_LIMITS, JSON.stringify(trialLimits));
+                
+                // Check if reached transaction limit
+                if (trialLimits.transactions >= 5) {
+                    $('#checkoutBtn, #completePaymentBtn').addClass('btn-disabled');
+                    showTrialLimitWarning('Anda telah mencapai batas transaksi dalam versi uji coba. Anda hanya diperbolehkan melakukan 5 transaksi untuk uji coba sistem.<br><br>Untuk menikmati fitur lengkap tanpa batasan, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
+                }
+                
                 // Generate receipt
                 generateReceipt(transaction);
                 
@@ -2481,6 +2609,12 @@
             $('#addProductBtn').click(function() {
                 if (!hasPermission(currentUser.role, 'addProduct')) {
                     showToast('Anda tidak memiliki izin untuk menambah produk', 'error');
+                    return;
+                }
+                
+                // Check product trial limit
+                if (trialLimits.products >= 5) {
+                    showTrialLimitWarning('Anda telah mencapai batas penambahan produk dalam versi uji coba. Anda hanya diperbolehkan menambahkan 5 produk untuk uji coba sistem.<br><br>Untuk menikmati fitur lengkap tanpa batasan, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
                     return;
                 }
                 
@@ -2560,62 +2694,21 @@
             
             // Data management buttons
             $('#backupDataBtn').click(function() {
-                if (!hasPermission(currentUser.role, 'dataManagement')) {
-                    showToast('Anda tidak memiliki izin untuk mengelola data', 'error');
-                    return;
-                }
-                
-                $('#backupDataModal').show();
+                showTrialLimitWarning('Fitur backup data tidak tersedia dalam versi uji coba. Untuk menggunakan fitur ini, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
             });
             
             $('#restoreDataBtn').click(function() {
-                if (!hasPermission(currentUser.role, 'dataManagement')) {
-                    showToast('Anda tidak memiliki izin untuk mengelola data', 'error');
-                    return;
-                }
-                
-                $('#restoreDataModal').show();
+                showTrialLimitWarning('Fitur restore data tidak tersedia dalam versi uji coba. Untuk menggunakan fitur ini, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
             });
             
             $('#resetDataBtn').click(function() {
-                if (!hasPermission(currentUser.role, 'dataManagement')) {
-                    showToast('Anda tidak memiliki izin untuk mengelola data', 'error');
-                    return;
-                }
-                
-                $('#resetDataModal').show();
-                $('#resetConfirmText').val('');
-                $('#confirmResetBtn').prop('disabled', true);
+                showTrialLimitWarning('Fitur reset data tidak tersedia dalam versi uji coba. Untuk menggunakan fitur ini, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
             });
             
             // Confirm backup data
             $('#confirmBackupBtn').click(function() {
-                const backupData = {
-                    products: products,
-                    categories: categories,
-                    transactions: transactions,
-                    settings: settings,
-                    users: users,
-                    members: members,
-                    roles: roles,
-                    discounts: discounts,
-                    stockHistory: stockHistory,
-                    memos: memos,
-                    backupDate: new Date(),
-                    backupBy: currentUser.username
-                };
-                
-                const fileName = $('#backupFileName').val().trim() || 'backup_kasir';
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
-                const downloadAnchorNode = document.createElement('a');
-                downloadAnchorNode.setAttribute("href", dataStr);
-                downloadAnchorNode.setAttribute("download", fileName + ".json");
-                document.body.appendChild(downloadAnchorNode);
-                downloadAnchorNode.click();
-                downloadAnchorNode.remove();
-                
+                showTrialLimitWarning('Fitur backup data tidak tersedia dalam versi uji coba. Untuk menggunakan fitur ini, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
                 $('#backupDataModal').hide();
-                showToast('Backup data berhasil dibuat', 'success');
             });
             
             // Cancel backup
@@ -2625,66 +2718,8 @@
             
             // Confirm restore data
             $('#confirmRestoreBtn').click(function() {
-                const fileInput = $('#restoreFileInput')[0];
-                if (fileInput.files.length === 0) {
-                    showToast('Pilih file backup terlebih dahulu', 'error');
-                    return;
-                }
-                
-                const file = fileInput.files[0];
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    try {
-                        const backupData = JSON.parse(e.target.result);
-                        
-                        // Validate backup data
-                        if (!backupData.products || !backupData.users || !backupData.settings) {
-                            showToast('File backup tidak valid', 'error');
-                            return;
-                        }
-                        
-                        // Restore data
-                        products = backupData.products || [];
-                        categories = backupData.categories || [];
-                        transactions = backupData.transactions || [];
-                        settings = backupData.settings || {};
-                        users = backupData.users || [];
-                        members = backupData.members || [];
-                        roles = backupData.roles || [];
-                        discounts = backupData.discounts || { memberDiscount: 10 };
-                        stockHistory = backupData.stockHistory || [];
-                        memos = backupData.memos || [];
-                        
-                        // Save all data
-                        saveProducts();
-                        saveCategories();
-                        saveTransactions();
-                        saveSettings();
-                        saveUsers();
-                        saveMembers();
-                        saveRoles();
-                        saveDiscounts();
-                        saveStockHistory();
-                        saveMemos();
-                        
-                        // Reload UI
-                        loadProducts();
-                        updateCart();
-                        loadCategories();
-                        updateStoreInfo();
-                        loadMembersForSelect();
-                        loadActiveMemos();
-                        
-                        $('#restoreDataModal').hide();
-                        showToast('Data berhasil di-restore', 'success');
-                    } catch (error) {
-                        showToast('Gagal membaca file backup', 'error');
-                        console.error(error);
-                    }
-                };
-                
-                reader.readAsText(file);
+                showTrialLimitWarning('Fitur restore data tidak tersedia dalam versi uji coba. Untuk menggunakan fitur ini, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
+                $('#restoreDataModal').hide();
             });
             
             // Cancel restore
@@ -2700,49 +2735,8 @@
             
             // Confirm reset data
             $('#confirmResetBtn').click(function() {
-                // Keep admin user
-                const adminUser = users.find(u => u.username === 'admin');
-                
-                // Reset all data except admin user
-                products = [];
-                categories = [];
-                transactions = [];
-                settings = {
-                    storeName: 'APLIKASI KASIR MODERN',
-                    storeAddress: 'Jl. Contoh No. 123, Kota',
-                    storePhone: '081234567890',
-                    storeDescription: 'Toko serba ada dengan harga terjangkau'
-                };
-                users = adminUser ? [adminUser, DEFAULT_CASHIER] : [DEFAULT_ADMIN, DEFAULT_CASHIER];
-                members = [];
-                roles = DEFAULT_ROLES;
-                discounts = { memberDiscount: 10 };
-                stockHistory = [];
-                memos = [];
-                resetCart();
-                
-                // Save all data
-                saveProducts();
-                saveCategories();
-                saveTransactions();
-                saveSettings();
-                saveUsers();
-                saveMembers();
-                saveRoles();
-                saveDiscounts();
-                saveStockHistory();
-                saveMemos();
-                
-                // Reload UI
-                loadProducts();
-                updateCart();
-                loadCategories();
-                updateStoreInfo();
-                loadMembersForSelect();
-                loadActiveMemos();
-                
+                showTrialLimitWarning('Fitur reset data tidak tersedia dalam versi uji coba. Untuk menggunakan fitur ini, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
                 $('#resetDataModal').hide();
-                showToast('Semua data telah direset ke pengaturan awal', 'success');
             });
             
             // Cancel reset
@@ -3057,13 +3051,13 @@
                 
                 if (!role) return;
                 
-                $('#roleModal .modal-title').text('Edit Role');
+                                $('#roleModal .modal-title').text('Edit Role');
                 $('#roleId').val(role.id);
                 $('#roleName').val(role.name);
                 $('#roleCode').val(role.code);
                 $('#memberDiscount').val(role.memberDiscount || 0);
                 
-                // Set permissions
+                // Set permissions checkboxes
                 $('#permAddProduct').prop('checked', role.permissions.addProduct || false);
                 $('#permManageCategories').prop('checked', role.permissions.manageCategories || false);
                 $('#permViewReports').prop('checked', role.permissions.viewReports || false);
@@ -3083,11 +3077,11 @@
             $(document).on('click', '.delete-role', function() {
                 const roleId = $(this).data('id');
                 
-                // Check if role is used by any user
-                const usersWithRole = users.filter(u => u.role === roles.find(r => r.id === roleId).code);
+                // Check if role is in use
+                const roleInUse = users.some(u => u.role === roleId);
                 
-                if (usersWithRole.length > 0) {
-                    showToast('Tidak bisa menghapus role yang sedang digunakan oleh pengguna', 'error');
+                if (roleInUse) {
+                    showToast('Role ini sedang digunakan dan tidak dapat dihapus', 'error');
                     return;
                 }
                 
@@ -3097,6 +3091,158 @@
                     loadRoles();
                     showToast('Role berhasil dihapus', 'success');
                 }
+            });
+            
+            // Save role
+            $('#saveRoleBtn').click(function() {
+                const id = $('#roleId').val();
+                const name = $('#roleName').val().trim();
+                const code = $('#roleCode').val().trim();
+                const memberDiscount = parseInt($('#memberDiscount').val()) || 0;
+                
+                if (!name || !code) {
+                    showToast('Nama dan kode role harus diisi', 'error');
+                    return;
+                }
+                
+                // Check if code is unique (when adding new role)
+                if (!id && roles.some(r => r.code === code)) {
+                    showToast('Kode role sudah digunakan', 'error');
+                    return;
+                }
+                
+                const permissions = {
+                    addProduct: $('#permAddProduct').is(':checked'),
+                    manageCategories: $('#permManageCategories').is(':checked'),
+                    viewReports: $('#permViewReports').is(':checked'),
+                    manageProducts: $('#permManageProducts').is(':checked'),
+                    manageCashiers: $('#permManageCashiers').is(':checked'),
+                    manageMembers: $('#permManageMembers').is(':checked'),
+                    manageStoreInfo: $('#permManageStoreInfo').is(':checked'),
+                    viewProfitReports: $('#permViewProfitReports').is(':checked'),
+                    manageRoles: $('#permManageRoles').is(':checked'),
+                    dataManagement: $('#permDataManagement').is(':checked'),
+                    manageMemos: $('#permManageMemos').is(':checked')
+                };
+                
+                if (id) {
+                    // Editing existing role
+                    const roleIndex = roles.findIndex(r => r.id === id);
+                    if (roleIndex === -1) return;
+                    
+                    // Update role
+                    roles[roleIndex] = {
+                        ...roles[roleIndex],
+                        name: name,
+                        code: code,
+                        permissions: permissions,
+                        memberDiscount: memberDiscount
+                    };
+                } else {
+                    // Create new role
+                    const newRole = {
+                        id: 'ROLE' + moment().format('YYYYMMDDHHmmss'),
+                        name: name,
+                        code: code,
+                        permissions: permissions,
+                        memberDiscount: memberDiscount
+                    };
+                    
+                    roles.unshift(newRole);
+                }
+                
+                saveRoles();
+                loadRoles();
+                
+                $('#roleModal').hide();
+                $('#roleForm')[0].reset();
+                
+                showToast('Role berhasil disimpan', 'success');
+            });
+            
+            // Cancel role modal
+            $('#cancelRole').click(function() {
+                $('#roleModal').hide();
+            });
+            
+            // Cancel manage roles
+            $('#cancelManageRoles').click(function() {
+                $('#manageRolesModal').hide();
+            });
+            
+            // Save cashier
+            $('#saveCashierBtn').click(function() {
+                const id = $('#cashierId').val();
+                const username = $('#cashierUsername').val().trim();
+                const name = $('#cashierName').val().trim();
+                const password = $('#cashierPassword').val();
+                const confirmPassword = $('#cashierConfirmPassword').val();
+                const role = $('#cashierRole').val();
+                
+                if (!username || !name || !role) {
+                    showToast('Username, nama, dan role harus diisi', 'error');
+                    return;
+                }
+                
+                // Check if username is unique (when adding new cashier)
+                if (!id && users.some(u => u.username === username)) {
+                    showToast('Username sudah digunakan', 'error');
+                    return;
+                }
+                
+                // Check password (only when adding new or changing password)
+                if ((!id || password) && password !== confirmPassword) {
+                    showToast('Password dan konfirmasi password tidak sama', 'error');
+                    return;
+                }
+                
+                if (id) {
+                    // Editing existing cashier
+                    const cashierIndex = users.findIndex(u => u.id === id);
+                    if (cashierIndex === -1) return;
+                    
+                    // Update cashier
+                    users[cashierIndex] = {
+                        ...users[cashierIndex],
+                        username: username,
+                        name: name,
+                        role: role
+                    };
+                    
+                    // Update password if changed
+                    if (password) {
+                        users[cashierIndex].password = CryptoJS.SHA256(password).toString();
+                    }
+                } else {
+                    // Create new cashier
+                    const newCashier = {
+                        id: 'USER' + moment().format('YYYYMMDDHHmmss'),
+                        username: username,
+                        password: CryptoJS.SHA256(password).toString(),
+                        name: name,
+                        role: role
+                    };
+                    
+                    users.unshift(newCashier);
+                }
+                
+                saveUsers();
+                loadCashiers();
+                
+                $('#cashierModal').hide();
+                $('#cashierForm')[0].reset();
+                
+                showToast('Kasir berhasil disimpan', 'success');
+            });
+            
+            // Cancel cashier modal
+            $('#cancelCashier').click(function() {
+                $('#cashierModal').hide();
+            });
+            
+            // Cancel manage cashiers
+            $('#cancelManageCashiers').click(function() {
+                $('#manageCashiersModal').hide();
             });
             
             // Save member
@@ -3128,7 +3274,7 @@
                 } else {
                     // Create new member
                     const newMember = {
-                        id: 'M' + moment().format('YYYYMMDDHHmmss'),
+                        id: 'MEMBER' + moment().format('YYYYMMDDHHmmss'),
                         name: name,
                         phone: phone,
                         address: address,
@@ -3149,146 +3295,27 @@
                 showToast('Member berhasil disimpan', 'success');
             });
             
-            // Save role
-            $('#saveRoleBtn').click(function() {
-                const id = $('#roleId').val();
-                const name = $('#roleName').val().trim();
-                const code = $('#roleCode').val().trim();
-                const memberDiscount = parseInt($('#memberDiscount').val()) || 0;
-                
-                if (!name || !code) {
-                    showToast('Nama role dan kode role harus diisi', 'error');
-                    return;
-                }
-                
-                // Validate role code format
-                if (!/^[a-z0-9_]+$/.test(code)) {
-                    showToast('Kode role hanya boleh mengandung huruf kecil, angka, dan underscore', 'error');
-                    return;
-                }
-                
-                                if (id) {
-                    // Editing existing role
-                    const roleIndex = roles.findIndex(r => r.id === id);
-                    if (roleIndex === -1) return;
-                    
-                    // Update role
-                    roles[roleIndex] = {
-                        ...roles[roleIndex],
-                        name: name,
-                        code: code,
-                        memberDiscount: memberDiscount,
-                        permissions: {
-                            addProduct: $('#permAddProduct').is(':checked'),
-                            manageCategories: $('#permManageCategories').is(':checked'),
-                            viewReports: $('#permViewReports').is(':checked'),
-                            manageProducts: $('#permManageProducts').is(':checked'),
-                            manageCashiers: $('#permManageCashiers').is(':checked'),
-                            manageMembers: $('#permManageMembers').is(':checked'),
-                            manageStoreInfo: $('#permManageStoreInfo').is(':checked'),
-                            viewProfitReports: $('#permViewProfitReports').is(':checked'),
-                            manageRoles: $('#permManageRoles').is(':checked'),
-                            dataManagement: $('#permDataManagement').is(':checked'),
-                            manageMemos: $('#permManageMemos').is(':checked')
-                        }
-                    };
-                } else {
-                    // Create new role
-                    const newRole = {
-                        id: 'R' + moment().format('YYYYMMDDHHmmss'),
-                        name: name,
-                        code: code,
-                        memberDiscount: memberDiscount,
-                        permissions: {
-                            addProduct: $('#permAddProduct').is(':checked'),
-                            manageCategories: $('#permManageCategories').is(':checked'),
-                            viewReports: $('#permViewReports').is(':checked'),
-                            manageProducts: $('#permManageProducts').is(':checked'),
-                            manageCashiers: $('#permManageCashiers').is(':checked'),
-                            manageMembers: $('#permManageMembers').is(':checked'),
-                            manageStoreInfo: $('#permManageStoreInfo').is(':checked'),
-                            viewProfitReports: $('#permViewProfitReports').is(':checked'),
-                            manageRoles: $('#permManageRoles').is(':checked'),
-                            dataManagement: $('#permDataManagement').is(':checked'),
-                            manageMemos: $('#permManageMemos').is(':checked')
-                        }
-                    };
-                    
-                    roles.unshift(newRole);
-                }
-                
-                saveRoles();
-                loadRoles();
-                
-                $('#roleModal').hide();
-                $('#roleForm')[0].reset();
-                
-                showToast('Role berhasil disimpan', 'success');
+            // Cancel member modal
+            $('#cancelMember').click(function() {
+                $('#memberModal').hide();
             });
             
-            // Save cashier
-            $('#saveCashierBtn').click(function() {
-                const id = $('#cashierId').val();
-                const username = $('#cashierUsername').val().trim();
-                const name = $('#cashierName').val().trim();
-                const password = $('#cashierPassword').val();
-                const confirmPassword = $('#cashierConfirmPassword').val();
-                const role = $('#cashierRole').val();
+            // Cancel manage members
+            $('#cancelManageMembers').click(function() {
+                $('#manageMembersModal').hide();
+            });
+            
+            // Delete member button
+            $(document).on('click', '.delete-member', function() {
+                const memberId = $(this).data('id');
                 
-                if (!username || !name || !role) {
-                    showToast('Username, nama, dan role harus diisi', 'error');
-                    return;
+                if (confirm('Apakah Anda yakin ingin menghapus member ini?')) {
+                    members = members.filter(m => m.id !== memberId);
+                    saveMembers();
+                    loadMembers();
+                    loadMembersForSelect();
+                    showToast('Member berhasil dihapus', 'success');
                 }
-                
-                if (!id && (!password || !confirmPassword)) {
-                    showToast('Password harus diisi', 'error');
-                    return;
-                }
-                
-                if (password !== confirmPassword) {
-                    showToast('Password dan konfirmasi password tidak cocok', 'error');
-                    return;
-                }
-                
-                if (id) {
-                    // Editing existing cashier
-                    const cashierIndex = users.findIndex(u => u.id === id);
-                    if (cashierIndex === -1) return;
-                    
-                    // Update cashier
-                    users[cashierIndex] = {
-                        ...users[cashierIndex],
-                        username: username,
-                        name: name,
-                        password: password ? CryptoJS.SHA256(password).toString() : users[cashierIndex].password,
-                        role: role
-                    };
-                } else {
-                    // Check if username already exists
-                    if (users.some(u => u.username === username)) {
-                        showToast('Username sudah digunakan', 'error');
-                        return;
-                    }
-                    
-                    // Create new cashier
-                    const newCashier = {
-                        id: 'U' + moment().format('YYYYMMDDHHmmss'),
-                        username: username,
-                        password: CryptoJS.SHA256(password).toString(),
-                        name: name,
-                        role: role
-                    };
-                    
-                    users.unshift(newCashier);
-                }
-                
-                saveUsers();
-                loadCashiers();
-                
-                $('#cashierModal').hide();
-                $('#cashierForm')[0].reset();
-                
-                showToast('Kasir berhasil disimpan', 'success');
             });
             
             // Save product
@@ -3311,9 +3338,6 @@
                     const productIndex = products.findIndex(p => p.id === id);
                     if (productIndex === -1) return;
                     
-                    // Get old stock for history
-                    const oldStock = products[productIndex].stock;
-                    
                     // Update product
                     products[productIndex] = {
                         ...products[productIndex],
@@ -3324,26 +3348,16 @@
                         cost: cost,
                         stock: stock
                     };
-                    
-                    // Add to stock history if stock changed
-                    if (oldStock !== stock) {
-                        stockHistory.push({
-                            productId: id,
-                            productName: name,
-                            date: new Date(),
-                            type: 'adjustment',
-                            quantity: stock - oldStock,
-                            oldStock: oldStock,
-                            newStock: stock,
-                            note: 'Penyesuaian stok manual',
-                            user: currentUser.name
-                        });
-                        saveStockHistory();
-                    }
                 } else {
+                    // Check product trial limit
+                    if (trialLimits.products >= 5) {
+                        showTrialLimitWarning('Anda telah mencapai batas penambahan produk dalam versi uji coba. Anda hanya diperbolehkan menambahkan 5 produk untuk uji coba sistem.<br><br>Untuk menikmati fitur lengkap tanpa batasan, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
+                        return;
+                    }
+                    
                     // Create new product
                     const newProduct = {
-                        id: 'P' + moment().format('YYYYMMDDHHmmss'),
+                        id: 'PROD' + moment().format('YYYYMMDDHHmmss'),
                         name: name,
                         category: category,
                         unit: unit,
@@ -3354,19 +3368,15 @@
                     
                     products.unshift(newProduct);
                     
-                    // Add to stock history
-                    stockHistory.push({
-                        productId: newProduct.id,
-                        productName: name,
-                        date: new Date(),
-                        type: 'in',
-                        quantity: stock,
-                        oldStock: 0,
-                        newStock: stock,
-                        note: 'Stok awal',
-                        user: currentUser.name
-                    });
-                    saveStockHistory();
+                    // Update product trial limit
+                    trialLimits.products++;
+                    localStorage.setItem(STORAGE_KEYS.TRIAL_LIMITS, JSON.stringify(trialLimits));
+                    
+                    // Check if reached product limit
+                    if (trialLimits.products >= 5) {
+                        $('#addProductBtn').addClass('btn-disabled');
+                        showTrialLimitWarning('Anda telah mencapai batas penambahan produk dalam versi uji coba. Anda hanya diperbolehkan menambahkan 5 produk untuk uji coba sistem.<br><br>Untuk menikmati fitur lengkap tanpa batasan, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
+                    }
                 }
                 
                 saveProducts();
@@ -3378,12 +3388,23 @@
                 showToast('Produk berhasil disimpan', 'success');
             });
             
-            // Save category
+            // Cancel product modal
+            $('#cancelProduct').click(function() {
+                $('#productModal').hide();
+            });
+            
+            // Add category
             $('#addCategoryBtn').click(function() {
                 const categoryName = $('#newCategoryName').val().trim();
                 
                 if (!categoryName) {
                     showToast('Nama kategori harus diisi', 'error');
+                    return;
+                }
+                
+                // Check category trial limit
+                if (trialLimits.categories >= 5) {
+                    showTrialLimitWarning('Anda telah mencapai batas penambahan kategori dalam versi uji coba. Anda hanya diperbolehkan menambahkan 5 kategori untuk uji coba sistem.<br><br>Untuk menikmati fitur lengkap tanpa batasan, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
                     return;
                 }
                 
@@ -3400,29 +3421,355 @@
                 loadCategoriesForManagement();
                 
                 $('#newCategoryName').val('');
+                
+                // Update category trial limit
+                trialLimits.categories++;
+                localStorage.setItem(STORAGE_KEYS.TRIAL_LIMITS, JSON.stringify(trialLimits));
+                
+                // Check if reached category limit
+                if (trialLimits.categories >= 5) {
+                    $('#addCategoryBtn').addClass('btn-disabled');
+                    showTrialLimitWarning('Anda telah mencapai batas penambahan kategori dalam versi uji coba. Anda hanya diperbolehkan menambahkan 5 kategori untuk uji coba sistem.<br><br>Untuk menikmati fitur lengkap tanpa batasan, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
+                }
+                
                 showToast('Kategori berhasil ditambahkan', 'success');
             });
             
             // Delete category
             $(document).on('click', '.delete-category', function() {
-                const category = $(this).data('category');
+                const categoryName = $(this).data('name');
                 
                 // Check if category is used by any product
-                const productsInCategory = products.filter(p => p.category === category);
+                const isCategoryUsed = products.some(p => p.category === categoryName);
                 
-                if (productsInCategory.length > 0) {
-                    showToast('Tidak bisa menghapus kategori yang digunakan oleh produk', 'error');
+                if (isCategoryUsed) {
+                    showToast('Kategori ini sedang digunakan dan tidak dapat dihapus', 'error');
                     return;
                 }
                 
-                if (confirm(`Apakah Anda yakin ingin menghapus kategori "${category}"?`)) {
-                    categories = categories.filter(c => c !== category);
+                if (confirm(`Apakah Anda yakin ingin menghapus kategori "${categoryName}"?`)) {
+                    categories = categories.filter(c => c !== categoryName);
                     saveCategories();
                     loadCategories();
                     loadCategoriesForSelect();
                     loadCategoriesForManagement();
                     showToast('Kategori berhasil dihapus', 'success');
                 }
+            });
+            
+            // Cancel manage categories
+            $('#cancelManageCategories').click(function() {
+                $('#manageCategoriesModal').hide();
+            });
+            
+            // Generate report
+            $('#generateReportBtn').click(function() {
+                const period = $('#reportPeriod').val();
+                let startDate, endDate;
+                
+                if (period === 'custom') {
+                    startDate = new Date($('#reportStartDate').val());
+                    endDate = new Date($('#reportEndDate').val());
+                    
+                    if (!startDate || !endDate) {
+                        showToast('Harap pilih rentang tanggal', 'error');
+                        return;
+                    }
+                    
+                    // Set end date to end of day
+                    endDate.setHours(23, 59, 59, 999);
+                } else {
+                    // Set date range based on period
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    if (period === 'today') {
+                        startDate = new Date(today);
+                        endDate = new Date(today);
+                        endDate.setHours(23, 59, 59, 999);
+                    } else if (period === 'week') {
+                        startDate = new Date(today);
+                        startDate.setDate(today.getDate() - today.getDay()); // Start from Sunday
+                        endDate = new Date(today);
+                        endDate.setDate(today.getDate() + (6 - today.getDay())); // End on Saturday
+                        endDate.setHours(23, 59, 59, 999);
+                    } else if (period === 'month') {
+                        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                        endDate.setHours(23, 59, 59, 999);
+                    }
+                }
+                
+                // Filter transactions by date range
+                const filteredTransactions = transactions.filter(t => {
+                    const transDate = new Date(t.date);
+                    return transDate >= startDate && transDate <= endDate;
+                });
+                
+                // Calculate totals
+                const totalTransactions = filteredTransactions.length;
+                const totalRevenue = filteredTransactions.reduce((sum, t) => sum + t.total, 0);
+                const totalDiscount = filteredTransactions.reduce((sum, t) => sum + t.discount, 0);
+                const totalAdditionalCost = filteredTransactions.reduce((sum, t) => sum + t.additionalCost, 0);
+                
+                // Get top products
+                const productSales = {};
+                filteredTransactions.forEach(t => {
+                    t.items.forEach(item => {
+                        if (!productSales[item.product.id]) {
+                            productSales[item.product.id] = {
+                                name: item.product.name,
+                                quantity: 0,
+                                revenue: 0
+                            };
+                        }
+                        productSales[item.product.id].quantity += item.quantity;
+                        productSales[item.product.id].revenue += item.quantity * item.product.price;
+                    });
+                });
+                
+                const topProducts = Object.values(productSales)
+                    .sort((a, b) => b.revenue - a.revenue)
+                    .slice(0, 5);
+                
+                // Display report
+                $('#reportResults').html(`
+                    <div class="panel">
+                        <h4>Ringkasan Laporan</h4>
+                        <p>Periode: ${moment(startDate).format('LL')} - ${moment(endDate).format('LL')}</p>
+                        <div class="summary-container">
+                            <div class="summary-row">
+                                <span>Total Transaksi:</span>
+                                <span>${totalTransactions}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Total Pendapatan:</span>
+                                <span>${formatCurrency(totalRevenue)}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Total Diskon:</span>
+                                <span>${formatCurrency(totalDiscount)}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Total Biaya Tambahan:</span>
+                                <span>${formatCurrency(totalAdditionalCost)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="panel mt-3">
+                        <h4>Produk Terlaris</h4>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Produk</th>
+                                    <th>Terjual</th>
+                                    <th>Pendapatan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${topProducts.map(p => `
+                                    <tr>
+                                        <td>${p.name}</td>
+                                        <td>${p.quantity}</td>
+                                        <td>${formatCurrency(p.revenue)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="panel mt-3">
+                        <h4>Detail Transaksi</h4>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tanggal</th>
+                                    <th>Pelanggan</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filteredTransactions.map(t => `
+                                    <tr>
+                                        <td>${t.id}</td>
+                                        <td>${moment(t.date).format('LLL')}</td>
+                                        <td>${t.customer}</td>
+                                        <td>${formatCurrency(t.total)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `);
+            });
+            
+            // Generate profit report
+            $('#generateProfitReportBtn').click(function() {
+                const period = $('#profitReportPeriod').val();
+                let startDate, endDate;
+                
+                if (period === 'custom') {
+                    startDate = new Date($('#profitReportStartDate').val());
+                    endDate = new Date($('#profitReportEndDate').val());
+                    
+                    if (!startDate || !endDate) {
+                        showToast('Harap pilih rentang tanggal', 'error');
+                        return;
+                    }
+                    
+                    // Set end date to end of day
+                    endDate.setHours(23, 59, 59, 999);
+                } else {
+                    // Set date range based on period
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    if (period === 'today') {
+                        startDate = new Date(today);
+                        endDate = new Date(today);
+                        endDate.setHours(23, 59, 59, 999);
+                    } else if (period === 'week') {
+                        startDate = new Date(today);
+                        startDate.setDate(today.getDate() - today.getDay()); // Start from Sunday
+                        endDate = new Date(today);
+                        endDate.setDate(today.getDate() + (6 - today.getDay())); // End on Saturday
+                        endDate.setHours(23, 59, 59, 999);
+                    } else if (period === 'month') {
+                        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                        endDate.setHours(23, 59, 59, 999);
+                    }
+                }
+                
+                // Filter transactions by date range
+                const filteredTransactions = transactions.filter(t => {
+                    const transDate = new Date(t.date);
+                    return transDate >= startDate && transDate <= endDate;
+                });
+                
+                // Calculate totals
+                const totalRevenue = filteredTransactions.reduce((sum, t) => sum + t.total, 0);
+                const totalDiscount = filteredTransactions.reduce((sum, t) => sum + t.discount, 0);
+                const totalAdditionalCost = filteredTransactions.reduce((sum, t) => sum + t.additionalCost, 0);
+                
+                // Calculate cost of goods sold (COGS)
+                let totalCOGS = 0;
+                filteredTransactions.forEach(t => {
+                    t.items.forEach(item => {
+                        const product = products.find(p => p.id === item.product.id);
+                        if (product && product.cost) {
+                            totalCOGS += item.quantity * product.cost;
+                        }
+                    });
+                });
+                
+                // Calculate gross profit
+                const grossProfit = totalRevenue - totalDiscount - totalCOGS;
+                const grossProfitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
+                
+                // Calculate net profit (gross profit - additional costs)
+                const netProfit = grossProfit - totalAdditionalCost;
+                const netProfitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+                
+                // Display report
+                $('#profitReportResults').html(`
+                    <div class="panel">
+                        <h4>Laporan Laba Rugi</h4>
+                        <p>Periode: ${moment(startDate).format('LL')} - ${moment(endDate).format('LL')}</p>
+                        <div class="summary-container">
+                            <div class="summary-row">
+                                <span>Total Pendapatan:</span>
+                                <span>${formatCurrency(totalRevenue)}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Total Diskon:</span>
+                                <span>${formatCurrency(totalDiscount)}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Harga Pokok Penjualan (HPP):</span>
+                                <span>${formatCurrency(totalCOGS)}</span>
+                            </div>
+                            <div class="summary-row total-row">
+                                <span>Laba Kotor:</span>
+                                <span>${formatCurrency(grossProfit)} (${grossProfitMargin.toFixed(2)}%)</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Biaya Tambahan:</span>
+                                <span>${formatCurrency(totalAdditionalCost)}</span>
+                            </div>
+                            <div class="summary-row total-row">
+                                <span>Laba Bersih:</span>
+                                <span>${formatCurrency(netProfit)} (${netProfitMargin.toFixed(2)}%)</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="panel mt-3">
+                        <h4>Produk dengan Laba Tertinggi</h4>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Produk</th>
+                                    <th>Pendapatan</th>
+                                    <th>HPP</th>
+                                    <th>Laba</th>
+                                    <th>Margin</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${getTopProfitableProducts(filteredTransactions, 5).map(p => `
+                                    <tr>
+                                        <td>${p.name}</td>
+                                        <td>${formatCurrency(p.revenue)}</td>
+                                        <td>${formatCurrency(p.cost)}</td>
+                                        <td>${formatCurrency(p.profit)}</td>
+                                        <td>${p.margin.toFixed(2)}%</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `);
+            });
+            
+            // Print report as PDF
+            $('#printReportBtn').click(function() {
+                showTrialLimitWarning('Fitur cetak PDF tidak tersedia dalam versi uji coba. Untuk menggunakan fitur ini, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
+            });
+            
+            // Print profit report as PDF
+            $('#printProfitReportBtn').click(function() {
+                showTrialLimitWarning('Fitur cetak PDF tidak tersedia dalam versi uji coba. Untuk menggunakan fitur ini, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
+            });
+            
+            // Report period change
+            $('#reportPeriod').change(function() {
+                if ($(this).val() === 'custom') {
+                    $('#customDateRange').show();
+                } else {
+                    $('#customDateRange').hide();
+                }
+            });
+            
+            // Profit report period change
+            $('#profitReportPeriod').change(function() {
+                if ($(this).val() === 'custom') {
+                    $('#profitCustomDateRange').show();
+                } else {
+                    $('#profitCustomDateRange').hide();
+                }
+            });
+            
+            // Cancel reports
+            $('#cancelReports').click(function() {
+                $('#reportsModal').hide();
+            });
+            
+            // Cancel profit report
+            $('#cancelProfitReport').click(function() {
+                $('#profitReportModal').hide();
             });
             
             // Save store info
@@ -3448,522 +3795,66 @@
                 updateStoreInfo();
                 
                 $('#manageStoreInfoModal').hide();
+                
                 showToast('Info toko berhasil diperbarui', 'success');
             });
             
-            // Generate report
-            $('#generateReportBtn').click(function() {
-                const period = $('#reportPeriod').val();
-                let startDate, endDate;
-                
-                if (period === 'custom') {
-                    startDate = new Date($('#reportStartDate').val());
-                    endDate = new Date($('#reportEndDate').val());
-                    
-                    if (!startDate || !endDate) {
-                        showToast('Pilih rentang tanggal terlebih dahulu', 'error');
-                        return;
-                    }
-                    
-                    // Set end date to end of day
-                    endDate.setHours(23, 59, 59, 999);
-                } else {
-                    // Set date range based on period
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    
-                    if (period === 'today') {
-                        startDate = new Date(today);
-                        endDate = new Date();
-                        endDate.setHours(23, 59, 59, 999);
-                    } else if (period === 'week') {
-                        startDate = new Date(today);
-                        startDate.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
-                        endDate = new Date();
-                        endDate.setHours(23, 59, 59, 999);
-                    } else if (period === 'month') {
-                        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-                        endDate = new Date();
-                        endDate.setHours(23, 59, 59, 999);
-                    }
-                }
-                
-                // Filter transactions by date range
-                const filteredTransactions = transactions.filter(t => {
-                    const transactionDate = new Date(t.date);
-                    return transactionDate >= startDate && transactionDate <= endDate;
-                });
-                
-                // Calculate totals
-                const totalTransactions = filteredTransactions.length;
-                const totalRevenue = filteredTransactions.reduce((sum, t) => sum + t.total, 0);
-                const totalItemsSold = filteredTransactions.reduce((sum, t) => {
-                    return sum + t.items.reduce((itemSum, item) => itemSum + item.quantity, 0);
-                }, 0);
-                
-                // Group by product
-                const productSales = {};
-                filteredTransactions.forEach(t => {
-                    t.items.forEach(item => {
-                        if (!productSales[item.product.id]) {
-                            productSales[item.product.id] = {
-                                name: item.product.name,
-                                quantity: 0,
-                                revenue: 0
-                            };
-                        }
-                        productSales[item.product.id].quantity += item.quantity;
-                        productSales[item.product.id].revenue += item.quantity * item.product.price;
-                    });
-                });
-                
-                // Sort products by revenue (descending)
-                const sortedProducts = Object.values(productSales).sort((a, b) => b.revenue - a.revenue);
-                
-                // Display report
-                let reportHtml = `
-                    <div class="summary-container">
-                        <div class="summary-row">
-                            <span>Periode:</span>
-                            <span>${moment(startDate).format('LL')} - ${moment(endDate).format('LL')}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Total Transaksi:</span>
-                            <span>${totalTransactions}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Total Barang Terjual:</span>
-                            <span>${totalItemsSold}</span>
-                        </div>
-                        <div class="summary-row total-row">
-                            <span>Total Pendapatan:</span>
-                            <span>${formatCurrency(totalRevenue)}</span>
-                        </div>
-                    </div>
-                    
-                    <h4>Produk Terlaris</h4>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Produk</th>
-                                <th>Jumlah</th>
-                                <th>Pendapatan</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                sortedProducts.slice(0, 10).forEach(product => {
-                    reportHtml += `
-                        <tr>
-                            <td>${product.name}</td>
-                            <td>${product.quantity}</td>
-                            <td>${formatCurrency(product.revenue)}</td>
-                        </tr>
-                    `;
-                });
-                
-                reportHtml += `
-                        </tbody>
-                    </table>
-                    
-                    <h4>Detail Transaksi</h4>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>No. Transaksi</th>
-                                <th>Tanggal</th>
-                                <th>Pelanggan</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                filteredTransactions.slice(0, 20).forEach(t => {
-                    reportHtml += `
-                        <tr>
-                            <td>${t.id}</td>
-                            <td>${moment(t.date).format('LLL')}</td>
-                            <td>${t.customer}</td>
-                            <td>${formatCurrency(t.total)}</td>
-                        </tr>
-                    `;
-                });
-                
-                reportHtml += `
-                        </tbody>
-                    </table>
-                `;
-                
-                $('#reportResults').html(reportHtml);
-                showToast('Laporan berhasil digenerate', 'success');
+            // Cancel store info
+            $('#cancelStoreInfo').click(function() {
+                $('#manageStoreInfoModal').hide();
             });
             
-            // Generate profit report
-            $('#generateProfitReportBtn').click(function() {
-                const period = $('#profitReportPeriod').val();
-                let startDate, endDate;
-                
-                if (period === 'custom') {
-                    startDate = new Date($('#profitReportStartDate').val());
-                    endDate = new Date($('#profitReportEndDate').val());
-                    
-                    if (!startDate || !endDate) {
-                        showToast('Pilih rentang tanggal terlebih dahulu', 'error');
-                        return;
-                    }
-                    
-                    // Set end date to end of day
-                    endDate.setHours(23, 59, 59, 999);
-                } else {
-                    // Set date range based on period
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    
-                    if (period === 'today') {
-                        startDate = new Date(today);
-                        endDate = new Date();
-                        endDate.setHours(23, 59, 59, 999);
-                    } else if (period === 'week') {
-                        startDate = new Date(today);
-                        startDate.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
-                        endDate = new Date();
-                        endDate.setHours(23, 59, 59, 999);
-                    } else if (period === 'month') {
-                        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-                        endDate = new Date();
-                        endDate.setHours(23, 59, 59, 999);
-                    }
-                }
-                
-                // Filter transactions by date range
-                const filteredTransactions = transactions.filter(t => {
-                    const transactionDate = new Date(t.date);
-                    return transactionDate >= startDate && transactionDate <= endDate;
-                });
-                
-                // Calculate totals
-                const totalRevenue = filteredTransactions.reduce((sum, t) => sum + t.total, 0);
-                const totalCost = filteredTransactions.reduce((sum, t) => {
-                    return sum + t.items.reduce((itemSum, item) => {
-                        const product = products.find(p => p.id === item.product.id);
-                        return itemSum + (item.quantity * (product ? product.cost : 0));
-                    }, 0);
-                }, 0);
-                const totalProfit = totalRevenue - totalCost;
-                const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
-                
-                // Group by product
-                const productProfits = {};
-                filteredTransactions.forEach(t => {
-                    t.items.forEach(item => {
-                        const product = products.find(p => p.id === item.product.id);
-                        const cost = product ? product.cost : 0;
-                        
-                        if (!productProfits[item.product.id]) {
-                            productProfits[item.product.id] = {
-                                name: item.product.name,
-                                quantity: 0,
-                                revenue: 0,
-                                cost: 0,
-                                profit: 0
-                            };
-                        }
-                        
-                        productProfits[item.product.id].quantity += item.quantity;
-                        productProfits[item.product.id].revenue += item.quantity * item.product.price;
-                        productProfits[item.product.id].cost += item.quantity * cost;
-                        productProfits[item.product.id].profit += item.quantity * (item.product.price - cost);
-                    });
-                });
-                
-                // Sort products by profit (descending)
-                const sortedProducts = Object.values(productProfits).sort((a, b) => b.profit - a.profit);
-                
-                // Display report
-                let reportHtml = `
-                    <div class="summary-container">
-                        <div class="summary-row">
-                            <span>Periode:</span>
-                            <span>${moment(startDate).format('LL')} - ${moment(endDate).format('LL')}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Total Pendapatan:</span>
-                            <span>${formatCurrency(totalRevenue)}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Total Biaya Pokok:</span>
-                            <span>${formatCurrency(totalCost)}</span>
-                        </div>
-                        <div class="summary-row total-row">
-                            <span>Total Laba:</span>
-                            <span>${formatCurrency(totalProfit)}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Margin Laba:</span>
-                            <span>${profitMargin.toFixed(2)}%</span>
-                        </div>
-                    </div>
-                    
-                    <h4>Produk Paling Menguntungkan</h4>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Produk</th>
-                                <th>Jumlah</th>
-                                <th>Pendapatan</th>
-                                <th>Biaya</th>
-                                <th>Laba</th>
-                                <th>Margin</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                sortedProducts.slice(0, 10).forEach(product => {
-                    const margin = product.revenue > 0 ? (product.profit / product.revenue) * 100 : 0;
-                    
-                    reportHtml += `
-                        <tr>
-                            <td>${product.name}</td>
-                            <td>${product.quantity}</td>
-                            <td>${formatCurrency(product.revenue)}</td>
-                            <td>${formatCurrency(product.cost)}</td>
-                            <td>${formatCurrency(product.profit)}</td>
-                            <td>${margin.toFixed(2)}%</td>
-                        </tr>
-                    `;
-                });
-                
-                reportHtml += `
-                        </tbody>
-                    </table>
-                `;
-                
-                $('#profitReportResults').html(reportHtml);
-                showToast('Laporan laba rugi berhasil digenerate', 'success');
-            });
-            
-            // Print report
-            $('#printReportBtn').click(function() {
-                const doc = new jsPDF();
-                
-                // Add title
-                doc.setFontSize(16);
-                doc.text('Laporan Penjualan', 105, 15, { align: 'center' });
-                
-                // Add date range
-                doc.setFontSize(12);
-                const period = $('#reportPeriod').val();
-                let dateRange = '';
-                
-                if (period === 'today') {
-                    dateRange = moment().format('LL');
-                } else if (period === 'week') {
-                    const start = moment().startOf('week');
-                    const end = moment().endOf('week');
-                    dateRange = `${start.format('LL')} - ${end.format('LL')}`;
-                } else if (period === 'month') {
-                    dateRange = moment().format('MMMM YYYY');
-                } else if (period === 'custom') {
-                    const start = moment($('#reportStartDate').val());
-                    const end = moment($('#reportEndDate').val());
-                    dateRange = `${start.format('LL')} - ${end.format('LL')}`;
-                }
-                
-                doc.text(`Periode: ${dateRange}`, 105, 25, { align: 'center' });
-                
-                // Add summary
-                const summary = $('#reportResults .summary-container').clone();
-                summary.find('.total-row').remove();
-                
-                doc.autoTable({
-                    startY: 35,
-                    head: [['Ringkasan', '']],
-                    body: summary.find('.summary-row').map(function() {
-                        return [
-                            $(this).find('span:first').text().replace(':', ''),
-                            $(this).find('span:last').text()
-                        ];
-                    }).get(),
-                    theme: 'grid',
-                    headStyles: { fillColor: [67, 97, 238] },
-                    styles: { cellPadding: 5 }
-                });
-                
-                // Add top products
-                const topProducts = $('#reportResults table:first').clone();
-                
-                doc.autoTable({
-                    startY: doc.lastAutoTable.finalY + 10,
-                    head: [['Produk Terlaris', 'Jumlah', 'Pendapatan']],
-                    body: topProducts.find('tbody tr').map(function() {
-                        return [
-                            $(this).find('td:eq(0)').text(),
-                            $(this).find('td:eq(1)').text(),
-                            $(this).find('td:eq(2)').text()
-                        ];
-                    }).get(),
-                    theme: 'grid',
-                    headStyles: { fillColor: [67, 97, 238] },
-                    styles: { cellPadding: 5 }
-                });
-                
-                // Add transactions
-                const transactionsTable = $('#reportResults table:last').clone();
-                
-                doc.autoTable({
-                    startY: doc.lastAutoTable.finalY + 10,
-                    head: [['No. Transaksi', 'Tanggal', 'Pelanggan', 'Total']],
-                    body: transactionsTable.find('tbody tr').map(function() {
-                        return [
-                            $(this).find('td:eq(0)').text(),
-                            $(this).find('td:eq(1)').text(),
-                            $(this).find('td:eq(2)').text(),
-                            $(this).find('td:eq(3)').text()
-                        ];
-                    }).get(),
-                    theme: 'grid',
-                    headStyles: { fillColor: [67, 97, 238] },
-                    styles: { cellPadding: 5 }
-                });
-                
-                // Add footer
-                doc.setFontSize(10);
-                doc.text(`Dibuat oleh ${currentUser.name} pada ${moment().format('LLL')}`, 105, doc.lastAutoTable.finalY + 10, { align: 'center' });
-                
-                // Save PDF
-                doc.save(`Laporan_Penjualan_${moment().format('YYYYMMDD')}.pdf`);
-            });
-            
-            // Print profit report
-            $('#printProfitReportBtn').click(function() {
-                const doc = new jsPDF();
-                
-                // Add title
-                doc.setFontSize(16);
-                doc.text('Laporan Laba Rugi', 105, 15, { align: 'center' });
-                
-                // Add date range
-                doc.setFontSize(12);
-                const period = $('#profitReportPeriod').val();
-                let dateRange = '';
-                
-                if (period === 'today') {
-                    dateRange = moment().format('LL');
-                } else if (period === 'week') {
-                    const start = moment().startOf('week');
-                    const end = moment().endOf('week');
-                    dateRange = `${start.format('LL')} - ${end.format('LL')}`;
-                } else if (period === 'month') {
-                    dateRange = moment().format('MMMM YYYY');
-                } else if (period === 'custom') {
-                    const start = moment($('#profitReportStartDate').val());
-                    const end = moment($('#profitReportEndDate').val());
-                    dateRange = `${start.format('LL')} - ${end.format('LL')}`;
-                }
-                
-                doc.text(`Periode: ${dateRange}`, 105, 25, { align: 'center' });
-                
-                // Add summary
-                const summary = $('#profitReportResults .summary-container').clone();
-                
-                doc.autoTable({
-                    startY: 35,
-                    head: [['Ringkasan', '']],
-                    body: summary.find('.summary-row').map(function() {
-                        return [
-                            $(this).find('span:first').text().replace(':', ''),
-                            $(this).find('span:last').text()
-                        ];
-                    }).get(),
-                    theme: 'grid',
-                    headStyles: { fillColor: [67, 97, 238] },
-                    styles: { cellPadding: 5 }
-                });
-                
-                // Add top products
-                const topProducts = $('#profitReportResults table').clone();
-                
-                doc.autoTable({
-                    startY: doc.lastAutoTable.finalY + 10,
-                    head: [['Produk', 'Jumlah', 'Pendapatan', 'Biaya', 'Laba', 'Margin']],
-                    body: topProducts.find('tbody tr').map(function() {
-                        return [
-                            $(this).find('td:eq(0)').text(),
-                            $(this).find('td:eq(1)').text(),
-                            $(this).find('td:eq(2)').text(),
-                            $(this).find('td:eq(3)').text(),
-                            $(this).find('td:eq(4)').text(),
-                            $(this).find('td:eq(5)').text()
-                        ];
-                    }).get(),
-                    theme: 'grid',
-                    headStyles: { fillColor: [67, 97, 238] },
-                    styles: { cellPadding: 5 }
-                });
-                
-                // Add footer
-                doc.setFontSize(10);
-                doc.text(`Dibuat oleh ${currentUser.name} pada ${moment().format('LLL')}`, 105, doc.lastAutoTable.finalY + 10, { align: 'center' });
-                
-                // Save PDF
-                doc.save(`Laporan_Laba_Rugi_${moment().format('YYYYMMDD')}.pdf`);
-            });
-            
-            // Report period change
-            $('#reportPeriod').change(function() {
-                if ($(this).val() === 'custom') {
-                    $('#customDateRange').show();
-                } else {
-                    $('#customDateRange').hide();
-                }
-            });
-            
-            // Profit report period change
-            $('#profitReportPeriod').change(function() {
-                if ($(this).val() === 'custom') {
-                    $('#profitCustomDateRange').show();
-                } else {
-                    $('#profitCustomDateRange').hide();
-                }
-            });
-            
-            // Cancel modals
-            $('.modal-close, .btn-warning[id^="cancel"]').click(function() {
+            // Modal close buttons
+            $('.modal-close').click(function() {
                 $(this).closest('.modal').hide();
             });
             
-            // Close modals when clicking outside
-            $('.modal').click(function(e) {
-                if (e.target === this) {
-                    $(this).hide();
+            // Close modal when clicking outside
+            $(window).click(function(e) {
+                if ($(e.target).hasClass('modal')) {
+                    $(e.target).hide();
                 }
             });
             
-            // Prevent modal close when clicking inside
-            $('.modal-content').click(function(e) {
-                e.stopPropagation();
+            // Print receipt button
+            $('#printReceiptBtn').click(function() {
+                showTrialLimitWarning('Fitur cetak struk tidak tersedia dalam versi uji coba. Untuk menggunakan fitur ini, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
+            });
+            
+            // Download receipt as PDF
+            $('#downloadReceiptBtn').click(function() {
+                showTrialLimitWarning('Fitur download PDF tidak tersedia dalam versi uji coba. Untuk menggunakan fitur ini, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
+            });
+            
+            // Admin password verification
+            $('#adminPasswordForm').submit(function(e) {
+                e.preventDefault();
+                const password = $('#adminPassword').val();
+                const hashedPassword = CryptoJS.SHA256(password).toString();
+                
+                if (hashedPassword !== DEFAULT_ADMIN.password) {
+                    showToast('Password admin salah', 'error');
+                    return;
+                }
+                
+                // Execute pending admin action
+                if (pendingAdminAction) {
+                    pendingAdminAction();
+                    pendingAdminAction = null;
+                }
+                
+                $('#adminPasswordModal').hide();
+                $('#adminPassword').val('');
+            });
+            
+            // Cancel admin password
+            $('#cancelAdminPassword').click(function() {
+                $('#adminPasswordModal').hide();
+                $('#adminPassword').val('');
+                pendingAdminAction = null;
             });
             
             // Helper functions
-            function formatCurrency(amount) {
-                return 'Rp ' + amount.toFixed(0).replace(/\d(?=(\d{3})+$)/g, '$&.');
-            }
-            
-            function showToast(message, type) {
-                const toast = $('#toast');
-                toast.removeClass('success error warning');
-                toast.addClass(type);
-                $('#toast-message').text(message);
-                toast.addClass('show');
-                
-                setTimeout(() => {
-                    toast.removeClass('show');
-                }, 3000);
-            }
-            
             function loadProducts(searchTerm = '', category = 'all') {
                 let filteredProducts = [...products];
                 
@@ -3972,8 +3863,7 @@
                     const searchLower = searchTerm.toLowerCase();
                     filteredProducts = filteredProducts.filter(p => 
                         p.name.toLowerCase().includes(searchLower) || 
-                        p.category.toLowerCase().includes(searchLower)
-                    );
+                        (p.category && p.category.toLowerCase().includes(searchLower))
                 }
                 
                 // Apply category filter
@@ -3985,30 +3875,28 @@
                 $('#productCount').text(`(${filteredProducts.length} produk)`);
                 
                 // Display products
-                const productGrid = $('#productGrid');
-                productGrid.empty();
+                $('#productGrid').empty();
                 
                 if (filteredProducts.length === 0) {
-                    productGrid.html(`
+                    $('#productGrid').html(`
                         <div class="empty-state" style="grid-column: 1 / -1;">
                             <i class="fas fa-box-open"></i>
-                            <p>Tidak ada produk yang ditemukan</p>
+                            <p>Tidak ada produk ditemukan</p>
                         </div>
                     `);
                     return;
                 }
                 
                 filteredProducts.forEach(product => {
-                    const lowStock = product.stock <= 5;
+                    const stockClass = product.stock <= 5 ? 'low' : '';
                     
-                    productGrid.append(`
+                    $('#productGrid').append(`
                         <div class="product-card" data-id="${product.id}">
                             <div class="product-name">${product.name}</div>
                             <div class="product-price">${formatCurrency(product.price)}</div>
-                            <div class="product-cost">HPP: ${formatCurrency(product.cost)}</div>
-                            <div class="product-stock ${lowStock ? 'low' : ''}">
-                                Stok: ${product.stock} ${product.unit}
-                            </div>
+                            <div class="product-cost">HPP: ${formatCurrency(product.cost || 0)}</div>
+                            <div class="product-stock ${stockClass}">Stok: ${product.stock} ${product.unit || 'pcs'}</div>
+                            
                             <div class="product-actions">
                                 <button class="action-btn edit-btn edit-product" data-id="${product.id}">
                                     <i class="fas fa-edit"></i>
@@ -4023,34 +3911,35 @@
             }
             
             function loadCategories() {
+                // Update category filter chips
                 const filterRow = $('.filter-row');
-                filterRow.find('.filter-chip:not([data-category="all"])').remove();
+                filterRow.empty();
+                
+                filterRow.append('<div class="filter-chip active" data-category="all">Semua</div>');
                 
                 categories.forEach(category => {
-                    filterRow.append(`
-                        <div class="filter-chip" data-category="${category}">${category}</div>
-                    `);
+                    filterRow.append(`<div class="filter-chip" data-category="${category}">${category}</div>`);
                 });
             }
             
             function loadCategoriesForSelect() {
-                const select = $('#productCategory');
-                select.empty();
+                $('#productCategory').empty();
+                
+                if (categories.length === 0) {
+                    $('#productCategory').append('<option value="">Tidak ada kategori</option>');
+                    return;
+                }
                 
                 categories.forEach(category => {
-                    select.append(`<option value="${category}">${category}</option>`);
+                    $('#productCategory').append(`<option value="${category}">${category}</option>`);
                 });
-                
-                // Add new category option
-                select.append('<option value="new">+ Tambah Kategori Baru</option>');
             }
             
             function loadCategoriesForManagement() {
-                const categoriesList = $('#categoriesList');
-                categoriesList.empty();
+                $('#categoriesList').empty();
                 
                 if (categories.length === 0) {
-                    categoriesList.html(`
+                    $('#categoriesList').html(`
                         <div class="empty-state">
                             <i class="fas fa-tags"></i>
                             <p>Tidak ada kategori</p>
@@ -4060,10 +3949,12 @@
                 }
                 
                 categories.forEach(category => {
-                    categoriesList.append(`
-                        <div class="d-flex justify-between align-center mb-2">
-                            <span>${category}</span>
-                            <button class="btn btn-sm btn-danger delete-category" data-category="${category}">
+                    $('#categoriesList').append(`
+                        <div class="cart-item">
+                            <div class="cart-item-info">
+                                <div class="cart-item-name">${category}</div>
+                            </div>
+                            <button class="btn btn-sm btn-danger delete-category" data-name="${category}">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -4072,11 +3963,10 @@
             }
             
             function loadCashiers() {
-                const cashiersList = $('#cashiersList');
-                cashiersList.empty();
+                $('#cashiersList').empty();
                 
                 if (users.length === 0) {
-                    cashiersList.html(`
+                    $('#cashiersList').html(`
                         <tr>
                             <td colspan="4" class="text-center">
                                 <div class="empty-state">
@@ -4091,12 +3981,13 @@
                 
                 users.forEach(user => {
                     const role = roles.find(r => r.code === user.role);
+                    const roleName = role ? role.name : user.role;
                     
-                    cashiersList.append(`
+                    $('#cashiersList').append(`
                         <tr>
                             <td>${user.username}</td>
                             <td>${user.name}</td>
-                            <td>${role ? role.name : user.role}</td>
+                            <td>${roleName}</td>
                             <td>
                                 <button class="btn btn-sm btn-info edit-cashier" data-id="${user.id}">
                                     <i class="fas fa-edit"></i>
@@ -4111,11 +4002,10 @@
             }
             
             function loadMembers() {
-                const membersList = $('#membersList');
-                membersList.empty();
+                $('#membersList').empty();
                 
                 if (members.length === 0) {
-                    membersList.html(`
+                    $('#membersList').html(`
                         <div class="empty-state">
                             <i class="fas fa-users"></i>
                             <p>Tidak ada member</p>
@@ -4125,16 +4015,13 @@
                 }
                 
                 members.forEach(member => {
-                    membersList.append(`
+                    $('#membersList').append(`
                         <div class="member-card">
                             <div class="d-flex justify-between align-center">
                                 <div>
                                     <div class="member-id">ID: ${member.id}</div>
                                     <div class="member-name">${member.name}</div>
-                                    <div class="member-contact">
-                                        <i class="fas fa-phone"></i> ${member.phone}
-                                        ${member.email ? `<br><i class="fas fa-envelope"></i> ${member.email}` : ''}
-                                    </div>
+                                    <div class="member-contact">${member.phone}</div>
                                 </div>
                                 <div>
                                     <button class="btn btn-sm btn-info edit-member" data-id="${member.id}">
@@ -4151,21 +4038,23 @@
             }
             
             function loadMembersForSelect() {
-                const select = $('#memberSelect');
-                select.empty();
-                select.append('<option value="">Pilih member</option>');
+                $('#memberSelect').empty();
+                
+                if (members.length === 0) {
+                    $('#memberSelect').append('<option value="">Tidak ada member</option>');
+                    return;
+                }
                 
                 members.forEach(member => {
-                    select.append(`<option value="${member.id}">${member.name} (${member.phone})</option>`);
+                    $('#memberSelect').append(`<option value="${member.id}">${member.name} (${member.phone})</option>`);
                 });
             }
             
             function loadRoles() {
-                const rolesList = $('#rolesList');
-                rolesList.empty();
+                $('#rolesList').empty();
                 
                 if (roles.length === 0) {
-                    rolesList.html(`
+                    $('#rolesList').html(`
                         <div class="empty-state">
                             <i class="fas fa-user-tag"></i>
                             <p>Tidak ada role</p>
@@ -4175,15 +4064,13 @@
                 }
                 
                 roles.forEach(role => {
-                    rolesList.append(`
+                    $('#rolesList').append(`
                         <div class="member-card">
                             <div class="d-flex justify-between align-center">
                                 <div>
                                     <div class="member-id">Kode: ${role.code}</div>
                                     <div class="member-name">${role.name}</div>
-                                    <div class="member-contact">
-                                        Diskon Member: ${role.memberDiscount}%
-                                    </div>
+                                    <div class="member-contact">Diskon Member: ${role.memberDiscount}%</div>
                                 </div>
                                 <div>
                                     <button class="btn btn-sm btn-info edit-role" data-id="${role.id}">
@@ -4200,27 +4087,26 @@
             }
             
             function loadRolesForSelect() {
-                const select = $('#cashierRole');
-                select.empty();
+                $('#cashierRole').empty();
                 
                 roles.forEach(role => {
-                    select.append(`<option value="${role.code}">${role.name}</option>`);
+                    $('#cashierRole').append(`<option value="${role.code}">${role.name}</option>`);
                 });
             }
             
             function loadStoreInfo() {
-                $('#storeName').val(settings.storeName);
-                $('#storeAddress').val(settings.storeAddress);
-                $('#storePhone').val(settings.storePhone);
+                $('#storeName').val(settings.storeName || '');
+                $('#storeAddress').val(settings.storeAddress || '');
+                $('#storePhone').val(settings.storePhone || '');
                 $('#storeDescription').val(settings.storeDescription || '');
             }
             
             function updateStoreInfo() {
-                $('#storeNameHeader').text(settings.storeName);
-                $('#receiptStoreName').text(settings.storeName);
-                $('#receiptStoreAddress').text(settings.storeAddress);
-                $('#receiptStorePhone').text(`Telp: ${settings.storePhone}`);
-                $('#receiptCopyright').text(settings.storeName);
+                $('#storeNameHeader').text(settings.storeName || 'APLIKASI KASIR MODERN');
+                $('#receiptStoreName').text(settings.storeName || 'APLIKASI KASIR MODERN');
+                $('#receiptStoreAddress').text(settings.storeAddress || 'Jl. Contoh No. 123, Kota');
+                $('#receiptStorePhone').text(settings.storePhone ? 'Telp: ' + settings.storePhone : 'Telp: 081234567890');
+                $('#receiptCopyright').text(settings.storeName ? settings.storeName : 'Lentera Karya Situbondo');
             }
             
             function updateCart() {
@@ -4229,23 +4115,18 @@
                     return sum + (item.product.price * item.quantity);
                 }, 0);
                 
-                // Apply discount if member is selected
-                if (currentCart.memberId && discounts.memberDiscount > 0) {
-                    currentCart.discount = currentCart.subtotal * (discounts.memberDiscount / 100);
-                    $('#cartDiscountInput').val(discounts.memberDiscount);
-                }
-                
                 // Calculate total
                 currentCart.total = currentCart.subtotal - currentCart.discount + currentCart.additionalCost;
                 
-                // Update UI
-                $('#cartCount').text(`(${currentCart.items.length} item)`);
+                // Update cart count
+                const itemCount = currentCart.items.reduce((sum, item) => sum + item.quantity, 0);
+                $('#cartCount').text(`(${itemCount} item)`);
                 
-                const cartItems = $('#cartItems');
-                cartItems.empty();
+                // Update cart items display
+                $('#cartItems').empty();
                 
                 if (currentCart.items.length === 0) {
-                    cartItems.html(`
+                    $('#cartItems').html(`
                         <div class="empty-state">
                             <i class="fas fa-shopping-cart"></i>
                             <p>Keranjang belanja kosong</p>
@@ -4253,11 +4134,11 @@
                     `);
                 } else {
                     currentCart.items.forEach(item => {
-                        cartItems.append(`
+                        $('#cartItems').append(`
                             <div class="cart-item">
                                 <div class="cart-item-info">
                                     <div class="cart-item-name">${item.product.name}</div>
-                                    <div class="cart-item-price">${formatCurrency(item.product.price)} x ${item.quantity} ${item.product.unit}</div>
+                                    <div class="cart-item-price">${formatCurrency(item.product.price)} x ${item.quantity} ${item.product.unit || 'pcs'}</div>
                                 </div>
                                 <div class="cart-item-qty">
                                     <button class="qty-btn minus" data-id="${item.product.id}">-</button>
@@ -4289,63 +4170,6 @@
                 $('#paymentTotal').text(formatCurrency(currentCart.total));
             }
             
-            function updateCurrentDate() {
-                const now = new Date();
-                $('#currentDate').text(moment(now).format('dddd, D MMMM YYYY'));
-            }
-            
-            function generateReceipt(transaction) {
-                // Update receipt template
-                $('#receiptDate').text(moment(transaction.date).format('DD/MM/YYYY HH:mm'));
-                $('#receiptId').text(transaction.id);
-                $('#receiptCashier').text(transaction.cashier.name);
-                $('#receiptCustomer').text(transaction.customer);
-                
-                // Member info
-                if (transaction.member) {
-                    const member = members.find(m => m.id === transaction.member);
-                    $('#receiptMember').text(member ? `${member.name} (${member.phone})` : '-');
-                } else {
-                    $('#receiptMember').text('-');
-                }
-                
-                // Items
-                const receiptItems = $('#receiptItems');
-                receiptItems.empty();
-                
-                transaction.items.forEach(item => {
-                    receiptItems.append(`
-                        <div class="receipt-item">
-                            <span>${item.product.name} (${item.quantity} ${item.product.unit})</span>
-                            <span>${formatCurrency(item.product.price * item.quantity)}</span>
-                        </div>
-                    `);
-                });
-                
-                // Summary
-                $('#receiptSubtotal').text(formatCurrency(transaction.subtotal));
-                $('#receiptDiscount').text(formatCurrency(transaction.discount));
-                $('#receiptAdditionalCost').text(formatCurrency(transaction.additionalCost));
-                $('#receiptTotal').text(formatCurrency(transaction.total));
-                
-                // Payment method
-                let paymentMethodText = '';
-                if (transaction.paymentMethod === 'cash') {
-                    paymentMethodText = 'Tunai';
-                } else if (transaction.paymentMethod === 'transfer') {
-                    paymentMethodText = 'Transfer Bank';
-                } else if (transaction.paymentMethod === 'ewallet') {
-                    paymentMethodText = 'E-Wallet';
-                }
-                
-                $('#receiptPaymentMethod').text(paymentMethodText + ':');
-                $('#receiptPaymentAmount').text(formatCurrency(transaction.paymentAmount));
-                $('#receiptChange').text(formatCurrency(transaction.change));
-                
-                // Show receipt template
-                $('#receiptTemplate').show();
-            }
-            
             function resetCart() {
                 currentCart = {
                     items: [],
@@ -4365,20 +4189,138 @@
                 $('#additionalCostNote').val('');
             }
             
+            function generateReceipt(transaction) {
+                // Get member info if exists
+                let memberInfo = null;
+                if (transaction.member) {
+                    memberInfo = members.find(m => m.id === transaction.member);
+                }
+                
+                // Update receipt header
+                $('#receiptDate').text(moment(transaction.date).format('DD/MM/YYYY HH:mm'));
+                $('#receiptId').text(transaction.id);
+                $('#receiptCashier').text(transaction.cashier.name);
+                $('#receiptCustomer').text(transaction.customer);
+                $('#receiptMember').text(memberInfo ? memberInfo.name + ' (' + memberInfo.phone + ')' : '-');
+                
+                // Update receipt items
+                $('#receiptItems').empty();
+                transaction.items.forEach(item => {
+                    $('#receiptItems').append(`
+                        <div class="receipt-item">
+                            <span>${item.product.name} (${item.quantity} ${item.product.unit || 'pcs'})</span>
+                            <span>${formatCurrency(item.product.price * item.quantity)}</span>
+                        </div>
+                    `);
+                });
+                
+                // Update receipt summary
+                $('#receiptSubtotal').text(formatCurrency(transaction.subtotal));
+                $('#receiptDiscount').text(formatCurrency(transaction.discount));
+                $('#receiptAdditionalCost').text(formatCurrency(transaction.additionalCost));
+                $('#receiptTotal').text(formatCurrency(transaction.total));
+                
+                // Update payment info
+                const paymentMethodText = {
+                    'cash': 'Tunai',
+                    'transfer': 'Transfer',
+                    'ewallet': 'E-Wallet'
+                }[transaction.paymentMethod] || transaction.paymentMethod;
+                
+                $('#receiptPaymentMethod').text(paymentMethodText + ':');
+                $('#receiptPaymentAmount').text(formatCurrency(transaction.paymentAmount));
+                $('#receiptChange').text(formatCurrency(transaction.change));
+                
+                // Show receipt template
+                $('#receiptTemplate').show();
+            }
+            
+            function updateCurrentDate() {
+                const now = moment();
+                $('#currentDate').text(now.format('dddd, D MMMM YYYY'));
+            }
+            
             function openEditProductModal(product) {
                 $('#productModal .modal-title').text('Edit Produk');
                 $('#productId').val(product.id);
                 $('#productName').val(product.name);
                 loadCategoriesForSelect();
                 $('#productCategory').val(product.category);
-                $('#productUnit').val(product.unit);
+                $('#productUnit').val(product.unit || 'Pcs');
                 $('#productPrice').val(product.price);
-                $('#productCost').val(product.cost);
+                $('#productCost').val(product.cost || '');
                 $('#productStock').val(product.stock);
                 $('#productModal').show();
             }
             
-            // Data saving functions
+            function getTopProfitableProducts(transactions, limit = 5) {
+                const productProfits = {};
+                
+                transactions.forEach(t => {
+                    t.items.forEach(item => {
+                        const product = products.find(p => p.id === item.product.id);
+                        if (!product) return;
+                        
+                        if (!productProfits[product.id]) {
+                            productProfits[product.id] = {
+                                name: product.name,
+                                revenue: 0,
+                                cost: 0,
+                                profit: 0,
+                                margin: 0
+                            };
+                        }
+                        
+                        const revenue = item.quantity * product.price;
+                        const cost = item.quantity * (product.cost || 0);
+                        const profit = revenue - cost;
+                        const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
+                        
+                        productProfits[product.id].revenue += revenue;
+                        productProfits[product.id].cost += cost;
+                        productProfits[product.id].profit += profit;
+                        productProfits[product.id].margin = margin;
+                    });
+                });
+                
+                return Object.values(productProfits)
+                    .sort((a, b) => b.profit - a.profit)
+                    .slice(0, limit);
+            }
+            
+            function showToast(message, type = 'info') {
+                const toast = $('#toast');
+                const toastMessage = $('#toast-message');
+                const toastIcon = toast.find('i');
+                
+                // Set message and style
+                toastMessage.text(message);
+                toast.removeClass('success error warning').addClass(type);
+                
+                // Set icon based on type
+                if (type === 'success') {
+                    toastIcon.removeClass().addClass('fas fa-check-circle');
+                } else if (type === 'error') {
+                    toastIcon.removeClass().addClass('fas fa-exclamation-circle');
+                } else if (type === 'warning') {
+                    toastIcon.removeClass().addClass('fas fa-exclamation-triangle');
+                } else {
+                    toastIcon.removeClass().addClass('fas fa-info-circle');
+                }
+                
+                // Show toast
+                toast.addClass('show');
+                
+                // Hide after 3 seconds
+                setTimeout(() => {
+                    toast.removeClass('show');
+                }, 3000);
+            }
+            
+            function formatCurrency(amount) {
+                return 'Rp ' + amount.toLocaleString('id-ID');
+            }
+            
             function saveProducts() {
                 localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
             }
@@ -4407,10 +4349,6 @@
                 localStorage.setItem(STORAGE_KEYS.ROLES, JSON.stringify(roles));
             }
             
-            function saveDiscounts() {
-                localStorage.setItem(STORAGE_KEYS.DISCOUNTS, JSON.stringify(discounts));
-            }
-            
             function saveStockHistory() {
                 localStorage.setItem(STORAGE_KEYS.STOCK_HISTORY, JSON.stringify(stockHistory));
             }
@@ -4421,368 +4359,12 @@
             
             // Global functions for receipt printing
             window.printReceipt = function() {
-                const receiptElement = document.getElementById('receiptTemplate');
-                const printWindow = window.open('', '', 'width=400,height=600');
-                printWindow.document.write('<html><head><title>Struk Pembayaran</title>');
-                printWindow.document.write('<style>');
-                printWindow.document.write(`
-                    body { font-family: Arial, sans-serif; margin: 0; padding: 10px; }
-                    .receipt { max-width: 300px; margin: 0 auto; }
-                    .receipt-header { text-align: center; margin-bottom: 10px; }
-                    .receipt-header h3 { margin: 0; font-size: 16px; font-weight: bold; }
-                    .receipt-header p { margin: 5px 0; font-size: 12px; }
-                    .receipt-body { font-size: 14px; }
-                    .receipt-body hr { border: none; border-top: 1px dashed #ddd; margin: 10px 0; }
-                    .receipt-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
-                    .receipt-item.total-row { font-weight: bold; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd; }
-                    .receipt-footer { text-align: center; margin-top: 15px; font-size: 12px; }
-                    .no-print { display: none !important; }
-                `);
-                printWindow.document.write('</style>');
-                printWindow.document.write('</head><body>');
-                printWindow.document.write(receiptElement.innerHTML);
-                printWindow.document.write('</body></html>');
-                printWindow.document.close();
-                
-                setTimeout(() => {
-                    printWindow.print();
-                    printWindow.close();
-                }, 500);
+                showTrialLimitWarning('Fitur cetak struk tidak tersedia dalam versi uji coba. Untuk menggunakan fitur ini, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
             };
             
             window.downloadReceiptPDF = function() {
-                const doc = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: [80, 200] // Small receipt size
-                });
-                
-                // Add store info
-                doc.setFontSize(12);
-                doc.setTextColor(0, 0, 0);
-                doc.text(settings.storeName, 40, 10, { align: 'center' });
-                doc.setFontSize(8);
-                doc.text(settings.storeAddress, 40, 15, { align: 'center' });
-                doc.text(`Telp: ${settings.storePhone}`, 40, 18, { align: 'center' });
-                
-                // Add transaction info
-                doc.setFontSize(10);
-                doc.text(`Tanggal: ${moment().format('DD/MM/YYYY HH:mm')}`, 5, 25);
-                doc.text(`No. Transaksi: ${'TRX' + moment().format('YYYYMMDDHHmmss')}`, 5, 30);
-                doc.text(`Kasir: ${currentUser.name}`, 5, 35);
-                doc.text(`Pelanggan: ${$('#customerName').val() || 'Pelanggan Biasa'}`, 5, 40);
-                
-                // Add items
-                let yPos = 50;
-                currentCart.items.forEach(item => {
-                    doc.text(`${item.product.name} (${item.quantity} ${item.product.unit})`, 5, yPos);
-                    doc.text(formatCurrency(item.product.price * item.quantity), 70, yPos, { align: 'right' });
-                    yPos += 5;
-                });
-                
-                // Add summary
-                yPos += 5;
-                doc.line(5, yPos, 75, yPos);
-                yPos += 5;
-                
-                doc.text('Subtotal:', 5, yPos);
-                doc.text(formatCurrency(currentCart.subtotal), 70, yPos, { align: 'right' });
-                yPos += 5;
-                
-                doc.text('Diskon:', 5, yPos);
-                doc.text(formatCurrency(currentCart.discount), 70, yPos, { align: 'right' });
-                yPos += 5;
-                
-                doc.text('Biaya Tambahan:', 5, yPos);
-                doc.text(formatCurrency(currentCart.additionalCost), 70, yPos, { align: 'right' });
-                yPos += 5;
-                
-                doc.text('TOTAL:', 5, yPos);
-                doc.text(formatCurrency(currentCart.total), 70, yPos, { align: 'right' });
-                yPos += 5;
-                
-                // Add payment info
-                yPos += 5;
-                doc.line(5, yPos, 75, yPos);
-                yPos += 5;
-                
-                doc.text('Pembayaran:', 5, yPos);
-                doc.text(formatCurrency(parseFloat($('#paymentAmount').val()) || currentCart.total), 70, yPos, { align: 'right' });
-                yPos += 5;
-                
-                doc.text('Kembali:', 5, yPos);
-                doc.text(formatCurrency((parseFloat($('#paymentAmount').val()) || currentCart.total) - currentCart.total), 70, yPos, { align: 'right' });
-                yPos += 5;
-                
-                // Add footer
-                yPos += 5;
-                doc.setFontSize(8);
-                doc.text('Terima kasih telah berbelanja', 40, yPos, { align: 'center' });
-                yPos += 5;
-                doc.text(`© ${new Date().getFullYear()} ${settings.storeName}`, 40, yPos, { align: 'center' });
-                
-                // Save PDF
-                doc.save(`Struk_${moment().format('YYYYMMDDHHmmss')}.pdf`);
+                showTrialLimitWarning('Fitur download PDF tidak tersedia dalam versi uji coba. Untuk menggunakan fitur ini, silakan hubungi tim penjualan kami untuk melakukan pembelian versi premium.');
             };
-            
-            // Plus/minus quantity buttons
-            $(document).on('click', '.qty-btn.plus', function() {
-                const productId = $(this).data('id');
-                const item = currentCart.items.find(item => item.product.id === productId);
-                const product = products.find(p => p.id === productId);
-                
-                if (item && product) {
-                    // Check stock
-                    if (item.quantity + 1 > product.stock) {
-                        showToast('Stok tidak mencukupi', 'error');
-                        return;
-                    }
-                    
-                    item.quantity += 1;
-                    updateCart();
-                }
-            });
-            
-            $(document).on('click', '.qty-btn.minus', function() {
-                const productId = $(this).data('id');
-                const item = currentCart.items.find(item => item.product.id === productId);
-                
-                if (item) {
-                    if (item.quantity > 1) {
-                        item.quantity -= 1;
-                        updateCart();
-                    }
-                }
-            });
-            
-            // Delete member button
-            $(document).on('click', '.delete-member', function() {
-                const memberId = $(this).data('id');
-                
-                if (confirm('Apakah Anda yakin ingin menghapus member ini?')) {
-                    members = members.filter(m => m.id !== memberId);
-                    saveMembers();
-                    loadMembers();
-                    loadMembersForSelect();
-                    showToast('Member berhasil dihapus', 'success');
-                }
-            });
-            
-            // Product category select change
-            $('#productCategory').change(function() {
-                if ($(this).val() === 'new') {
-                    const newCategory = prompt('Masukkan nama kategori baru:');
-                    if (newCategory && newCategory.trim()) {
-                        // Check if category already exists
-                        if (categories.some(c => c.toLowerCase() === newCategory.trim().toLowerCase())) {
-                            showToast('Kategori sudah ada', 'error');
-                            $(this).val('');
-                            return;
-                        }
-                        
-                        categories.unshift(newCategory.trim());
-                        saveCategories();
-                        loadCategories();
-                        loadCategoriesForSelect();
-                        $(this).val(newCategory.trim());
-                        showToast('Kategori berhasil ditambahkan', 'success');
-                    } else {
-                        $(this).val('');
-                    }
-                }
-            });
-            
-            // Cashier role select change
-            $('#cashierRole').change(function() {
-                // You can add additional logic here if needed
-            });
-            
-            // Initialize product modal category select
-            $('#productModal').on('show.bs.modal', function() {
-                loadCategoriesForSelect();
-            });
-            
-            // Initialize cashier modal role select
-            $('#cashierModal').on('show.bs.modal', function() {
-                loadRolesForSelect();
-            });
-            
-            // Admin password verification
-            $('#adminPasswordForm').submit(function(e) {
-                e.preventDefault();
-                const password = $('#adminPassword').val().trim();
-                
-                if (!password) {
-                    showToast('Password admin harus diisi', 'error');
-                    return;
-                }
-                
-                // Find admin user
-                const adminUser = users.find(u => u.role === 'admin');
-                
-                if (!adminUser) {
-                    showToast('Admin tidak ditemukan', 'error');
-                    return;
-                }
-                
-                // Verify password
-                const hashedPassword = CryptoJS.SHA256(password).toString();
-                
-                if (hashedPassword !== adminUser.password) {
-                    showToast('Password admin salah', 'error');
-                    return;
-                }
-                
-                // Password correct, execute pending action
-                $('#adminPasswordModal').hide();
-                $('#adminPassword').val('');
-                
-                if (pendingAdminAction) {
-                    pendingAdminAction();
-                    pendingAdminAction = null;
-                }
-            });
-            
-            // Cancel admin password verification
-            $('#cancelAdminPassword').click(function() {
-                $('#adminPasswordModal').hide();
-                $('#adminPassword').val('');
-                pendingAdminAction = null;
-            });
-            
-            // Report date change
-            $('#reportStartDate, #reportEndDate').change(function() {
-                // You can add validation if needed
-            });
-            
-            // Profit report date change
-            $('#profitReportStartDate, #profitReportEndDate').change(function() {
-                // You can add validation if needed
-            });
-            
-            // Member discount change
-            $('#memberDiscount').change(function() {
-                const discount = parseInt($(this).val()) || 0;
-                
-                if (discount < 0 || discount > 100) {
-                    showToast('Diskon harus antara 0-100%', 'error');
-                    $(this).val(0);
-                }
-            });
-            
-            // Cart discount change
-            $('#cartDiscountInput').change(function() {
-                const discount = parseInt($(this).val()) || 0;
-                
-                if (discount < 0 || discount > 100) {
-                    showToast('Diskon harus antara 0-100%', 'error');
-                    $(this).val(0);
-                }
-            });
-            
-            // Additional cost change
-            $('#additionalCostInput').change(function() {
-                const cost = parseFloat($(this).val()) || 0;
-                
-                if (cost < 0) {
-                    showToast('Biaya tambahan tidak boleh negatif', 'error');
-                    $(this).val(0);
-                }
-            });
-            
-            // Payment amount change
-            $('#paymentAmount').change(function() {
-                const amount = parseFloat($(this).val()) || 0;
-                
-                if (amount < 0) {
-                    showToast('Jumlah pembayaran tidak boleh negatif', 'error');
-                    $(this).val('');
-                }
-            });
-            
-            // Product stock change
-            $('#productStock').change(function() {
-                const stock = parseInt($(this).val()) || 0;
-                
-                if (stock < 0) {
-                    showToast('Stok tidak boleh negatif', 'error');
-                    $(this).val(0);
-                }
-            });
-            
-            // Product price change
-            $('#productPrice').change(function() {
-                const price = parseFloat($(this).val()) || 0;
-                
-                if (price <= 0) {
-                    showToast('Harga harus lebih dari 0', 'error');
-                    $(this).val('');
-                }
-            });
-            
-            // Product cost change
-            $('#productCost').change(function() {
-                const cost = parseFloat($(this).val()) || 0;
-                
-                if (cost < 0) {
-                    showToast('Harga pokok tidak boleh negatif', 'error');
-                    $(this).val('');
-                }
-            });
-            
-            // Cashier username change
-            $('#cashierUsername').on('input', function() {
-                const username = $(this).val().trim();
-                
-                // Validate username format
-                if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-                    $(this).addClass('is-invalid');
-                } else {
-                    $(this).removeClass('is-invalid');
-                }
-            });
-            
-            // Role code change
-            $('#roleCode').on('input', function() {
-                const code = $(this).val().trim();
-                
-                // Validate role code format
-                if (!/^[a-z0-9_]+$/.test(code)) {
-                    $(this).addClass('is-invalid');
-                } else {
-                    $(this).removeClass('is-invalid');
-                }
-            });
-            
-            // Report period change
-            $('#reportPeriod').change(function() {
-                if ($(this).val() === 'custom') {
-                    $('#customDateRange').show();
-                } else {
-                    $('#customDateRange').hide();
-                }
-            });
-            
-            // Profit report period change
-            $('#profitReportPeriod').change(function() {
-                if ($(this).val() === 'custom') {
-                    $('#profitCustomDateRange').show();
-                } else {
-                    $('#profitCustomDateRange').hide();
-                }
-            });
-            
-            // Close modals when clicking outside
-            $('.modal').click(function(e) {
-                if (e.target === this) {
-                    $(this).hide();
-                }
-            });
-            
-            // Prevent modal close when clicking inside
-            $('.modal-content').click(function(e) {
-                e.stopPropagation();
-            });
         });
     </script>
 </body>
