@@ -2016,20 +2016,19 @@
         ];
         
         // Initialize data
-        function initializeData() {
-            // Check if users exist, if not create default users
-            let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || [];
-            
-            if (!users.find(u => u.username === 'admin')) {
-                users.push(DEFAULT_ADMIN);
-            }
-            
-            if (!users.find(u => u.username === 'kasir')) {
-                users.push(DEFAULT_CASHIER);
-            }
-            
-            localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-            
+	function initializeData() {
+	    // Check if users exist, if not create default users
+	    let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || [];
+	    
+	    // Clear existing default users to avoid duplicates
+	    users = users.filter(u => u.username !== 'admin' && u.username !== 'kasir');
+	    
+	    // Add default users
+	    users.push(DEFAULT_ADMIN);
+	    users.push(DEFAULT_CASHIER);
+	    
+	    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+	            
             // Initialize roles if not exists
             let roles = JSON.parse(localStorage.getItem(STORAGE_KEYS.ROLES)) || [];
             if (roles.length === 0) {
@@ -2208,43 +2207,43 @@
             });
             
             // Login form handler with password hashing
-            $('#loginForm').submit(function(e) {
-                e.preventDefault();
-                const username = $('#username').val().trim();
-                const password = $('#password').val().trim();
-                
-                // Simple validation
-                if (!username || !password) {
-                    showToast('Username dan password harus diisi', 'error');
-                    return;
-                }
-                
-                // Find user
-                const user = users.find(u => u.username === username);
-                
-                if (!user) {
-                    showToast('Username tidak ditemukan', 'error');
-                    return;
-                }
-                
-                // Verify password (compare hashes)
-                const hashedPassword = CryptoJS.SHA256(password).toString();
-                
-                if (hashedPassword !== user.password) {
-                    showToast('Password salah', 'error');
-                    return;
-                }
-                
-                // Login successful
-                currentUser = user;
-                localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
-                $('#loggedInUser').text(currentUser.name);
-                
-                // Update role badge
-                updateRoleBadge(currentUser.role);
-                
-                $('#loginModal').hide();
-                $('#mainApp').fadeIn();
+		$('#loginForm').submit(function(e) {
+		    e.preventDefault();
+		    const username = $('#username').val().trim();
+		    const password = $('#password').val().trim();
+		    
+		    // Simple validation
+		    if (!username || !password) {
+		        showToast('Username dan password harus diisi', 'error');
+		        return;
+		    }
+		    
+		    // Find user
+		    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+		    
+		    if (!user) {
+		        showToast('Username tidak ditemukan', 'error');
+		        return;
+		    }
+		    
+		    // Verify password (compare hashes)
+		    const hashedPassword = CryptoJS.SHA256(password).toString();
+		    
+		    if (hashedPassword !== user.password) {
+		        showToast('Password salah', 'error');
+		        return;
+		    }
+		    
+		    // Login successful
+		    currentUser = user;
+		    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
+		    $('#loggedInUser').text(currentUser.name);
+		    
+		    // Update role badge
+		    updateRoleBadge(currentUser.role);
+		    
+		    $('#loginModal').hide();
+		    $('#mainApp').fadeIn();
                 
                 // Check trial limits and disable features if exceeded
                 checkTrialLimits();
@@ -2274,17 +2273,17 @@
                     }
                 }
                 
-                // Load data
-                loadProducts();
-                updateCart();
-                loadCategories();
-                updateCurrentDate();
-                updateStoreInfo();
-                loadMembersForSelect();
-                loadActiveMemos();
-                
-                showToast('Login berhasil', 'success');
-            });
+                 // Load data
+		    loadProducts();
+		    updateCart();
+		    loadCategories();
+		    updateCurrentDate();
+		    updateStoreInfo();
+		    loadMembersForSelect();
+		    loadActiveMemos();
+		    
+		    showToast('Login berhasil', 'success');
+		});	
             
             // Function to check trial limits and disable features
             function checkTrialLimits() {
