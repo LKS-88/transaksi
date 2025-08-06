@@ -1938,352 +1938,313 @@
         // Initialize jsPDF
         const { jsPDF } = window.jspdf;
 
-        // Data storage
-        const STORAGE_KEYS = {
-            PRODUCTS: 'kasir_products',
-            CATEGORIES: 'kasir_categories',
-            TRANSACTIONS: 'kasir_transactions',
-            USER: 'kasir_user',
-            CART: 'kasir_cart',
-            SETTINGS: 'kasir_settings',
-            USERS: 'kasir_users',
-            STOCK_HISTORY: 'kasir_stock_history',
-            MEMBERS: 'kasir_members',
-            ROLES: 'kasir_roles',
-            DISCOUNTS: 'kasir_discounts',
-            MEMOS: 'kasir_memos',
-            TRIAL_LIMITS: 'kasir_trial_limits'
-        };
-        
-        // Default admin user (username: admin, password: 12345)
-        const DEFAULT_ADMIN = {
-            id: 'U001',
-            username: 'admin',
-            password: CryptoJS.SHA256('12345').toString(),
-            name: 'Administrator',
-            role: 'admin'
-        };
-        
-        // Default cashier user (username: kasir, password: kasir123)
-        const DEFAULT_CASHIER = {
-            id: 'U002',
-            username: 'kasir',
-            password: CryptoJS.SHA256('kasir123').toString(),
-            name: 'Kasir',
-            role: 'cashier'
-        };
-        
-        // Default roles
-        const DEFAULT_ROLES = [
-            {
-                id: 'R001',
-                name: 'Admin',
-                code: 'admin',
-                permissions: {
-                    addProduct: true,
-                    manageCategories: true,
-                    viewReports: true,
-                    manageProducts: true,
-                    manageCashiers: true,
-                    manageMembers: true,
-                    manageStoreInfo: true,
-                    viewProfitReports: true,
-                    manageRoles: true,
-                    dataManagement: true,
-                    manageMemos: true
-                },
-                memberDiscount: 0
+       // Data storage
+    const STORAGE_KEYS = {
+        PRODUCTS: 'kasir_products',
+        CATEGORIES: 'kasir_categories',
+        TRANSACTIONS: 'kasir_transactions',
+        USER: 'kasir_user',
+        CART: 'kasir_cart',
+        SETTINGS: 'kasir_settings',
+        USERS: 'kasir_users',
+        STOCK_HISTORY: 'kasir_stock_history',
+        MEMBERS: 'kasir_members',
+        ROLES: 'kasir_roles',
+        DISCOUNTS: 'kasir_discounts',
+        MEMOS: 'kasir_memos',
+        TRIAL_LIMITS: 'kasir_trial_limits'
+    };
+    
+    // Default admin user (username: admin, password: 12345)
+    const DEFAULT_ADMIN = {
+        id: 'U001',
+        username: 'admin',
+        password: CryptoJS.SHA256('12345').toString(),
+        name: 'Administrator',
+        role: 'admin'
+    };
+    
+    // Default cashier user (username: kasir, password: kasir123)
+    const DEFAULT_CASHIER = {
+        id: 'U002',
+        username: 'kasir',
+        password: CryptoJS.SHA256('kasir123').toString(),
+        name: 'Kasir',
+        role: 'cashier'
+    };
+    
+    // Default roles
+    const DEFAULT_ROLES = [
+        {
+            id: 'R001',
+            name: 'Admin',
+            code: 'admin',
+            permissions: {
+                addProduct: true,
+                manageCategories: true,
+                viewReports: true,
+                manageProducts: true,
+                manageCashiers: true,
+                manageMembers: true,
+                manageStoreInfo: true,
+                viewProfitReports: true,
+                manageRoles: true,
+                dataManagement: true,
+                manageMemos: true
             },
-            {
-                id: 'R002',
-                name: 'Kasir',
-                code: 'cashier',
-                permissions: {
-                    addProduct: false,
-                    manageCategories: false,
-                    viewReports: false,
-                    manageProducts: false,
-                    manageCashiers: false,
-                    manageMembers: false,
-                    manageStoreInfo: false,
-                    viewProfitReports: false,
-                    manageRoles: false,
-                    dataManagement: false,
-                    manageMemos: false
-                },
-                memberDiscount: 0
-            }
-        ];
+            memberDiscount: 0
+        },
+        {
+            id: 'R002',
+            name: 'Kasir',
+            code: 'cashier',
+            permissions: {
+                addProduct: false,
+                manageCategories: false,
+                viewReports: false,
+                manageProducts: false,
+                manageCashiers: false,
+                manageMembers: false,
+                manageStoreInfo: false,
+                viewProfitReports: false,
+                manageRoles: false,
+                dataManagement: false,
+                manageMemos: false
+            },
+            memberDiscount: 0
+        }
+    ];
+    
+    // Initialize data
+    function initializeData() {
+    // Check if users exist, if not create default users
+    let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || [];
+    
+    // Clear existing default users to avoid duplicates
+    users = users.filter(u => u.username !== 'admin' && u.username !== 'kasir');
+    
+    // Add default users
+    users.push(DEFAULT_ADMIN);
+    users.push(DEFAULT_CASHIER);
+    
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+                
+        // Initialize roles if not exists
+        let roles = JSON.parse(localStorage.getItem(STORAGE_KEYS.ROLES)) || [];
+        if (roles.length === 0) {
+            roles = DEFAULT_ROLES;
+            localStorage.setItem(STORAGE_KEYS.ROLES, JSON.stringify(roles));
+        }
         
+        // Initialize other data if not exists
+        if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
+            localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
+        }
+        
+        if (!localStorage.getItem(STORAGE_KEYS.CATEGORIES)) {
+            localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify([]));
+        }
+        
+        if (!localStorage.getItem(STORAGE_KEYS.TRANSACTIONS)) {
+            localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
+        }
+        
+        if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
+            localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({
+                storeName: 'APLIKASI KASIR MODERN',
+                storeAddress: 'Jl. Contoh No. 123, Kota',
+                storePhone: '081234567890',
+                storeDescription: 'Toko serba ada dengan harga terjangkau'
+            }));
+        }
+        
+        if (!localStorage.getItem(STORAGE_KEYS.STOCK_HISTORY)) {
+            localStorage.setItem(STORAGE_KEYS.STOCK_HISTORY, JSON.stringify([]));
+        }
+        
+        if (!localStorage.getItem(STORAGE_KEYS.MEMBERS)) {
+            localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify([]));
+        }
+        
+        if (!localStorage.getItem(STORAGE_KEYS.DISCOUNTS)) {
+            localStorage.setItem(STORAGE_KEYS.DISCOUNTS, JSON.stringify({
+                memberDiscount: 10 // Default 10% discount for members
+            }));
+        }
+        
+        if (!localStorage.getItem(STORAGE_KEYS.MEMOS)) {
+            localStorage.setItem(STORAGE_KEYS.MEMOS, JSON.stringify([]));
+        }
+        
+        // Initialize trial limits if not exists
+        if (!localStorage.getItem(STORAGE_KEYS.TRIAL_LIMITS)) {
+            localStorage.setItem(STORAGE_KEYS.TRIAL_LIMITS, JSON.stringify({
+                transactions: 0,
+                categories: 0,
+                products: 0
+            }));
+        }
+    }
+        
+        // Load data
+    let products = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCTS)) || [];
+    let categories = JSON.parse(localStorage.getItem(STORAGE_KEYS.CATEGORIES)) || [];
+    let transactions = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRANSACTIONS)) || [];
+    let settings = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS)) || {};
+    let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || [];
+    let members = JSON.parse(localStorage.getItem(STORAGE_KEYS.MEMBERS)) || [];
+    let roles = JSON.parse(localStorage.getItem(STORAGE_KEYS.ROLES)) || [];
+    let discounts = JSON.parse(localStorage.getItem(STORAGE_KEYS.DISCOUNTS)) || { memberDiscount: 10 };
+    let currentUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER)) || null;
+    let stockHistory = JSON.parse(localStorage.getItem(STORAGE_KEYS.STOCK_HISTORY)) || [];
+    let memos = JSON.parse(localStorage.getItem(STORAGE_KEYS.MEMOS)) || [];
+    let trialLimits = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRIAL_LIMITS)) || {
+        transactions: 0,
+        categories: 0,
+        products: 0
+    };
+    let currentCart = JSON.parse(localStorage.getItem(STORAGE_KEYS.CART)) || {
+        items: [],
+        subtotal: 0,
+        discount: 0,
+        additionalCost: 0,
+        additionalCostNote: '',
+        total: 0,
+        memberId: null
+    };
+
+    // Initialize the app
+    $(document).ready(function() {
         // Initialize data
-	function initializeData() {
-	    // Check if users exist, if not create default users
-	    let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || [];
-	    
-	    // Clear existing default users to avoid duplicates
-	    users = users.filter(u => u.username !== 'admin' && u.username !== 'kasir');
-	    
-	    // Add default users
-	    users.push(DEFAULT_ADMIN);
-	    users.push(DEFAULT_CASHIER);
-	    
-	    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-	            
-            // Initialize roles if not exists
-            let roles = JSON.parse(localStorage.getItem(STORAGE_KEYS.ROLES)) || [];
-            if (roles.length === 0) {
-                roles = DEFAULT_ROLES;
-                localStorage.setItem(STORAGE_KEYS.ROLES, JSON.stringify(roles));
-            }
+        initializeData();
+        
+        // Set current year in footer
+        $('#currentYear, #receiptYear').text(new Date().getFullYear());
+        
+        // Check if user is logged in
+        if (currentUser) {
+            $('#loggedInUser').text(currentUser.name);
             
-            // Initialize other data if not exists
-            if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
-                localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
-            }
+            // Set role badge
+            updateRoleBadge(currentUser.role);
             
-            if (!localStorage.getItem(STORAGE_KEYS.CATEGORIES)) {
-                localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify([]));
-            }
+            $('#loginModal').hide();
+            $('#mainApp').show();
+            loadProducts();
+            updateCart();
+            loadCategories();
+            updateCurrentDate();
+            updateStoreInfo();
+            loadMembersForSelect();
+            loadActiveMemos();
             
-            if (!localStorage.getItem(STORAGE_KEYS.TRANSACTIONS)) {
-                localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
-            }
+            // Check trial limits and disable features if exceeded
+            checkTrialLimits();
             
-            if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
-                localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({
-                    storeName: 'APLIKASI KASIR MODERN',
-                    storeAddress: 'Jl. Contoh No. 123, Kota',
-                    storePhone: '081234567890',
-                    storeDescription: 'Toko serba ada dengan harga terjangkau'
-                }));
-            }
-            
-            if (!localStorage.getItem(STORAGE_KEYS.STOCK_HISTORY)) {
-                localStorage.setItem(STORAGE_KEYS.STOCK_HISTORY, JSON.stringify([]));
-            }
-            
-            if (!localStorage.getItem(STORAGE_KEYS.MEMBERS)) {
-                localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify([]));
-            }
-            
-            if (!localStorage.getItem(STORAGE_KEYS.DISCOUNTS)) {
-                localStorage.setItem(STORAGE_KEYS.DISCOUNTS, JSON.stringify({
-                    memberDiscount: 10 // Default 10% discount for members
-                }));
-            }
-            
-            if (!localStorage.getItem(STORAGE_KEYS.MEMOS)) {
-                localStorage.setItem(STORAGE_KEYS.MEMOS, JSON.stringify([]));
-            }
-            
-            // Initialize trial limits if not exists
-            if (!localStorage.getItem(STORAGE_KEYS.TRIAL_LIMITS)) {
-                localStorage.setItem(STORAGE_KEYS.TRIAL_LIMITS, JSON.stringify({
-                    transactions: 0,
-                    categories: 0,
-                    products: 0
-                }));
+            // Show admin panel if user has admin permissions
+            if (currentUser.role === 'admin' || hasPermission(currentUser.role, 'manageProducts')) {
+                $('#adminPanel').show();
+                $('#mainApp').addClass('admin-view');
+                
+                // Hide buttons based on permissions
+                if (!hasPermission(currentUser.role, 'manageCashiers')) {
+                    $('#manageCashiersBtn').hide();
+                }
+                if (!hasPermission(currentUser.role, 'manageRoles')) {
+                    $('#manageRolesBtn').hide();
+                }
+                if (!hasPermission(currentUser.role, 'viewProfitReports')) {
+                    $('#profitReportBtn').hide();
+                }
+                if (!hasPermission(currentUser.role, 'dataManagement')) {
+                    $('#backupDataBtn').hide();
+                    $('#restoreDataBtn').hide();
+                    $('#resetDataBtn').hide();
+                }
+                if (!hasPermission(currentUser.role, 'manageMemos')) {
+                    $('#manageMemosBtn').hide();
+                }
             }
         }
         
-        // Load data
-        let products = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCTS)) || [];
-        let categories = JSON.parse(localStorage.getItem(STORAGE_KEYS.CATEGORIES)) || [];
-        let transactions = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRANSACTIONS)) || [];
-        let settings = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS)) || {};
-        let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || [];
-        let members = JSON.parse(localStorage.getItem(STORAGE_KEYS.MEMBERS)) || [];
-        let roles = JSON.parse(localStorage.getItem(STORAGE_KEYS.ROLES)) || [];
-        let discounts = JSON.parse(localStorage.getItem(STORAGE_KEYS.DISCOUNTS)) || { memberDiscount: 10 };
-        let currentUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER)) || null;
-        let stockHistory = JSON.parse(localStorage.getItem(STORAGE_KEYS.STOCK_HISTORY)) || [];
-        let memos = JSON.parse(localStorage.getItem(STORAGE_KEYS.MEMOS)) || [];
-        let trialLimits = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRIAL_LIMITS)) || {
-            transactions: 0,
-            categories: 0,
-            products: 0
-        };
-        let currentCart = JSON.parse(localStorage.getItem(STORAGE_KEYS.CART)) || {
-            items: [],
-            subtotal: 0,
-            discount: 0,
-            additionalCost: 0,
-            additionalCostNote: '',
-            total: 0,
-            memberId: null
-        };
-
-        // Variable to store the requested admin action
-        let pendingAdminAction = null;
-        let currentEditingProduct = null;
-        let currentEditingCashier = null;
-        let currentEditingMember = null;
-        let currentEditingRole = null;
-        let currentEditingMemo = null;
-
-        // Initialize the app
-        $(document).ready(function() {
-            // Initialize data
-            initializeData();
+        // Login form handler with password hashing
+        $('#loginForm').submit(function(e) {
+            e.preventDefault();
+            const username = $('#username').val().trim();
+            const password = $('#password').val().trim();
             
-            // Set current year in footer
-            $('#currentYear, #receiptYear').text(new Date().getFullYear());
+            // Simple validation
+            if (!username || !password) {
+                showToast('Username dan password harus diisi', 'error');
+                return;
+            }
             
-            // Check if user is logged in
-            if (currentUser) {
-                $('#loggedInUser').text(currentUser.name);
-                
-                // Set role badge
-                updateRoleBadge(currentUser.role);
-                
-                $('#loginModal').hide();
-                $('#mainApp').show();
-                loadProducts();
-                updateCart();
-                loadCategories();
-                updateCurrentDate();
-                updateStoreInfo();
-                loadMembersForSelect();
-                loadActiveMemos();
-                
-                // Check trial limits and disable features if exceeded
-                checkTrialLimits();
-                
-                // Show admin panel if user has admin permissions
-                if (currentUser.role === 'admin' || hasPermission(currentUser.role, 'manageProducts')) {
-                    $('#adminPanel').show();
-                    $('#mainApp').addClass('admin-view');
+            // Find user
+            const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+            
+            if (!user) {
+                showToast('Username tidak ditemukan', 'error');
+                return;
+            }
+            
+            // Verify password (compare hashes)
+            const hashedPassword = CryptoJS.SHA256(password).toString();
+            
+            if (hashedPassword !== user.password) {
+                showToast('Password salah', 'error');
+                return;
+            }
+            
+            // Login successful
+            currentUser = user;
+            localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
+            $('#loggedInUser').text(currentUser.name);
+            
+            // Update role badge
+            updateRoleBadge(currentUser.role);
+            
+            $('#loginModal').hide();
+            $('#mainApp').fadeIn();
                     
-                    // Hide buttons based on permissions
-                    if (!hasPermission(currentUser.role, 'manageCashiers')) {
-                        $('#manageCashiersBtn').hide();
-                    }
-                    if (!hasPermission(currentUser.role, 'manageRoles')) {
-                        $('#manageRolesBtn').hide();
-                    }
-                    if (!hasPermission(currentUser.role, 'viewProfitReports')) {
-                        $('#profitReportBtn').hide();
-                    }
-                    if (!hasPermission(currentUser.role, 'dataManagement')) {
-                        $('#backupDataBtn').hide();
-                        $('#restoreDataBtn').hide();
-                        $('#resetDataBtn').hide();
-                    }
-                    if (!hasPermission(currentUser.role, 'manageMemos')) {
-                        $('#manageMemosBtn').hide();
-                    }
+            // Check trial limits and disable features if exceeded
+            checkTrialLimits();
+            
+            // Show admin panel if user has admin permissions
+            if (currentUser.role === 'admin' || hasPermission(currentUser.role, 'manageProducts')) {
+                $('#adminPanel').show();
+                $('#mainApp').addClass('admin-view');
+                
+                // Hide buttons based on permissions
+                if (!hasPermission(currentUser.role, 'manageCashiers')) {
+                    $('#manageCashiersBtn').hide();
+                }
+                if (!hasPermission(currentUser.role, 'manageRoles')) {
+                    $('#manageRolesBtn').hide();
+                }
+                if (!hasPermission(currentUser.role, 'viewProfitReports')) {
+                    $('#profitReportBtn').hide();
+                }
+                if (!hasPermission(currentUser.role, 'dataManagement')) {
+                    $('#backupDataBtn').hide();
+                    $('#restoreDataBtn').hide();
+                    $('#resetDataBtn').hide();
+                }
+                if (!hasPermission(currentUser.role, 'manageMemos')) {
+                    $('#manageMemosBtn').hide();
                 }
             }
             
-            // Update date every minute
-            setInterval(updateCurrentDate, 60000);
+            // Load data
+            loadProducts();
+            updateCart();
+            loadCategories();
+            updateCurrentDate();
+            updateStoreInfo();
+            loadMembersForSelect();
+            loadActiveMemos();
             
-            // Check for active memos every minute
-            setInterval(loadActiveMemos, 60000);
-            
-            // Customer type change
-            $('#customerType').change(function() {
-                if ($(this).val() === 'member') {
-                    $('#memberSelectContainer').show();
-                    // Apply member discount if available
-                    if (discounts.memberDiscount > 0) {
-                        $('#cartDiscountInput').val(discounts.memberDiscount);
-                        currentCart.discount = currentCart.subtotal * (discounts.memberDiscount / 100);
-                        updateCart();
-                    }
-                } else {
-                    $('#memberSelectContainer').hide();
-                    currentCart.memberId = null;
-                    $('#cartDiscountInput').val(0);
-                    currentCart.discount = 0;
-                    updateCart();
-                }
-            });
-            
-            // Member select change
-            $('#memberSelect').change(function() {
-                currentCart.memberId = $(this).val() || null;
-                updateCart();
-            });
-            
-            // Login form handler with password hashing
-		$('#loginForm').submit(function(e) {
-		    e.preventDefault();
-		    const username = $('#username').val().trim();
-		    const password = $('#password').val().trim();
-		    
-		    // Simple validation
-		    if (!username || !password) {
-		        showToast('Username dan password harus diisi', 'error');
-		        return;
-		    }
-		    
-		    // Find user
-		    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
-		    
-		    if (!user) {
-		        showToast('Username tidak ditemukan', 'error');
-		        return;
-		    }
-		    
-		    // Verify password (compare hashes)
-		    const hashedPassword = CryptoJS.SHA256(password).toString();
-		    
-		    if (hashedPassword !== user.password) {
-		        showToast('Password salah', 'error');
-		        return;
-		    }
-		    
-		    // Login successful
-		    currentUser = user;
-		    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
-		    $('#loggedInUser').text(currentUser.name);
-		    
-		    // Update role badge
-		    updateRoleBadge(currentUser.role);
-		    
-		    $('#loginModal').hide();
-		    $('#mainApp').fadeIn();
-                
-                // Check trial limits and disable features if exceeded
-                checkTrialLimits();
-                
-                // Show admin panel if user has admin permissions
-                if (currentUser.role === 'admin' || hasPermission(currentUser.role, 'manageProducts')) {
-                    $('#adminPanel').show();
-                    $('#mainApp').addClass('admin-view');
-                    
-                    // Hide buttons based on permissions
-                    if (!hasPermission(currentUser.role, 'manageCashiers')) {
-                        $('#manageCashiersBtn').hide();
-                    }
-                    if (!hasPermission(currentUser.role, 'manageRoles')) {
-                        $('#manageRolesBtn').hide();
-                    }
-                    if (!hasPermission(currentUser.role, 'viewProfitReports')) {
-                        $('#profitReportBtn').hide();
-                    }
-                    if (!hasPermission(currentUser.role, 'dataManagement')) {
-                        $('#backupDataBtn').hide();
-                        $('#restoreDataBtn').hide();
-                        $('#resetDataBtn').hide();
-                    }
-                    if (!hasPermission(currentUser.role, 'manageMemos')) {
-                        $('#manageMemosBtn').hide();
-                    }
-                }
-                
-                 // Load data
-		    loadProducts();
-		    updateCart();
-		    loadCategories();
-		    updateCurrentDate();
-		    updateStoreInfo();
-		    loadMembersForSelect();
-		    loadActiveMemos();
-		    
-		    showToast('Login berhasil', 'success');
-		});	
+            showToast('Login berhasil', 'success');
+        });
             
             // Function to check trial limits and disable features
             function checkTrialLimits() {
@@ -4212,62 +4173,72 @@
             };
             
             // Helper functions
-            function loadProducts(searchTerm = '', category = 'all') {
-                let filteredProducts = [...products];
-                
-                // Apply search filter
-                if (searchTerm) {
-                    const searchLower = searchTerm.toLowerCase();
-                    filteredProducts = filteredProducts.filter(p => 
-                        p.name.toLowerCase().includes(searchLower) || 
-                        (p.category && p.category.toLowerCase().includes(searchLower))
-                }
-                
-                // Apply category filter
-                if (category !== 'all') {
-                    filteredProducts = filteredProducts.filter(p => p.category === category);
-                }
-                
-                // Update product count
-                $('#productCount').text(`(${filteredProducts.length} produk)`);
-                
-                // Clear product grid
-                $('#productGrid').empty();
-                
-                if (filteredProducts.length === 0) {
-                    $('#productGrid').html(`
-                        <div class="empty-state" style="grid-column: 1 / -1;">
-                            <i class="fas fa-box-open"></i>
-                            <p>Tidak ada produk</p>
-                        </div>
-                    `);
-                    return;
-                }
-                
-                // Add products to grid
-                filteredProducts.forEach(product => {
-                    const stockClass = product.stock <= 5 ? 'low' : '';
-                    const adminView = $('#mainApp').hasClass('admin-view') ? 'admin-view' : '';
+           function loadProducts(searchTerm = '', category = 'all') {
+    let filteredProducts = [...products];
+    
+    // Apply search filter
+    if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        filteredProducts = filteredProducts.filter(p => 
+            p.name.toLowerCase().includes(searchLower) || 
+            (p.category && p.category.toLowerCase().includes(searchLower))
+        );
+    }
+        
+        // Apply search filter
+        if (searchTerm) {
+            const searchLower = searchTerm.toLowerCase();
+            filteredProducts = filteredProducts.filter(p => 
+                p.name.toLowerCase().includes(searchLower) || 
+                (p.category && p.category.toLowerCase().includes(searchLower))
+            );
+        }
+        
+        // Apply category filter
+        if (category !== 'all') {
+            filteredProducts = filteredProducts.filter(p => p.category === category);
+        }
+        
+        // Update product count
+        $('#productCount').text(`(${filteredProducts.length} produk)`);
+        
+        // Clear product grid
+        $('#productGrid').empty();
+        
+        if (filteredProducts.length === 0) {
+            $('#productGrid').html(`
+                <div class="empty-state" style="grid-column: 1 / -1;">
+                    <i class="fas fa-box-open"></i>
+                    <p>Tidak ada produk</p>
+                </div>
+            `);
+            return;
+        }
+        
+        // Add products to grid
+        filteredProducts.forEach(product => {
+            const stockClass = product.stock <= 5 ? 'low' : '';
+            const adminView = $('#mainApp').hasClass('admin-view') ? 'admin-view' : '';
+            
+            $('#productGrid').append(`
+                <div class="product-card ${adminView}" data-id="${product.id}">
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-price">${formatCurrency(product.price)}</div>
+                    <div class="product-cost">HPP: ${formatCurrency(product.cost || 0)}</div>
+                    <div class="product-stock ${stockClass}">Stok: ${product.stock} ${product.unit || 'pcs'}</div>
                     
-                    $('#productGrid').append(`
-                        <div class="product-card ${adminView}" data-id="${product.id}">
-                            <div class="product-name">${product.name}</div>
-                            <div class="product-price">${formatCurrency(product.price)}</div>
-                            <div class="product-cost">HPP: ${formatCurrency(product.cost || 0)}</div>
-                            <div class="product-stock ${stockClass}">Stok: ${product.stock} ${product.unit || 'pcs'}</div>
-                            
-                            <div class="product-actions">
-                                <div class="action-btn edit-btn edit-product" data-id="${product.id}">
-                                    <i class="fas fa-edit"></i>
-                                </div>
-                                <div class="action-btn delete-btn delete-product" data-id="${product.id}">
-                                    <i class="fas fa-trash"></i>
-                                </div>
-                            </div>
+                    <div class="product-actions">
+                        <div class="action-btn edit-btn edit-product" data-id="${product.id}">
+                            <i class="fas fa-edit"></i>
                         </div>
-                    `);
-                });
-            }
+                        <div class="action-btn delete-btn delete-product" data-id="${product.id}">
+                            <i class="fas fa-trash"></i>
+                        </div>
+                    </div>
+                </div>
+            `);
+        });
+    }
             
             function loadCategories() {
                 // Clear filter chips
